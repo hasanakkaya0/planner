@@ -1,0 +1,17 @@
+{
+  "name": "Planner",
+  "short_name": "Planner",
+  "description": "Günlük, haftalık ve aylık planlayıcı: ders programı, görevler, rutinler, odak sayacı.",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f5ff",
+  "theme_color": "#f7f5ff",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

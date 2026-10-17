@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Planner</title>
+<meta name="theme-color" content="#f7f5ff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#2a2b45" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Günlük, haftalık ve aylık planlayıcı: ders programı, görevler, rutinler, odak sayacı.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Planner">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="css/style.css?v=23">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c6cf6'/%3E%3Cstop offset='1' stop-color='%234a8af0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Crect x='7.5' y='9.5' width='17' height='15.5' rx='3.2' fill='white'/%3E%3Cpath d='M7.5 14.2h17' stroke='%23c9c2fb' stroke-width='1.4'/%3E%3Cpath d='M12 6.8v4.6M20 6.8v4.6' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M12.4 19.6l2.5 2.4 4.8-4.8' fill='none' stroke='%235a4bd1' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+</head>
+<body>
+<!-- BODY START -->
+<script>
+/* tema: kayıtlı seçimi ilk boyamadan önce uygula (yanıp sönmesin) */
+try {
+  var _t = localStorage.getItem("gunDefteri.theme"); if (_t === "light" || _t === "dark") document.documentElement.setAttribute("data-theme", _t);
+  var _a = localStorage.getItem("gunDefteri.accent"); if (_a && _a !== "violet") document.documentElement.setAttribute("data-accent", _a);
+} catch (e) {}
+</script>
+<header class="topbar">
+  <div class="wrap">
+    <div class="tb-row">
+      <div class="brand"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="plg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c6cf6"/><stop offset="1" stop-color="#4a8af0"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#plg)"/><rect x="7.5" y="9.5" width="17" height="15.5" rx="3.2" fill="#fff"/><path d="M7.5 14.2h17" stroke="#c9c2fb" stroke-width="1.4"/><path d="M12 6.8v4.6M20 6.8v4.6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M12.4 19.6l2.5 2.4 4.8-4.8" fill="none" stroke="#5a4bd1" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Planner</span></div>
+      <div class="qa-wrap">
+        <input type="text" id="qa" autocomplete="off" spellcheck="false" placeholder="Hızlı ekle: yarın 14:00 Matematik @MM-101 #ders · cuma quiz !sınav   ( / )" aria-label="Hızlı ekle">
+        <div class="qa-prev" id="qaPrev" hidden></div>
+      </div>
+      <div class="tb-spacer"></div>
+      <div class="seg" id="viewSeg" role="tablist" aria-label="Görünüm">
+        <button role="tab" data-view="day" title="Gün (G)">Gün</button>
+        <button role="tab" data-view="week" title="Hafta (H)">Hafta</button>
+        <button role="tab" data-view="month" title="Ay (A)">Ay</button>
+      </div>
+      <div class="fb-wrap">
+        <button class="focus-btn" id="focusBtn" type="button" title="Serbest odak (O)" aria-haspopup="dialog" aria-expanded="false">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="11" r="6.5"/><path d="M10 7.5V11l2.4 1.6M8 2.5h4M15.2 5.3l1.2-1.2"/></svg>
+          <span id="focusBtnTxt">Odak</span>
+        </button>
+        <div class="focus-pop" id="focusPop" hidden role="dialog" aria-label="Serbest odak">
+          <label class="field"><span>Ne üzerinde çalışıyorsun?</span><input type="text" id="fpTitle" maxlength="60" placeholder="isteğe bağlı, ör. STAT 303 ödev" autocomplete="off"></label>
+          <div class="field"><span>Süre</span><div class="fp-mins" id="fpMins"></div></div>
+          <div class="fp-row"><select id="fpCat" aria-label="Kategori"></select><button type="button" class="btn" id="fpStart">Başlat</button></div>
+        </div>
+      </div>
+      <button class="nav-ico" id="themeBtn" title="Açık / koyu tema (K)" aria-label="Açık / koyu tema"></button>
+      <button class="nav-ico" id="setBtn" title="Ayarlar (,)" aria-label="Ayarlar"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.6"/><path d="M10 1.8v2.1M10 16.1v2.1M18.2 10h-2.1M3.9 10H1.8M15.8 4.2l-1.5 1.5M5.7 14.3l-1.5 1.5M15.8 15.8l-1.5-1.5M5.7 5.7L4.2 4.2"/><circle cx="10" cy="10" r="5.4"/></svg></button>
+    </div>
+    <div class="tb-row" style="margin-top:8px">
+      <div class="datehead">
+        <h1 id="dateTitle">—</h1>
+        <span class="sub" id="dateSub"></span>
+      </div>
+      <div class="tb-spacer"></div>
+      <div class="stat" id="stat"></div>
+      <div class="navbtns">
+        <button class="nav-ico" id="prev" title="Önceki (←)" aria-label="Önceki"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg></button>
+        <button class="today-btn" id="todayBtn" title="Bugün (T)">Bugün</button>
+        <button class="nav-ico" id="next" title="Sonraki (→)" aria-label="Sonraki"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+    <div class="tabs day-only" role="tablist">
+      <button class="tab" role="tab" data-tab="program" aria-selected="true">Program</button>
+      <button class="tab" role="tab" data-tab="gorevler" aria-selected="false">Görevler</button>
+      <button class="tab" role="tab" data-tab="rutinler" aria-selected="false">Rutinler</button>
+    </div>
+  </div>
+</header>
+
+<p class="banner" id="banner" hidden></p>
+
+<main class="wrap view-main" id="weekView" hidden>
+  <div class="panel wk-panel">
+    <div class="wk-grid" id="wkGrid"></div>
+    <div class="wk-agenda" id="wkAgenda"></div>
+  </div>
+  <section class="panel t-mint">
+    <header><h2>Haftanın rutinleri</h2><span class="count" id="wkHabCount"></span></header>
+    <div class="hab-scroll"><table class="hab-table" id="wkHabits"></table></div>
+  </section>
+</main>
+
+<main class="wrap view-main" id="monthView" hidden>
+  <div class="panel mo-panel">
+    <div class="mo-grid" id="moGrid"></div>
+    <div class="mo-legend">
+      <span><i></i> yeşil çizgi: o gün yapılan rutin oranı</span>
+      <span>güne tıkla → gün görünümü</span>
+    </div>
+  </div>
+  <section class="panel t-peach">
+    <header><h2>Bu ayın öne çıkanları</h2><span class="count" id="moKeyCount"></span></header>
+    <ul class="upc" id="moKeyList"></ul>
+  </section>
+</main>
+
+<main class="wrap day-main" id="dayView">
+  <div class="week" id="week"></div>
+  <div class="daygrid">
+  <div class="col">
+    <section class="panel pane p-program t-blue">
+      <header><h2>Saat çizelgesi</h2><span class="count" id="blkCount"></span></header>
+      <div class="addrow top">
+        <input type="time" id="bStart" value="09:00" step="300" aria-label="Başlangıç">
+        <input type="time" id="bEnd" value="10:00" step="300" aria-label="Bitiş">
+        <input type="text" id="bTitle" class="grow" placeholder="Ne var? (ör. Matematik dersi)" maxlength="80" autocomplete="off">
+        <select id="bCat" aria-label="Tür">
+          <option value="ders">Ders</option>
+          <option value="is">Kulüp / İş</option>
+          <option value="kisisel">Kişisel</option>
+        </select>
+        <button class="btn" id="bAdd">Ekle</button>
+        <button class="btn-ghost" id="bMore" title="Her hafta tekrarlayan ders / blok (B)">↻ Haftalık</button>
+      </div>
+      <div class="hint" id="freeHint"></div>
+      <div class="tl-scroll"><div class="tl" id="tl"></div></div>
+    </section>
+  </div>
+
+  <div class="side">
+  <div class="col">
+    <section class="panel pane p-gorevler t-peach" id="upcPanel" hidden>
+      <header><h2>Yaklaşanlar</h2><span class="count" id="upcDays">14 gün</span></header>
+      <ul class="upc" id="upcList"></ul>
+    </section>
+
+    <section class="panel pane p-gorevler t-lilac">
+      <header><h2>Görevler</h2><span class="count" id="tCount"></span></header>
+      <div class="addrow top">
+        <input type="text" id="tTitle" class="grow" placeholder="Yeni görev (N)" maxlength="140" autocomplete="off">
+        <select id="tCat" aria-label="Kategori">
+          <option value="ders">Ders</option>
+          <option value="is">Kulüp / İş</option>
+          <option value="kisisel">Kişisel</option>
+        </select>
+        <select id="tKind" aria-label="Tür">
+          <option value="normal">Görev</option>
+          <option value="teslim">Teslim</option>
+          <option value="sinav">Sınav</option>
+        </select>
+        <input type="date" id="tDate" aria-label="Tarih">
+        <button class="btn" id="tAdd">Ekle</button>
+      </div>
+      <div id="overdueBar"></div>
+      <div id="taskList"></div>
+    </section>
+
+  </div>
+  <div class="col">
+    <section class="panel pane p-rutinler t-mint">
+      <header><h2>Rutinler</h2><span class="count" id="hCount"></span></header>
+      <div id="habitList"></div>
+      <div class="addrow">
+        <input type="text" id="hTitle" class="grow" placeholder="Yeni rutin (ör. Spor)" maxlength="40" autocomplete="off">
+        <select id="hTarget" aria-label="Sıklık">
+          <option value="7">Her gün</option>
+          <option value="6">Haftada 6</option>
+          <option value="5">Haftada 5</option>
+          <option value="4">Haftada 4</option>
+          <option value="3">Haftada 3</option>
+          <option value="2">Haftada 2</option>
+          <option value="1">Haftada 1</option>
+        </select>
+        <button class="btn-ghost" id="hAdd">Ekle</button>
+      </div>
+    </section>
+
+    <section class="panel pane p-rutinler t-butter">
+      <header><h2>Günün notu</h2></header>
+      <div class="note">
+        <textarea id="note" placeholder="Bugüne dair not, yarına kalanlar…"></textarea>
+        <div class="saved" id="noteSaved"></div>
+      </div>
+    </section>
+
+  </div>
+  </div>
+  </div>
+</main>
+
+<footer class="wrap foot">
+  <p class="sig"><span>Planner</span> · Hasan Akkaya · <a href="https://github.com/hasanakkaya0" target="_blank" rel="noopener">GitHub</a> · <a href="https://www.linkedin.com/in/hasanakkaya0" target="_blank" rel="noopener">LinkedIn</a></p>
+  <p class="keys"><kbd>G</kbd> <kbd>H</kbd> <kbd>A</kbd> gün / hafta / ay · <kbd>←</kbd> <kbd>→</kbd> önceki / sonraki · <kbd>T</kbd> bugün · <kbd>N</kbd> görev · <kbd>B</kbd> blok · <kbd>K</kbd> tema · <kbd>,</kbd> ayarlar · <kbd>Esc</kbd> kapat</p>
+</footer>
+
+<div class="modal-bg" id="modalBg" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+<div class="focus" id="focus" hidden aria-live="polite"></div>
+<div class="toast" id="toast" hidden></div>
+<!-- BODY END -->
+
+<!-- senkron (GitHub Pages sürümü): Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js?v=23"></script>
+<script src="js/sync.js?v=23"></script>
+<script src="js/core.js?v=23"></script>
+<script src="js/store.js?v=23"></script>
+<script src="js/app.js?v=23"></script>
+<script>
+/* çevrimdışı çalışma + ana ekrana ekleme (yalnızca http/https'te) */
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+</body>
+</html>
