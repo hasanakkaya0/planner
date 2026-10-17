@@ -1,8 +1,8 @@
-/* Planner — tasarım sistemi
-   Layout: sticky tarih başlığı + hafta şeridi; altında iki sütun (saat çizelgesi | yaklaşanlar + görevler + rutinler + not),
-   880px altında sekmeli tek sütun. Zemin ince kareli defter dokusu. */
+/* Planner — design system
+   Layout: top bar + date header; day view in two columns (timeline | upcoming + tasks + habits + note),
+   a single tabbed column below 880px. Background is a faint grid-paper texture. */
 :root{
-  /* açık tema: lila zemin, pastel bölüm başlıkları */
+  /* light theme: lilac background, pastel section headers */
   --paper:#efedfa;
   --top:#f7f5ff;
   --card:#fdfcff;
@@ -21,7 +21,7 @@
   --ochre-soft:#fcefd6;
   --rose:#c2414b;
   --rose-soft:#fde4e6;
-  /* bölüm tonları */
+  /* section tints */
   --tint-blue:#e3ecfd;
   --tint-lilac:#ece6fd;
   --tint-mint:#dff4e9;
@@ -31,7 +31,7 @@
   --shadow:0 1px 2px rgba(22,26,34,.06), 0 8px 24px -16px rgba(22,26,34,.22);
   --shadow-lg:0 2px 6px rgba(22,26,34,.08), 0 24px 60px -20px rgba(22,26,34,.35);
 
-  /* tek, okunaklı yazı ailesi; rakamlar her yerde eşit genişlikte (tabular) */
+  /* one readable type family; tabular figures everywhere */
   --f-display:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   --f-body:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   --f-mono:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
@@ -97,7 +97,7 @@ button:disabled{cursor:not-allowed;opacity:.45}
 
 .wrap{max-width:min(1920px, 100%);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 
-/* ---------- üst bar ---------- */
+/* ---------- top bar ---------- */
 .topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--top);border-bottom:1px solid var(--rule)}
 .topbar .wrap{padding-block:12px}
 .tb-row{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
@@ -116,7 +116,7 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .stat{font-family:var(--f-mono);font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
 .stat b{color:var(--ink);font-weight:500}
 
-/* hafta şeridi */
+/* week strip */
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px;padding-bottom:10px}
 .wd{position:relative;border:1px solid transparent;border-radius:9px;padding:6px 2px 7px;text-align:center;transition:background .12s,border-color .12s}
 .wd:hover{background:var(--card-2);border-color:var(--rule)}
@@ -135,7 +135,7 @@ button:disabled{cursor:not-allowed;opacity:.45}
 .tab{flex:1;padding:8px 4px;border-radius:8px;font-size:13px;font-weight:600;color:var(--ink-soft);border:1px solid var(--rule);background:var(--card-2)}
 .tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 
-/* görünüm seçici + tema */
+/* view switcher + theme */
 .seg{display:flex;padding:3px;gap:2px;border:1px solid var(--rule);border-radius:9px;background:var(--card-2)}
 .seg button{height:26px;padding:0 12px;border-radius:6px;font-size:13px;font-weight:600;color:var(--ink-soft)}
 .seg button:hover{color:var(--accent)}
@@ -149,7 +149,7 @@ button:disabled{cursor:not-allowed;opacity:.45}
 }
 body:not([data-view="day"]) .day-only{display:none!important}
 
-/* ---------- yerleşim ---------- */
+/* ---------- layout ---------- */
 .day-main{padding-block:18px 32px}
 .daygrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px;align-items:start}
 .side{display:grid;gap:18px;align-items:start;min-width:0}
@@ -171,7 +171,7 @@ body:not([data-view="day"]) .day-only{display:none!important}
 .hint{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-soft);padding:10px 16px 4px;font-variant-numeric:tabular-nums}
 .hint b{color:var(--moss);font-weight:500}
 
-/* ---------- çizelge ---------- */
+/* ---------- timeline ---------- */
 .tl-scroll{padding:16px 16px 16px}
 .tl{position:relative}
 .hour{position:relative;height:var(--hour-h);border-top:1px solid var(--rule)}
@@ -210,11 +210,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none}
 .btn-danger.arm{background:var(--rose);border-color:var(--rose);color:var(--card)}
 .linkbtn{font-size:12.5px;font-weight:600;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 
-/* ---------- gecikmiş bandı ---------- */
+/* ---------- overdue banner ---------- */
 .overdue{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 16px;background:var(--rose-soft);color:var(--rose);font-size:13px;border-bottom:1px solid var(--rule)}
 .overdue .linkbtn{color:var(--rose)}
 
-/* ---------- yaklaşanlar ---------- */
+/* ---------- upcoming ---------- */
 ul.upc{list-style:none;margin:0;padding:6px 8px 8px;display:grid;gap:1px}
 ul.upc li button{width:100%;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;padding:7px 8px;border-radius:7px;text-align:left}
 ul.upc li button:hover{background:var(--card-2)}
@@ -224,7 +224,7 @@ ul.upc li button:hover{background:var(--card-2)}
 .upc .ul{font-family:var(--f-mono);font-size:11px;color:var(--ink-faint);white-space:nowrap}
 .upc .ul.soon{color:var(--rose)}
 
-/* ---------- görevler ---------- */
+/* ---------- tasks ---------- */
 .tgroup{border-top:1px solid var(--rule)}
 .tgroup:first-child{border-top:0}
 .tgroup>h3{display:flex;align-items:center;gap:7px;padding:10px 16px 6px;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft)}
@@ -282,7 +282,7 @@ li.habit .hn small{display:block;font-family:var(--f-mono);font-size:10.5px;colo
 /* ---------- ayarlar ---------- */
 
 
-/* ---------- boş / durum ---------- */
+/* ---------- empty / status ---------- */
 .empty{padding:22px 16px;text-align:center;color:var(--ink-faint);font-size:13.5px;line-height:1.6}
 .empty strong{display:block;font-family:var(--f-display);font-size:14px;color:var(--ink-soft);margin-bottom:3px}
 .banner{margin:0;padding:9px max(16px,env(safe-area-inset-left,0px));font-size:13px;color:var(--ochre);background:var(--ochre-soft);border-bottom:1px solid var(--rule);font-family:var(--f-mono)}
@@ -317,7 +317,7 @@ kbd{font-family:var(--f-mono);font-size:10.5px;border:1px solid var(--rule);bord
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--paper);padding:9px 14px;border-radius:9px;font-size:13.5px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow-lg);max-width:calc(100% - 32px)}
 .toast button{color:var(--paper);font-weight:700;text-decoration:underline;text-underline-offset:3px}
 
-/* ---------- hafta görünümü ---------- */
+/* ---------- week view ---------- */
 .wk-panel{overflow:hidden}
 .wk-grid{--wk-h:42px;--wk-g:52px;display:grid;grid-template-columns:var(--wk-g) repeat(7,minmax(0,1fr))}
 .wk-corner{border-bottom:1px solid var(--rule);background:var(--tint-lilac)}
@@ -383,7 +383,7 @@ kbd{font-family:var(--f-mono);font-size:10.5px;border:1px solid var(--rule);bord
 .hcell.on{background:var(--moss);border-color:var(--moss);color:var(--card)}
 .hcell:not(:disabled):hover{border-color:var(--moss)}
 
-/* ---------- ay görünümü ---------- */
+/* ---------- month view ---------- */
 .mo-panel{overflow:hidden}
 .mo-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
 .mo-dn{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;padding:9px 8px;border-bottom:1px solid var(--rule)}
@@ -450,7 +450,7 @@ ul.upc li.empty{padding:14px 10px;font-size:13.5px;color:var(--ink-faint);text-a
 .sig a{color:var(--accent);font-weight:600;text-decoration:none}
 .sig a:hover{text-decoration:underline;text-underline-offset:3px}
 
-/* ---------- renk paleti: kategori ve tür renkleri (ayarlardan seçilir) ---------- */
+/* ---------- color palette: category and kind colors (chosen in settings) ---------- */
 .c-blue{--c:#2f6fdb;--c-soft:#e1ebfd}
 .c-violet{--c:#6a4fd6;--c-soft:#ebe5fd}
 .c-green{--c:#2f7d58;--c-soft:#dcf2e6}
@@ -478,7 +478,7 @@ ul.upc li.empty{padding:14px 10px;font-size:13.5px;color:var(--ink-faint);text-a
 :root[data-theme="dark"] .c-teal{--c:#7fd9de;--c-soft:#21454a}
 :root[data-theme="dark"] .c-slate{--c:#b4b9cf;--c-soft:#383b55}
 
-/* ---------- ana renk seçenekleri ---------- */
+/* ---------- accent color options ---------- */
 :root[data-accent="blue"]{--accent:#2f6fdb;--accent-soft:#e2ecfd}
 :root[data-accent="green"]{--accent:#2f7d58;--accent-soft:#dcf2e6}
 :root[data-accent="pink"]{--accent:#c03d8a;--accent-soft:#fce4f1}
@@ -531,7 +531,7 @@ ul.upc li.empty{padding:14px 10px;font-size:13.5px;color:var(--ink-faint);text-a
 .modal.wide .body{overflow-y:auto;min-height:0}
 @media (max-width:880px){ .set-l{min-width:0;flex:1 1 100%} }
 
-/* ---------- geniş ekran: daha ferah ölçek (dosyanın sonunda; önceki kuralları ezer) ---------- */
+/* ---------- wide screens: roomier scale (at the end of the file; overrides earlier rules) ---------- */
 @media (min-width:1360px){
   :root{--hour-h:60px;--gutter:60px}
   body{font-size:16px}
@@ -556,9 +556,9 @@ ul.upc li.empty{padding:14px 10px;font-size:13.5px;color:var(--ink-faint);text-a
   .blk .bt{font-size:14px}
   .blk .bh{font-size:11.5px}
   li.task .tx,li.habit .hn{font-size:15.5px}
-  /* ay: 6 satır ekran yüksekliğini doldurur */
+  /* month: 6 rows fill the screen height */
   .mo-dn{padding:12px;font-size:11.5px}
-  /* yükseklik: 6 satır ekrana sığsın, hücre genişliğinin ~2/3'ünü geçmesin */
+  /* height: 6 rows fit on screen, no taller than ~2/3 of the cell width */
   .mo-cell{padding:10px 10px 14px;gap:5px}
   .mo-num{font-size:15px;width:30px;height:30px}
   .mo-key{font-size:13px;padding:3px 8px;border-radius:5px}
@@ -577,7 +577,7 @@ ul.upc li.empty{padding:14px 10px;font-size:13.5px;color:var(--ink-faint);text-a
   .hcell{width:32px;height:32px}
 }
 
-/* ---------- gün adları: tam ad, ortalı, kalın; sığmazsa kesilir ---------- */
+/* ---------- day names: full name, centered, bold; truncated if it doesn't fit ---------- */
 .dn-short{display:none}
 .dn-full{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
 .mo-dn{text-align:center;text-transform:none;letter-spacing:0;font-size:13px;font-weight:700;color:var(--ink)}
@@ -597,10 +597,10 @@ ul.upc li.empty{padding:14px 10px;font-size:13.5px;color:var(--ink-faint);text-a
   .mo-dn,.wk-day .dn,.wd .dn,.hab-table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em}
 }
 
-/* ay hücresi: pencereye oturan düzende 6 satır eşit bölünür (body.fit), diğer durumlarda 108px */
+/* month cell: in the fit-to-window layout the 6 rows share the height equally (body.fit), otherwise 108px */
 @media (min-width:881px){ .mo-cell{min-height:var(--mo-h,108px)} }
 
-/* ---------- plan blokları: okunaklı yazı ---------- */
+/* ---------- plan blocks: readable text ---------- */
 .blk{padding:5px 10px;border-width:1px;border-left-width:4px}
 .blk .bt{font-size:14px;font-weight:700;line-height:1.3}
 .blk .bh{font-size:12px;font-weight:500;opacity:.9}
@@ -619,18 +619,18 @@ ul.upc li.empty{padding:14px 10px;font-size:13.5px;color:var(--ink-faint);text-a
   .wblk .bh{font-size:12.5px}
 }
 
-/* ---------- hafta şeridi artık sayfanın içinde (başlık çubuğu her görünümde aynı boy) ---------- */
+/* ---------- week strip now lives inside the page (the header bar is the same height in every view) ---------- */
 .day-main .week{margin:0 0 16px;padding:6px;background:var(--card);border:1px solid var(--rule);border-radius:var(--r);box-shadow:var(--shadow)}
 @media (max-width:880px){ .day-main .week{margin-bottom:12px} }
 
-/* ---------- pencereye oturan düzen (bilgisayar; JS body.fit ekler) ---------- */
+/* ---------- fit-to-window layout (desktop; JS adds body.fit) ---------- */
 body.fit{height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 body.fit .topbar{position:relative;top:0;flex:none}
 body.fit .banner{flex:none}
 body.fit main:not([hidden]){flex:1 1 auto;min-height:0;width:100%;box-sizing:border-box}
 body.fit .foot{width:100%}
 body.fit .foot{flex:none;padding-block:6px 10px;gap:2px}
-/* gün */
+/* day */
 body.fit .day-main{display:flex;flex-direction:column;padding-block:16px 6px}
 body.fit .day-main .week{flex:none;margin-bottom:14px}
 body.fit .daygrid{flex:1 1 auto;min-height:0;align-items:stretch;grid-template-rows:minmax(0,1fr)}
@@ -642,22 +642,22 @@ body.fit .side{min-height:0;overflow-y:auto;align-content:start;padding-bottom:2
 body.fit #weekView{grid-template-rows:minmax(0,1fr) auto;padding-block:16px 6px}
 body.fit .wk-panel{min-height:0}
 body.fit #weekView>section{max-height:32vh;overflow-y:auto}
-/* ay: 6 satır kalan yüksekliği eşit paylaşır */
+/* month: 6 rows share the remaining height equally */
 body.fit #monthView{grid-template-rows:minmax(0,1fr) auto;padding-block:16px 6px}
 body.fit .mo-panel{min-height:0;display:flex;flex-direction:column}
 body.fit .mo-grid{flex:1 1 auto;min-height:0;grid-template-rows:auto repeat(6,minmax(0,1fr))}
 body.fit .mo-cell{min-height:0;overflow:hidden}
 body.fit #monthView>section{max-height:22vh;overflow-y:auto}
 
-/* çok kısa bloklar: tek ince satır */
+/* very short blocks: a single thin line */
 .blk.tiny{padding-block:0;align-items:center}
 .blk.tiny .bt{font-size:12px;line-height:1.15}
 .blk.tiny .bh{font-size:11px}
 .wblk.tiny{padding-block:0;justify-content:center}
 .wblk.tiny .bt{font-size:11.5px;line-height:1.15}
-/* pencereye oturan düzende kısayol satırı gizli (Ayarlar → Hakkında'da var) */
+/* the shortcuts line is hidden in the fit layout (it's under Settings → About) */
 body.fit .keys{display:none}
-/* geniş ekranda haftanın rutinleri ızgaranın sağında */
+/* on wide screens the week's habits sit to the right of the grid */
 @media (min-width:1500px){
   body.fit #weekView{grid-template-columns:minmax(0,1fr) 360px;grid-template-rows:minmax(0,1fr)}
   body.fit #weekView>section{max-height:100%;align-self:start}
@@ -673,13 +673,13 @@ body.fit .keys{display:none}
 }
 
 .blk.tiny .bh{line-height:1.15}
-/* hafta ızgarası sığmazsa panel içinde kayar, gün başlıkları üstte sabit */
+/* if the week grid doesn't fit it scrolls inside the panel, day headers stay pinned */
 body.fit .wk-panel{overflow-y:auto}
 body.fit .wk-corner,body.fit .wk-day{position:sticky;top:0;z-index:4}
-/* yan sütundaki dar rutin tablosunda kısa gün adları */
+/* short day names in the narrow habit table in the side column */
 @media (min-width:1500px){ body.fit .hab-table .dn-full{display:none} body.fit .hab-table .dn-short{display:inline} }
 
-/* ---------- hızlı ekleme ---------- */
+/* ---------- quick add ---------- */
 .qa-wrap{position:relative;flex:1 1 360px;max-width:620px;min-width:0;margin-inline:12px 4px}
 .qa-wrap::before{content:"+";position:absolute;left:12px;top:50%;transform:translateY(-52%);color:var(--accent);font-weight:800;font-size:19px;pointer-events:none}
 .qa-wrap input{width:100%;height:36px;padding:0 12px 0 32px;border-radius:10px;background:var(--card-2);font-size:14px}
@@ -702,7 +702,7 @@ body.fit .wk-corner,body.fit .wk-day{position:sticky;top:0;z-index:4}
 .wblk .bl-in{font-weight:500;opacity:.8}
 @media (min-width:1360px){ .wblk .bl{font-size:12px} }
 
-/* ---------- sürükle-bırak ---------- */
+/* ---------- drag & drop ---------- */
 .blk,.wblk{cursor:grab;touch-action:pan-y}
 .rsz{position:absolute;left:0;right:0;bottom:0;height:8px;cursor:ns-resize}
 .blk:hover .rsz::after,.wblk:hover .rsz::after{content:"";position:absolute;left:50%;bottom:2px;width:22px;height:3px;margin-left:-11px;border-radius:2px;background:currentColor;opacity:.35}
@@ -713,7 +713,7 @@ li.task[draggable="true"]{cursor:grab}
 body.dragging-task .blocks .blk{pointer-events:none}
 body.dragging-task #tl{outline:2px dashed var(--accent);outline-offset:4px;border-radius:8px}
 
-/* ---------- odak sayacı ---------- */
+/* ---------- focus timer ---------- */
 .focus{position:fixed;right:max(20px, env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:45;width:272px;max-width:calc(100% - 32px);background:var(--card);border:1px solid var(--rule);border-left:5px solid var(--c, var(--accent));border-radius:12px;box-shadow:var(--shadow-lg);padding:12px 14px 14px;display:grid;gap:8px}
 .f-top{display:flex;gap:8px;align-items:baseline;min-width:0}
 .f-ph{font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--c, var(--accent));white-space:nowrap}
@@ -732,12 +732,12 @@ body.dragging-task #tl{outline:2px dashed var(--accent);outline-offset:4px;borde
 .tact button[data-focus-task]{color:var(--accent)}
 @media (max-width:880px){ .focus{left:16px;right:16px;width:auto;bottom:calc(16px + env(safe-area-inset-bottom,0px))} }
 
-/* hafta blokları: her satır tek satır, sığmayan kesilir (üst üste binmez) */
+/* week blocks: one line per row, overflow is cut off (no overlap) */
 .wblk{justify-content:flex-start;padding-block:3px}
 .wblk .bt,.wblk .bh,.wblk .bl{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;flex:none}
 .wblk .bh{line-height:1.3}
 
-/* ---------- üst çubuk: odak düğmesi ---------- */
+/* ---------- top bar: focus button ---------- */
 .fb-wrap{position:relative;flex:none}
 .focus-btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border:1px solid var(--rule);border-radius:9px;background:var(--card-2);color:var(--ink-soft);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .focus-btn svg{width:17px;height:17px;flex:none}
@@ -759,7 +759,7 @@ body.dragging-task #tl{outline:2px dashed var(--accent);outline-offset:4px;borde
 @media (prefers-reduced-motion:reduce){ .focus-btn svg{animation:none!important} }
 @media (max-width:880px){ .focus-pop{position:fixed;left:16px;right:16px;top:calc(72px + env(safe-area-inset-top,0px));width:auto} }
 
-/* ---------- derse bağlı quiz / sınav / teslim ---------- */
+/* ---------- quiz / exam / deadline linked to a class ---------- */
 .kring{position:absolute;inset:-1px;border:2px solid var(--c);border-radius:inherit;pointer-events:none}
 .kbadges{position:absolute;top:3px;right:4px;display:flex;gap:3px;pointer-events:none;z-index:1}
 .kbadge{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:1px 6px;border-radius:999px;background:var(--c);color:var(--card);line-height:1.5;white-space:nowrap}
@@ -773,12 +773,12 @@ body.dragging-task #tl{outline:2px dashed var(--accent);outline-offset:4px;borde
 .kchip:hover{background:var(--c-soft);border-style:solid}
 .pill.at{color:var(--ink-soft);border-color:var(--rule);background:var(--card-2)}
 
-/* ---------- hafta: görev adları ---------- */
+/* ---------- week: task names ---------- */
 .wk-task{font-size:12px;line-height:1.3;padding:2px 6px;border-left:3px solid var(--c);border-radius:3px;background:var(--card-2);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
 .wk-task.done{color:var(--ink-faint);text-decoration:line-through}
 @media (min-width:1360px){ .wk-task{font-size:12.5px} }
 
-/* ---------- ay: günün içeriği ---------- */
+/* ---------- month: the day's contents ---------- */
 .mo-cell{gap:3px}
 .mo-ev,.mo-task{display:flex;align-items:center;gap:5px;font-size:12px;line-height:1.3;min-width:0;color:var(--ink);white-space:nowrap}
 .mo-ev .tx,.mo-task .tx{overflow:hidden;text-overflow:ellipsis;min-width:0}
@@ -806,7 +806,7 @@ body.dragging-task #tl{outline:2px dashed var(--accent);outline-offset:4px;borde
 .kbadges{max-width:72%;justify-content:flex-end}
 .kbadge{overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
 
-/* ---------- giriş ekranı (senkron sürüm) ---------- */
+/* ---------- sign-in screen (sync build) ---------- */
 .auth-bg{position:fixed;inset:0;z-index:100;background:var(--paper);display:grid;place-items:center;overflow-y:auto;
   padding:max(24px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 .auth{width:min(380px,100%);background:var(--card);border:1px solid var(--rule);border-radius:18px;box-shadow:var(--shadow-lg);padding:26px 22px;display:flex;flex-direction:column;gap:12px}
@@ -818,11 +818,11 @@ body.dragging-task #tl{outline:2px dashed var(--accent);outline-offset:4px;borde
 .auth-err.ok{color:var(--moss)}
 .auth-alt{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 
-/* iPhone: 16px altı yazı alanına dokununca Safari sayfayı büyütür; büyütmesin */
+/* iPhone: Safari zooms in when focusing an input under 16px; prevent that */
 @media (hover:none) and (pointer:coarse){
   input[type=text],input[type=email],input[type=password],input[type=date],input[type=time],input[type=number],select,textarea{font-size:16px}
 }
-/* ana ekrandan açılınca metin seçimi / uzun basma menüsü düğmelerde çıkmasın */
+/* when launched from the home screen, no text selection / long-press menu on buttons */
 @media (display-mode:standalone){
   button,.blk,.wblk,li.task{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   body{overscroll-behavior-y:none}

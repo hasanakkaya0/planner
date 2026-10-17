@@ -1,14 +1,14 @@
-/* Planner — depolama katmanı.
-   İki uygulama, aynı arayüz:
-     cloud    : claude.ai'de yayınlanan sayfa → artifact veritabanı
-     firebase : GitHub Pages'teki sürüm → Firebase Firestore (giriş yapılır; telefon + bilgisayar senkron)
-     local : index.html'i doğrudan açınca → bu tarayıcının localStorage'ı
-   Arayüz:
-     watch(col, cb)        → unsub   cb([{id, ...alanlar}])
-     watchDoc(col, id, cb) → unsub   cb(alanlar | null)
+/* Planner — storage layer.
+   Three backends, one interface:
+     cloud    : page published on claude.ai → artifact database
+     firebase : GitHub Pages build → Firebase Firestore (signed in; phone + computer stay in sync)
+     local    : index.html opened directly → this browser's localStorage
+   Interface:
+     watch(col, cb)        → unsub   cb([{id, ...fields}])
+     watchDoc(col, id, cb) → unsub   cb(fields | null)
      set / update / del    → Promise
-     dump()                → Promise<{col: {id: alanlar}}>
-     bulk(data)            → Promise   (yedekten geri yükleme; aynı id'liler üzerine yazılır) */
+     dump()                → Promise<{col: {id: fields}}>
+     bulk(data)            → Promise   (restore from backup; documents with the same id are overwritten) */
 (function (root) {
   "use strict";
 
@@ -28,7 +28,7 @@
   }
 
   /* ---------- bulut ---------- */
-  /* pre: koleksiyon yolu öneki (Firebase'de "users/<uid>/"; claude.ai'de boş) */
+  /* pre: collection path prefix ("users/<uid>/" on Firebase; empty on claude.ai) */
   function cloudStore(db, pre) {
     pre = pre || "";
     function q(col) {
@@ -44,7 +44,7 @@
       watchDoc: function (col, id, cb, onErr) {
         return db.doc(pre + col + "/" + id).onSnapshot(function (s) { cb(s.exists ? (s.data() || {}) : null); }, onErr);
       },
-      /* alan değeri [from, to] aralığında olan belgeler (ör. bir haftanın / ayın günleri) */
+      /* documents whose field value is within [from, to] (e.g. the days of a week / month) */
       watchRange: function (col, field, from, to, cb, onErr) {
         return db.collection(pre + col).where(field, ">=", from).where(field, "<=", to).limit(100)
           .onSnapshot(function (s) { cb(rows(s.docs)); }, onErr);
@@ -69,7 +69,7 @@
         COLS.forEach(function (col) {
           Object.keys(data[col] || {}).forEach(function (id) { jobs.push([col, id, data[col][id]]); });
         });
-        /* belge başına tek yazma, sırayla — hız sınırına takılmamak için */
+        /* one write per document, sequentially — to stay under rate limits */
         return jobs.reduce(function (p, j) {
           return p.then(function () { return db.doc(pre + j[0] + "/" + j[1]).set(j[2]); });
         }, Promise.resolve()).then(function () { return jobs.length; });
@@ -129,7 +129,7 @@
       });
       return out;
     }
-    /* başka sekmede yapılan değişiklikleri al */
+    /* pick up changes made in another tab */
     try {
       root.addEventListener("storage", function (e) {
         if (e.key !== LS_KEY || !e.newValue) return;
@@ -137,7 +137,7 @@
           var p = JSON.parse(e.newValue);
           COLS.forEach(function (c) { state[c] = (p[c] && typeof p[c] === "object") ? p[c] : {}; });
           emitAll();
-        } catch (err) { /* bozuk veri: yok say */ }
+        } catch (err) { /* corrupt data: ignore */ }
       });
     } catch (e) { /* node */ }
 
@@ -183,7 +183,7 @@
     return api;
   }
 
-  /* claude.ai içindeyse onun veritabanı; Firebase ayarı varsa Firebase (GitHub Pages / telefon); yoksa yerel */
+  /* inside claude.ai: its database; with a Firebase config: Firebase (GitHub Pages / phone); otherwise local */
   function create() {
     var c = root.claude;
     if ((!c || typeof c.use !== "function") && root.PlannerSync && root.PlannerSync.configured()) {

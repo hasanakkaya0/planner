@@ -1,14 +1,14 @@
-/* Çalıştır: node tests/core.test.js */
+/* Run: node tests/core.test.js */
 const GD = require("../js/core.js");
 const GDStore = require("../js/store.js");
 let pass = 0, fail = 0;
 function eq(name, got, exp) {
   const ok = JSON.stringify(got) === JSON.stringify(exp);
-  if (ok) pass++; else { fail++; console.log("✗", name, "→ beklenen", JSON.stringify(exp), "gelen", JSON.stringify(got)); }
+  if (ok) pass++; else { fail++; console.log("✗", name, "→ expected", JSON.stringify(exp), "got", JSON.stringify(got)); }
 }
 function throws(name, fn, re) {
-  try { fn(); fail++; console.log("✗", name, "→ hata bekleniyordu"); }
-  catch (e) { if (!re || re.test(e.message)) pass++; else { fail++; console.log("✗", name, "→ yanlış hata:", e.message); } }
+  try { fn(); fail++; console.log("✗", name, "→ expected an error"); }
+  catch (e) { if (!re || re.test(e.message)) pass++; else { fail++; console.log("✗", name, "→ wrong error:", e.message); } }
 }
 const TODAY = "2026-10-16"; // Cuma
 
@@ -36,7 +36,7 @@ eq("blok hatası: ters", GD.blockError(600, 540, "x"), "Bitiş saati başlangı�
 eq("blok hatası: erken", GD.blockError(300, 400, "x"), "Çizelge 06:00'da başlıyor.");
 eq("blok geçerli", GD.blockError(540, 1440, "x"), null);
 
-/* 3) haftalık tekrar */
+/* 3) weekly recurrence */
 const rec = [
   { id: "r1", t: "Matematik", c: "ders", s: 600, e: 710, dow: [1, 3], from: "2026-10-01", until: null },
   { id: "r2", t: "Kulüp toplantısı", c: "is", s: 1080, e: 1140, dow: [5], from: "2026-10-16", until: "2026-12-31" }
@@ -52,7 +52,7 @@ eq("atlanan tekrar görünmez", GD.blocksForDay({ blocks: [], skip: ["r2"] }, re
 eq("gün belgesi yoksa sadece tekrarlar", GD.blocksForDay(null, rec, "2026-10-21").map((b) => b.id), ["r1"]);
 eq("tekrar işareti", GD.blocksForDay(day, rec, TODAY).map((b) => b.rec), [false, true]);
 
-/* 4) çakışma şeritleri */
+/* 4) overlap lanes */
 {
   const L = GD.lanes([
     { id: "a", s: 540, e: 660 }, { id: "b", s: 600, e: 720 }, { id: "c", s: 660, e: 700 }, { id: "d", s: 800, e: 860 }
@@ -65,7 +65,7 @@ eq("tekrar işareti", GD.blocksForDay(day, rec, TODAY).map((b) => b.rec), [false
 }
 eq("lanes girdiyi değiştirmez", (() => { const x = [{ s: 1, e: 2 }]; GD.lanes(x); return x[0]._lane; })(), undefined);
 
-/* 5) boş aralık ve planlı süre */
+/* 5) free slots and planned time */
 {
   const bl = [{ s: 600, e: 720 }, { s: 690, e: 780 }, { s: 900, e: 960 }];
   eq("planlı süre (çakışma bir kez)", GD.plannedMinutes(bl), 240);
@@ -74,17 +74,17 @@ eq("lanes girdiyi değiştirmez", (() => { const x = [{ s: 1, e: 2 }]; GD.lanes(
   eq("boş gün", GD.freeSlots([], 480, 600, 60), [{ s: 480, e: 600 }]);
 }
 
-/* 6) görev görünürlüğü */
+/* 6) task visibility */
 const T = [
   { id: "t1", date: "2026-10-16", done: false, kind: "normal" },
-  { id: "t2", date: "2026-10-14", done: false, kind: "normal" },  // gecikmiş
-  { id: "t3", date: "2026-10-14", done: true, kind: "normal" },   // bitmiş eski
+  { id: "t2", date: "2026-10-14", done: false, kind: "normal" },  // overdue
+  { id: "t3", date: "2026-10-14", done: true, kind: "normal" },   // finished, old
   { id: "t4", date: null, done: false, kind: "normal" },          // tarihsiz
-  { id: "t5", date: null, done: true, kind: "normal" },           // bitmiş tarihsiz
+  { id: "t5", date: null, done: true, kind: "normal" },           // finished, undated
   { id: "t6", date: "2026-10-20", done: false, kind: "sinav", createdAt: 2 },
   { id: "t7", date: "2026-10-18", done: false, kind: "teslim", createdAt: 1 },
-  { id: "t8", date: "2026-11-15", done: false, kind: "sinav" },   // 14 günden uzak
-  { id: "t9", date: "2026-10-19", done: true, kind: "sinav" }     // bitmiş sınav
+  { id: "t8", date: "2026-11-15", done: false, kind: "sinav" },   // more than 14 days away
+  { id: "t9", date: "2026-10-19", done: true, kind: "sinav" }     // finished exam
 ];
 const ids = (arr) => arr.map((x) => (x.t ? x.t.id + (x.late ? "!" : "") : x.id));
 eq("bugün: kendi + gecikmiş + tarihsiz", ids(GD.visibleTasks(T, TODAY, TODAY)), ["t1", "t2!", "t4"]);
@@ -113,9 +113,9 @@ eq("kalan gün metni", [GD.untilText(TODAY, TODAY), GD.untilText(TODAY, "2026-10
   eq("günlük ilerleme", GD.habitProgress(logs, { id: "h", target: 7 }, TODAY), { mode: "daily", streak: 4 });
   eq("hedefsiz = günlük", GD.habitProgress(logs, { id: "h" }, TODAY).mode, "daily");
   const lw = {
-    "2026-09-29": { s: true }, "2026-10-01": { s: true },  // 2 hafta önce: 2
-    "2026-10-06": { s: true }, "2026-10-08": { s: true },  // geçen hafta: 2
-    "2026-10-13": { s: true }                               // bu hafta: 1 (sürüyor)
+    "2026-09-29": { s: true }, "2026-10-01": { s: true },  // 2 weeks ago: 2
+    "2026-10-06": { s: true }, "2026-10-08": { s: true },  // last week: 2
+    "2026-10-13": { s: true }                               // this week: 1 (ongoing)
   };
   eq("haftalık seri: bu hafta bitmediyse geçen haftadan sayar", GD.weekStreak(lw, "s", TODAY, 2), 2);
   eq("haftalık seri: hedef tutmayan hafta keser", GD.weekStreak(lw, "s", TODAY, 3), 0);
@@ -178,7 +178,7 @@ eq("hafta etiketi yıl geçişi", GD.weekLabel("2026-12-30"), "28 Aralık 2026 �
   GD.setDayRange(6, 24);
 }
 
-/* 7d) hızlı ekleme (bugün: 16 Eki 2026 Cuma) */
+/* 7d) quick add (today: Fri 16 Oct 2026) */
 {
   const S = GD.normalizeSettings({ kinds: [{ id: "normal", name: "Görev" }, { id: "teslim", name: "Teslim", key: true }, { id: "sinav", name: "Sınav", key: true }, { id: "k_q", name: "Quiz", key: true }] });
   const P = (s, base) => GD.parseQuick(s, TODAY, base || TODAY, S.cats, S.kinds);
@@ -225,7 +225,7 @@ eq("hafta etiketi yıl geçişi", GD.weekLabel("2026-12-30"), "28 Aralık 2026 �
   eq("geçersiz odak → varsayılan", [GD.normalizeSettings({ focusMins: 7 }).focusMins, GD.normalizeSettings({ breakMins: 99 }).breakMins], [25, 5]);
 }
 
-/* 7e) öne çıkan görev ↔ ders bloğu */
+/* 7e) highlighted task ↔ class block */
 {
   const D = "2026-11-05";
   const bl = [
@@ -252,7 +252,7 @@ eq("hafta etiketi yıl geçişi", GD.weekLabel("2026-12-30"), "28 Aralık 2026 �
   const L2 = GD.linkKeyTasks(bl, [{ id: "n1", title: "slaytları getir", kind: "normal", date: D, blk: "r3" }, { id: "n2", title: "Stat363 notları", kind: "normal", date: D }], D, kk);
   eq("normal görev elle bağlanır", L2.byTask.n1 && L2.byTask.n1.id, "r3");
   eq("normal görev otomatik bağlanmaz", L2.byTask.n2, undefined);
-  /* tek görevi öne çıkarma (imp) */
+  /* starring a single task (imp) */
   const im = { id: "i1", title: "Stat363 notları", kind: "normal", imp: true, date: D };
   eq("yıldızlı görev öne çıkar", GD.isKeyTask(im, kk), true);
   eq("yıldızsız normal görev öne çıkmaz", GD.isKeyTask({ kind: "normal" }, kk), false);
@@ -262,7 +262,7 @@ eq("hafta etiketi yıl geçişi", GD.weekLabel("2026-12-30"), "28 Aralık 2026 �
   eq("Görev türü öne çıkınca hepsi", GD.upcoming([{ id: "i3", title: "x", kind: "normal", date: D }], D, 7, ["normal"]).length, 1);
 }
 
-/* 8) yedek doğrulama */
+/* 8) backup validation */
 throws("yanlış uygulama", () => GD.normalizeBackup({ app: "kart-takip", data: {} }), /Planner/);
 throws("boş", () => GD.normalizeBackup(null), /boş/);
 throws("bozuk bölüm", () => GD.normalizeBackup({ app: "planner", data: { tasks: [1, 2] } }), /tasks/);
@@ -272,7 +272,7 @@ throws("bozuk bölüm", () => GD.normalizeBackup({ app: "planner", data: { tasks
   eq("yeni adla yedek", Object.keys(GD.normalizeBackup({ app: "planner", data: { habits: { h: { name: "x" } } } }).habits), ["h"]);
 }
 
-/* 9) yerel depolama (sahte localStorage ile) */
+/* 9) local storage (with a fake localStorage) */
 (async () => {
   const mem = {};
   global.localStorage = { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = String(v); } };
@@ -307,6 +307,6 @@ throws("bozuk bölüm", () => GD.normalizeBackup({ app: "planner", data: { tasks
   eq("toplu yükleme sayısı", n, 2);
   eq("toplu yükleme sonrası", Object.keys((await S2.dump()).tasks).sort(), ["a", "c"]);
 
-  console.log((fail ? "✗ " : "✓ ") + pass + " test geçti" + (fail ? ", " + fail + " başarısız" : ""));
+  console.log((fail ? "✗ " : "✓ ") + pass + " tests passed" + (fail ? ", " + fail + " failed" : ""));
   process.exit(fail ? 1 : 0);
 })();
