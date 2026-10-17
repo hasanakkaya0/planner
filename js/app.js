@@ -256,7 +256,7 @@
     const d = GD.parseKey(t.date), diff = GD.diffDays(TODAY, t.date);
     const right = t.done ? "tamamlandı" : GD.untilText(TODAY, t.date);
     return '<li' + (t.done ? ' class="done"' : "") + '><button data-go="' + t.date + '"><span class="ud"><b>' + d.getDate() + " " + GD.AY[d.getMonth()].slice(0, 3) + "</b>" + GD.GUNK[d.getDay()] + "</span>" +
-      '<span class="ut"><span class="pill k c-' + keyColor(t) + '">' + esc(keyName(t)) + "</span> " + esc(t.title) + "</span>" +
+      '<span class="ut"><span class="pill k c-' + keyColor(t) + '">' + esc(keyName(t)) + '</span><span class="utt">' + esc(t.title) + "</span></span>" +
       '<span class="ul' + (!t.done && diff >= 0 && diff <= 2 ? " soon" : "") + '">' + right + "</span></button></li>";
   }
   function renderUpcoming() {

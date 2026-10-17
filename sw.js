@@ -1,7 +1,7 @@
 /* Planner — service worker: caches the app files so it opens without internet.
    App files: network first (latest version), cache when offline.
    Firebase library and fonts: cache first. Firestore / auth requests are never cached. */
-const CACHE = "planner-v25";
+const CACHE = "planner-v26";
 const SHELL = ["./", "index.html", "css/style.css", "js/core.js", "js/store.js", "js/sync.js", "js/app.js", "js/firebase-config.js", "manifest.webmanifest", "icons/apple-touch-icon.png", "icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
