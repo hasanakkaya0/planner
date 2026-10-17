@@ -828,3 +828,6 @@ body.dragging-task #tl{outline:2px dashed var(--accent);outline-offset:4px;borde
   button,.blk,.wblk,li.task{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
   body{overscroll-behavior-y:none}
 }
+/* phone: keep the footer clear of Safari's bottom bar / home indicator */
+@media (max-width:880px){ .foot{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px) + 56px)} }
+@media (max-width:880px) and (display-mode:standalone){ .foot{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))} }
