@@ -7,6 +7,8 @@
 
   function configured() {
     var c = root.PLANNER_FIREBASE;
+    /* opened as a local file (file://): keep using this browser's data, as before */
+    if (root.location && root.location.protocol === "file:") return false;
     return !!(c && c.apiKey && c.projectId && root.firebase && root.firebase.initializeApp);
   }
 
