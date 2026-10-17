@@ -1,7 +1,7 @@
-/* Planner — Firebase senkronu (GitHub Pages / telefon sürümü).
-   js/firebase-config.js içinde window.PLANNER_FIREBASE ayarı varsa devreye girer:
-   e-posta + şifre ile giriş, veriler Firestore'da users/<uid>/... altında,
-   çevrimdışı önbellek açık (internet yokken de çalışır, gelince eşitler). */
+/* Planner — Firebase sync (GitHub Pages / phone build).
+   Active when window.PLANNER_FIREBASE is set in js/firebase-config.js:
+   email + password sign-in, data in Firestore under users/<uid>/...,
+   offline cache enabled (works without internet, syncs when back online). */
 (function (root) {
   "use strict";
 
@@ -70,13 +70,13 @@
   function connect() {
     if (!app) app = root.firebase.initializeApp(root.PLANNER_FIREBASE);
     var auth = root.firebase.auth(), db = root.firebase.firestore();
-    try { db.settings({ ignoreUndefinedProperties: true }); } catch (e) { /* zaten ayarlı */ }
-    var persist = db.enablePersistence({ synchronizeTabs: true }).catch(function () { /* desteklenmiyor: yalnızca çevrimiçi */ });
+    try { db.settings({ ignoreUndefinedProperties: true }); } catch (e) { /* already configured */ }
+    var persist = db.enablePersistence({ synchronizeTabs: true }).catch(function () { /* not supported: online only */ });
     var first = new Promise(function (res) { var off = auth.onAuthStateChanged(function (u) { off(); res(u); }); });
     return Promise.all([persist, first]).then(function (r) {
       return r[1] || loginScreen(auth);
     }).then(function (user) {
-      /* başka cihazda/sekmede çıkış yapılırsa sayfayı yenile */
+      /* reload the page if signed out on another device/tab */
       auth.onAuthStateChanged(function (u) { if (!u) root.location.reload(); });
       return {
         db: db,

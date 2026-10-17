@@ -22,7 +22,7 @@
 <body>
 <!-- BODY START -->
 <script>
-/* tema: kayıtlı seçimi ilk boyamadan önce uygula (yanıp sönmesin) */
+/* theme: apply the saved choice before first paint (no flash) */
 try {
   var _t = localStorage.getItem("gunDefteri.theme"); if (_t === "light" || _t === "dark") document.documentElement.setAttribute("data-theme", _t);
   var _a = localStorage.getItem("gunDefteri.accent"); if (_a && _a !== "violet") document.documentElement.setAttribute("data-accent", _a);
@@ -198,7 +198,7 @@ try {
 <div class="toast" id="toast" hidden></div>
 <!-- BODY END -->
 
-<!-- senkron (GitHub Pages sürümü): Firebase -->
+<!-- sync (GitHub Pages build): Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -208,7 +208,7 @@ try {
 <script src="js/store.js?v=23"></script>
 <script src="js/app.js?v=23"></script>
 <script>
-/* çevrimdışı çalışma + ana ekrana ekleme (yalnızca http/https'te) */
+/* offline support + add to home screen (http/https only) */
 if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
   window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
 }

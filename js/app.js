@@ -1,4 +1,4 @@
-/* Planner — arayüz. Hesaplar core.js'te (GD), kayıt store.js'te (GDStore). */
+/* Planner — UI. Calculations live in core.js (GD), storage in store.js (GDStore). */
 (function () {
   "use strict";
   const GD = window.GD;
@@ -9,7 +9,7 @@
   const COLORNAME = { blue: "Mavi", violet: "Mor", green: "Yeşil", amber: "Turuncu", red: "Kırmızı", pink: "Pembe", teal: "Turkuaz", slate: "Gri" };
   const ACCENTNAME = { violet: "Mor", blue: "Mavi", green: "Yeşil", pink: "Pembe", orange: "Turuncu" };
 
-  /* ---------- ayarlar (kategoriler, türler, görünüm) ---------- */
+  /* ---------- settings (categories, kinds, appearance) ---------- */
   let cfg = GD.normalizeSettings(null);
   const catOf = (id) => cfg.cats.find((c) => c.id === id) || { id: id, name: "Diğer", color: "slate", other: true };
   const kindOf = (id) => cfg.kinds.find((k) => k.id === id) || cfg.kinds[0];
@@ -17,7 +17,7 @@
   const isKeyTask = (t) => !!t.imp || !!kindOf(t.kind).key;
   const kindRank = (t) => { const i = cfg.kinds.findIndex((k) => k.id === t.kind); return (isKeyTask(t) ? 0 : 100) + (i < 0 ? 99 : i); };
   const keyLabel = () => { const n = cfg.kinds.filter((k) => k.key).map((k) => k.name.toLocaleLowerCase("tr")); return n.length ? n.join("/") : "önemli"; };
-  /* bir bloğa bağlı öne çıkan görevler: rozet + çerçeve */
+  /* highlighted tasks linked to a block: badge + ring */
   function keyDeco(list) {
     if (!list || !list.length) return { cls: "", html: "", tip: "" };
     const k0 = kindOf((list.find((t) => kindOf(t.kind).key) || list[0]).kind), star = !list.some((t) => kindOf(t.kind).key) && list.some((t) => t.imp);
@@ -31,7 +31,7 @@
       tip: " · " + list.map((t) => kindOf(t.kind).name + ": " + t.title).join(", ")
     };
   }
-  /* öne çıkan görevin rengi: türü öne çıkıyorsa tür rengi, tek başına yıldızlıysa amber */
+  /* color of a highlighted task: the kind's color if the kind is highlighted, amber if only the task is starred */
   const keyColor = (t) => { const k = kindOf(t.kind); return !k.key && t.imp ? "amber" : k.color; };
   const keyName = (t) => { const k = kindOf(t.kind); return !k.key && t.imp ? "★ " + k.name : k.name; };
   const kindPill = (t) => { const k = kindOf(t.kind); return '<span class="pill k c-' + k.color + '">' + esc(k.name) + "</span>"; };
@@ -46,9 +46,9 @@
   let view = "day", rangeDays = {}, unsubRange = null, rangeKey = "", pendingOpen = null;
   let dayHH = 54, weekHH = 42, weekDaysCache = [], drag = null, suppressClick = false;
   let focus = null, focusTick = null, audioCtx = null, focusByDay = {}, focusByTask = {};
-  const WK_H = 42; // hafta ızgarasında 1 saatin yüksekliği (css --wk-h ile aynı)
+  const WK_H = 42; // height of one hour in the week grid (same as css --wk-h)
 
-  /* ---------- yardımcılar ---------- */
+  /* ---------- helpers ---------- */
   function banner(msg, sticky) {
     const b = $("banner");
     b.textContent = msg; b.hidden = false;
@@ -109,7 +109,7 @@
     const chip = e.target.closest(".chip");
     if (chip) { chip.setAttribute("aria-pressed", chip.getAttribute("aria-pressed") === "true" ? "false" : "true"); return; }
   });
-  /* iki adımlı silme: ilk tık "Emin misin?", ikinci tık çalıştırır */
+  /* two-step delete: first click asks "Emin misin?", second click runs it */
   function armed(btn, fn) {
     btn.onclick = () => {
       if (btn.classList.contains("arm")) { fn(); return; }
@@ -118,7 +118,7 @@
       setTimeout(() => { if (btn.isConnected) { btn.classList.remove("arm"); btn.textContent = txt; } }, 3000);
     };
   }
-  /* gün adı: geniş ekranda tam ("Pazartesi"), telefonda kısa ("Pzt") — css .dn-full / .dn-short */
+  /* day name: full on wide screens ("Pazartesi"), short on phones ("Pzt") — css .dn-full / .dn-short */
   const dayName = (d) => '<span class="dn-full">' + GD.GUN[d.getDay()] + '</span><span class="dn-short">' + GD.GUNK[d.getDay()] + "</span>";
   const opt = (val, label, cur) => '<option value="' + esc(val) + '"' + (val === cur ? " selected" : "") + ">" + esc(label) + "</option>";
   const catOptions = (v) => cfg.cats.map((c) => opt(c.id, c.name, v)).join("") + (v && !cfg.cats.some((c) => c.id === v) ? opt(v, "Diğer", v) : "");
@@ -129,7 +129,7 @@
   /* ---------- hesaplanan ---------- */
   const currentBlocks = () => GD.blocksForDay(dayDoc, recurring, sel);
 
-  /* ---------- çizim ---------- */
+  /* ---------- rendering ---------- */
   function rangeStats(days) {
     let total = 0, done = 0, key = 0, mins = 0, fmin = 0;
     const kk = keyKinds();
@@ -193,10 +193,10 @@
     renderFreeHint();
     let hh = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--hour-h")) || 54;
     if (view === "day" && isFit()) {
-      /* çizelge kutusunun (flex ile boyu belli) iç yüksekliği saatlere bölünür */
+      /* the inner height of the timeline box (sized by flex) is divided across the hours */
       const box = $("tl").parentElement, cs = getComputedStyle(box);
       const avail = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 4;
-      /* en az 40px: daha küçüğü okunmaz; sığmayan saatler çizelgenin içinde kayar */
+      /* at least 40px: anything smaller is unreadable; hours that don't fit scroll inside the timeline */
       if (avail > 120) hh = Math.max(40, Math.min(84, Math.floor(avail / (GD.DAY_END - GD.DAY_START))));
     }
     $("tl").style.setProperty("--hour-h", hh + "px");
@@ -266,13 +266,13 @@
     $("upcList").innerHTML = list.map(keyRow).join("");
   }
 
-  /* ---------- hafta görünümü ---------- */
-  /* ---------- ekrana sığdırma (bilgisayar) ----------
-     Çizelge / ızgara / takvimin sayfadaki gerçek üst kenarını ölçer, kalan pencere yüksekliğine böler.
-     Böylece tarayıcı yakınlaştırması ya da başlık yüksekliği ne olursa olsun sayfa aşağı taşmaz. */
+  /* ---------- week view ---------- */
+  /* ---------- fit to screen (desktop) ----------
+     Measures the real top edge of the timeline / grid / calendar and divides the remaining window height.
+     That way the page never overflows, whatever the browser zoom or header height. */
   const fitScreen = () => window.innerWidth >= 1100 && window.innerHeight >= 700;
   let tlScrolledFor = "", wkScrolledFor = "";
-  /* bilgisayarda sayfa pencereye oturur: sayfa kaymaz, paneller kendi içinde kayar */
+  /* on desktop the page fits the window: the page doesn't scroll, panels scroll internally */
   const isFit = () => document.body.classList.contains("fit");
   function applyFit() { document.body.classList.toggle("fit", fitScreen()); }
   function fitRows(el, rows, reserve, min, max) {
@@ -287,7 +287,7 @@
     const kk = keyKinds();
     const sums = days.map((k) => GD.daySummary(rangeDays[k] || null, recurring, tasks, k, kk));
 
-    /* masaüstü ızgara */
+    /* desktop grid */
     let g = '<div class="wk-corner"></div>';
     days.forEach((k, i) => {
       const dd = GD.parseKey(k);
@@ -320,7 +320,7 @@
         const wdt = 100 / b._lanes, left = b._lane * wdt;
         g += '<button class="wblk c-' + catOf(b.c).color + (hgt < 26 ? " tiny" : "") + kd.cls + '" data-day="' + k + '" data-blk="' + esc(b.id) + '" data-rec="' + (b.rec ? 1 : 0) + '" ' +
           'style="top:' + top + "px;height:" + hgt + "px;left:calc(" + left + "% + 2px);width:calc(" + wdt + '% - 4px)" title="' + esc(b.t) + " · " + GD.fmtMin(b.s) + "–" + GD.fmtMin(b.e) + (b.loc ? " · " + esc(b.loc) : "") + (b.rec ? " · her hafta" : "") + esc(kd.tip) + '">' + kd.html +
-          /* satır sayısı bloğun gerçek yüksekliğine göre: 3 satır / 2 satır / tek satır */
+          /* line count follows the block's real height: 3 lines / 2 lines / single line */
           (hgt >= 62 && b.loc
             ? '<span class="bt">' + esc(b.t) + '</span><span class="bh">' + GD.fmtMin(b.s) + "–" + GD.fmtMin(b.e) + '</span><span class="bl">' + esc(b.loc) + "</span>"
             : hgt >= 40
@@ -338,7 +338,7 @@
       const fit = col ? Math.max(34, Math.min(84, Math.floor((panel.getBoundingClientRect().bottom - col.getBoundingClientRect().top - 2) / (GD.DAY_END - GD.DAY_START)))) : WK;
       lastWK = fit;
       if (fit !== WK) return renderWeekView(fit);
-      /* sığmıyorsa ızgara kendi içinde kayar: bir kez şu anki saate / 08:00'e getir */
+      /* if it doesn't fit, the grid scrolls internally: bring it to the current hour / 08:00 once */
       const wkKey = days[0];
       if (wkScrolledFor !== wkKey && panel.scrollHeight > panel.clientHeight + 4) {
         wkScrolledFor = wkKey;
@@ -387,8 +387,8 @@
     $("wkHabCount").textContent = "hedefin %" + Math.round(hit / want * 100) + "'i";
   }
 
-  /* ---------- ay görünümü ---------- */
-  let moCap = 4;   /* bir ay hücresine sığan satır sayısı (ölçülerek ayarlanır) */
+  /* ---------- month view ---------- */
+  let moCap = 4;   /* number of lines that fit in a month cell (set by measuring) */
   function renderMonthView(measured) {
     const grid = GD.monthGrid(sel), mon = sel.slice(0, 7), kk = keyKinds();
     let g = GD.weekDays(sel).map((k) => '<div class="mo-dn">' + dayName(GD.parseKey(k)) + "</div>").join("");
@@ -398,7 +398,7 @@
       const keyOpen = s.key.filter((t) => !t.done).length;
       const metaTxt = (s.mins ? GD.durText(s.mins) : "") + (focusByDay[k] ? (s.mins ? " · " : "") + "odak " + GD.durText(focusByDay[k]) : "");
       let inner = '<span class="mo-head"><span class="mo-num">' + dd.getDate() + '</span><span class="mo-meta" title="Planlı süre">' + metaTxt + "</span></span>";
-      /* sıra: öne çıkanlar → görevler → dersler/bloklar (saate göre); sığmayan "+N daha" */
+      /* order: highlighted → tasks → classes/blocks (by time); what doesn't fit becomes "+N daha" */
       const nt = tasks.filter((t) => t.date === k && !isKeyTask(t)).sort((a, b) => (a.done - b.done) || ((a.createdAt || 0) - (b.createdAt || 0)));
       const items = s.key.map((t) => '<span class="mo-key c-' + keyColor(t) + (t.done ? " done" : "") + '">' + esc(t.title) + "</span>")
         .concat(nt.map((t) => '<span class="mo-task c-' + catOf(t.cat).color + (t.done ? " done" : "") + '"><i></i><span class="tx">' + esc(t.title) + "</span></span>"))
@@ -419,9 +419,9 @@
       g += '<button class="mo-cell' + (inMon ? "" : " out") + (k === TODAY ? " today" : "") + (k === sel ? " sel" : "") + '" data-go="' + k + '" aria-label="' + lbl + '">' + inner + "</button>";
     });
     $("moGrid").innerHTML = g;
-    /* hücre yüksekliğine göre satır sayısını bir kez ayarla */
+    /* set the line count once, based on the cell height */
     if (!measured && view === "month" && window.innerWidth > 880) {
-      /* gerçek ölçü: hücre iç yüksekliği − başlık satırı, bir satırın yüksekliğine bölünür */
+      /* real measurement: cell inner height − header row, divided by the height of one line */
       const cells = Array.from($("moGrid").querySelectorAll(".mo-cell"));
       const cell = cells.find((c) => c.querySelector(".mo-ev,.mo-task,.mo-key")) || cells[0];
       if (cell) {
@@ -479,7 +479,7 @@
     const unit = { day: "gün", week: "hafta", month: "ay" }[v];
     $("prev").title = "Önceki " + unit + " (←)"; $("prev").setAttribute("aria-label", "Önceki " + unit);
     $("next").title = "Sonraki " + unit + " (→)"; $("next").setAttribute("aria-label", "Sonraki " + unit);
-    try { localStorage.setItem("gunDefteri.view", v); } catch (e) { /* yok */ }
+    try { localStorage.setItem("gunDefteri.view", v); } catch (e) { /* none */ }
     subRange();
     renderAll();
   }
@@ -488,7 +488,7 @@
     else if (view === "month") go(GD.addMonths(sel, dir));
     else go(GD.addDays(sel, dir));
   }
-  /* hafta görünümünden bloğa / boş saate tıklayınca: görünüm değişmeden o günü yükle, pencereyi aç */
+  /* clicking a block / empty hour in the week view: load that day without changing the view, open the dialog */
   function openFromRange(k, opt) {
     pendingOpen = { k: k, opt: opt };
     if (k === sel && dayLoaded) { pendingOpen = null; openBlockModal(opt); return; }
@@ -504,7 +504,7 @@
   function toggleTheme() {
     const next = effectiveTheme() === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
-    try { localStorage.setItem("gunDefteri.theme", next); } catch (e) { /* yok */ }
+    try { localStorage.setItem("gunDefteri.theme", next); } catch (e) { /* none */ }
     toast(next === "dark" ? "Koyu tema" : "Açık tema");
   }
   $("themeBtn").innerHTML =
@@ -592,7 +592,7 @@
     renderHead(); renderWeek(); renderTL(); renderUpcoming(); renderTasks(); renderHabits(); renderNote();
   }
 
-  /* ---------- gün belgesi ---------- */
+  /* ---------- day document ---------- */
   function saveDay(k, doc) {
     const blocks = (doc.blocks || []).map((b) => { const o = { id: b.id, s: b.s, e: b.e, t: b.t, c: b.c }; if (b.loc) o.loc = b.loc; return o; });
     return w(store.set("days", k, { date: k, blocks: blocks, note: doc.note || "", skip: doc.skip || [] }));
@@ -605,7 +605,7 @@
     unsubDay = store.watchDoc("days", k, (d) => {
       if (k !== sel) return;
       dayDoc = {
-        /* yalnızca bilinen alanlar (v1 çakışma alanlarını _lane/_lanes da kaydediyordu) */
+        /* known fields only (v1 also saved the overlap fields _lane/_lanes) */
         blocks: d && Array.isArray(d.blocks) ? d.blocks.map((b) => ({ id: b.id, s: b.s, e: b.e, t: b.t, c: b.c, loc: b.loc || "" })) : [],
         note: d && typeof d.note === "string" ? d.note : "",
         skip: d && Array.isArray(d.skip) ? d.skip : []
@@ -620,7 +620,7 @@
     clearTimeout(noteTimer);
     if (!pendingNote || !store || !writable) return;
     const p = pendingNote; pendingNote = null;
-    if (p.k !== sel || !dayLoaded) return; // olmamalı: gün değişmeden önce flush ediliyor
+    if (p.k !== sel || !dayLoaded) return; // shouldn't happen: flushed before the day changes
     dayDoc.note = p.text;
     saveDay(p.k, dayDoc).then(() => {
       const n = new Date();
@@ -656,7 +656,7 @@
   }
 
   function openBlockModal(opt) {
-    /* opt: {id, rec} düzenleme ya da {s, e, repeat} yeni */
+    /* opt: {id, rec} to edit or {s, e, repeat} for a new one */
     let b = null, r = null;
     if (opt.id) {
       if (opt.rec) r = recurring.find((x) => x.id === opt.id);
@@ -755,7 +755,7 @@
       });
     }
   }
-  /* blok penceresinde: o gün bu derste ne var (quiz, sınav…) */
+  /* in the block dialog: what's on in this class that day (quiz, exam…) */
   function keySection(src) {
     const linked = GD.linkKeyTasks(currentBlocks(), tasks, sel, keyKinds()).byBlock[src.id] || [];
     const kinds = cfg.kinds.filter((k) => k.key).concat(cfg.kinds.filter((k) => !k.key));
@@ -769,7 +769,7 @@
   }
   function fmtShort(k) { const d = GD.parseKey(k); return d.getDate() + " " + GD.AY[d.getMonth()]; }
 
-  /* ---------- görevler ---------- */
+  /* ---------- tasks ---------- */
   function addTask() {
     const t = $("tTitle").value.trim();
     if (!t) { $("tTitle").focus(); return; }
@@ -902,10 +902,10 @@
         try { await dl.save({ filename: name, data: json }); toast("Yedek indirildi"); }
         catch (e) { if (e && e.code !== "declined") banner("Yedek indirilemedi."); }
       } else {
-        /* iPhone / iPad: paylaş menüsüyle "Dosyalar'a kaydet" */
+        /* iPhone / iPad: "Save to Files" through the share sheet */
         const file = typeof File === "function" ? new File([json], name, { type: "application/json" }) : null;
         if (file && navigator.canShare && matchMedia("(hover:none)").matches && navigator.canShare({ files: [file] })) {
-          try { await navigator.share({ files: [file] }); } catch (e) { /* vazgeçti */ }
+          try { await navigator.share({ files: [file] }); } catch (e) { /* cancelled */ }
           return;
         }
         const a = document.createElement("a");
@@ -934,17 +934,17 @@
     rd.readAsText(file);
   }
 
-  /* ---------- tema tercihi (cihaza özel) ---------- */
+  /* ---------- theme preference (per device) ---------- */
   function themePref() {
     try { const t = localStorage.getItem("gunDefteri.theme"); return t === "light" || t === "dark" ? t : "system"; } catch (e) { return "system"; }
   }
   function setThemePref(p) {
     const root = document.documentElement;
-    if (p === "light" || p === "dark") { root.setAttribute("data-theme", p); try { localStorage.setItem("gunDefteri.theme", p); } catch (e) { /* yok */ } }
-    else { root.removeAttribute("data-theme"); try { localStorage.removeItem("gunDefteri.theme"); } catch (e) { /* yok */ } }
+    if (p === "light" || p === "dark") { root.setAttribute("data-theme", p); try { localStorage.setItem("gunDefteri.theme", p); } catch (e) { /* none */ } }
+    else { root.removeAttribute("data-theme"); try { localStorage.removeItem("gunDefteri.theme"); } catch (e) { /* none */ } }
   }
 
-  /* ---------- ayarları uygula ---------- */
+  /* ---------- apply settings ---------- */
   let selectsFilled = false, lastDefCat = null;
   function fillSelects() {
     const defChanged = lastDefCat !== cfg.defaultCat;
@@ -961,7 +961,7 @@
     const root = document.documentElement;
     root.style.setProperty("--hours", String(cfg.dayEnd - cfg.dayStart));
     if (cfg.accent === "violet") root.removeAttribute("data-accent"); else root.setAttribute("data-accent", cfg.accent);
-    try { localStorage.setItem("gunDefteri.accent", cfg.accent); } catch (e) { /* yok */ }
+    try { localStorage.setItem("gunDefteri.accent", cfg.accent); } catch (e) { /* none */ }
     fillSelects();
     renderAll();
   }
@@ -1107,13 +1107,13 @@
   }
 
 
-  /* bir günün tüm blokları (tek seferlik + haftalık), gerekirse okur */
+  /* all blocks of a day (one-off + weekly), reading them if needed */
   async function blocksOn(k) {
     if (k === sel && dayLoaded) return currentBlocks();
     const base = rangeDays[k] || (store ? await store.getDoc("days", k) : null);
     return GD.blocksForDay(base, recurring, k);
   }
-  /* ---------- bir günün bloklarını değiştir (yüklü değilse önce okur) ---------- */
+  /* ---------- change a day's blocks (reads it first if not loaded) ---------- */
   async function mutateDay(k, fn) {
     let base;
     if (k === sel && dayLoaded) base = dayDoc;
@@ -1137,7 +1137,7 @@
     const d = GD.parseKey(k); return d.getDate() + " " + GD.AY[d.getMonth()].slice(0, 3) + " " + GD.GUNK[d.getDay()];
   };
 
-  /* ---------- hızlı ekleme ---------- */
+  /* ---------- quick add ---------- */
   const qaParse = () => GD.parseQuick($("qa").value, TODAY, sel, cfg.cats, cfg.kinds);
   function renderQaPreview() {
     const box = $("qaPrev");
@@ -1195,7 +1195,7 @@
     else if (e.key === "Escape") { $("qa").value = ""; $("qaPrev").hidden = true; $("qa").blur(); }
   });
 
-  /* ---------- sürükle-bırak: taşı, uzat, sürükleyerek oluştur ---------- */
+  /* ---------- drag & drop: move, resize, drag to create ---------- */
   const snapTo = (m, st) => Math.round(m / st) * st;
   function geom(mode) {
     if (mode === "day") { const L = $("tl").querySelector(".blocks"); return { hh: dayHH, cols: [{ k: sel, el: L, r: L.getBoundingClientRect() }] }; }
@@ -1299,7 +1299,7 @@
   $("wkGrid").addEventListener("pointerdown", (e) => onDown(e, "week"));
   document.addEventListener("click", (e) => { if (suppressClick) { e.stopPropagation(); e.preventDefault(); suppressClick = false; } }, true);
 
-  /* ---------- görevi çizelgeye sürükle ---------- */
+  /* ---------- drag a task onto the timeline ---------- */
   let dropGhost = null;
   const clearDropGhost = () => { if (dropGhost) { dropGhost.remove(); dropGhost = null; } };
   $("taskList").addEventListener("dragstart", (e) => {
@@ -1356,9 +1356,9 @@
     toast("“" + t.title.slice(0, 30) + "” " + GD.fmtMin(m) + "–" + GD.fmtMin(m + 60) + " arasına yerleşti", () => mutateDay(sel, (doc) => { doc.blocks = doc.blocks.filter((x) => x.id !== bid); }));
   });
 
-  /* ---------- odak sayacı ---------- */
+  /* ---------- focus timer ---------- */
   const FKEY = "gunDefteri.focus", BASE_TITLE = document.title || "Planner";
-  function fSave() { try { if (focus) localStorage.setItem(FKEY, JSON.stringify(focus)); else localStorage.removeItem(FKEY); } catch (e) { /* yok */ } }
+  function fSave() { try { if (focus) localStorage.setItem(FKEY, JSON.stringify(focus)); else localStorage.removeItem(FKEY); } catch (e) { /* none */ } }
   function ensureAudio() { try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.resume) audioCtx.resume(); } catch (e) { audioCtx = null; } }
   function beep() {
     if (!audioCtx) return;
@@ -1370,7 +1370,7 @@
         g.gain.setValueAtTime(0.0001, t0 + d); g.gain.exponentialRampToValueAtTime(0.22, t0 + d + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.22);
         o.connect(g); g.connect(audioCtx.destination); o.start(t0 + d); o.stop(t0 + d + 0.25);
       });
-    } catch (e) { /* ses yok */ }
+    } catch (e) { /* no audio */ }
   }
   const fLeft = () => (!focus ? 0 : focus.paused != null ? focus.paused : Math.max(0, focus.endsAt - Date.now()));
   const fElapsed = () => focus.activeMs + (focus.paused == null ? Date.now() - focus.lastResume : 0);
@@ -1461,7 +1461,7 @@
     else if (a === "stop") stopFocus();
     else if (a === "again") { const f = focus; startFocus({ title: f.title, cat: f.cat, taskId: f.taskId }); }
   });
-  /* üst çubuktaki odak düğmesi: boştayken serbest odak penceresi, çalışırken duraklat/devam */
+  /* focus button in the top bar: opens the free-focus popover when idle, pause/resume while running */
   let fpMins = 25;
   function openFocusPop() {
     fpMins = cfg.focusMins;
@@ -1491,7 +1491,7 @@
   $("fpTitle").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); startFromPop(); } else if (e.key === "Escape") closeFocusPop(); });
   document.addEventListener("mousedown", (e) => { if (!$("focusPop").hidden && !e.target.closest(".fb-wrap")) closeFocusPop(); });
 
-  /* sayfa yeniden açılınca kaldığı yerden; kapalıyken süre dolduysa sessizce kaydeder */
+  /* resumes where it left off after a reload; if time ran out while closed, logs it silently */
   function fBoot() {
     try { const x = JSON.parse(localStorage.getItem(FKEY) || "null"); if (x && x.phase) focus = x; } catch (e) { focus = null; }
     if (!focus) return;
@@ -1524,7 +1524,7 @@
   function setTab(name) {
     document.body.dataset.tab = name;
     document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === name)));
-    try { localStorage.setItem("gunDefteri.tab", name); } catch (e) { /* yok */ }
+    try { localStorage.setItem("gunDefteri.tab", name); } catch (e) { /* none */ }
   }
   document.querySelector(".tabs").onclick = (e) => { const b = e.target.closest(".tab"); if (b) setTab(b.dataset.tab); };
 
@@ -1601,14 +1601,14 @@
     }
   });
 
-  /* pencere boyu değişince ölçüye bağlı görünümleri yeniden çiz */
+  /* redraw measurement-dependent views when the window is resized */
   let resizeT = null;
   window.addEventListener("resize", () => {
     clearTimeout(resizeT);
     resizeT = setTimeout(() => { applyFit(); if (view === "week") renderWeekView(); else if (view === "month") renderMonthView(); else renderTL(); }, 150);
   });
 
-  /* gece yarısı ve "şimdi" çizgisi */
+  /* midnight rollover and the "now" line */
   setInterval(() => {
     const nk = GD.key(new Date());
     if (nk !== TODAY) { const was = sel === TODAY; TODAY = nk; if (was) go(nk); else renderAll(); return; }
@@ -1617,7 +1617,7 @@
     else if (view === "week" && GD.weekDays(sel).indexOf(TODAY) >= 0) renderWeekView();
   }, 60000);
 
-  /* ---------- başlat ---------- */
+  /* ---------- start ---------- */
   const SEED_HABITS = [["h_ders", "Ders tekrarı", 7], ["h_spor", "Spor", 3], ["h_kitap", "Kitap okuma", 7], ["h_erken", "Erken kalkma", 5]];
 
   function startSubs() {
@@ -1630,7 +1630,7 @@
         blk: typeof o.blk === "string" && o.blk ? o.blk : null
       }));
       renderHead(); renderWeek(); renderUpcoming(); renderTasks();
-      if (view === "day" && !drag) renderTL();   /* bloklardaki quiz/sınav rozetleri görevlere bağlı */
+      if (view === "day" && !drag) renderTL();   /* quiz/exam badges on blocks depend on tasks */
       if (view !== "day") renderRange();
     }, onErr);
     store.watch("habits", (rows) => {
@@ -1668,11 +1668,11 @@
 
   async function boot() {
     let tab = "program";
-    try { tab = localStorage.getItem("gunDefteri.tab") || "program"; } catch (e) { /* yok */ }
+    try { tab = localStorage.getItem("gunDefteri.tab") || "program"; } catch (e) { /* none */ }
     setTab(["program", "gorevler", "rutinler"].indexOf(tab) >= 0 ? tab : "program");
     $("tDate").value = sel;
     let v = "day";
-    try { v = localStorage.getItem("gunDefteri.view") || "day"; } catch (e) { /* yok */ }
+    try { v = localStorage.getItem("gunDefteri.view") || "day"; } catch (e) { /* none */ }
     applyFit();
     setView(v);
     fBoot();
@@ -1684,7 +1684,7 @@
         const u = await window.claude.use("user");
         const can = u ? await u.can("data.write") : null;
         if (can === false) { writable = false; banner("Görüntüleme modundasın; değişiklik kaydedilmez.", true); }
-      } catch (e) { /* bilinmiyor: yazmayı dene */ }
+      } catch (e) { /* unknown: try writing */ }
       window.claude.use("downloads").then((d) => { canExport = !!d; }).catch(() => {});
     } else if (store.mode === "firebase") {
       modeHtml = "<b>Senkron</b> · " + esc(store.user.email) + " · telefon ve bilgisayar aynı veriyi görür; internet yokken de çalışır";

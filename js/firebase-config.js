@@ -1,6 +1,6 @@
-/* Firebase ayarı — Firebase konsolu → Proje ayarları → "Uygulamalarınız" → Web uygulaması → SDK yapılandırması.
-   Bu değerler gizli değildir (veriyi Firestore kuralları korur); GitHub'a konabilir.
-   null bırakılırsa uygulama verileri yalnızca bu tarayıcıda tutar. */
+/* Firebase config — Firebase console → Project settings → "Your apps" → Web app → SDK setup and configuration.
+   These values are not secret (Firestore security rules protect the data); they can be committed to GitHub.
+   If null, the app keeps data in this browser only. */
 window.PLANNER_FIREBASE = {
   apiKey: "AIzaSyBFnuYKx6-sa-0CaKlFYcOlUsk80jX8Yi8",
   authDomain: "planner-fed8c.firebaseapp.com",
