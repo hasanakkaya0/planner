@@ -72,7 +72,7 @@
   function connect() {
     if (!app) app = root.firebase.initializeApp(root.PLANNER_FIREBASE);
     var auth = root.firebase.auth(), db = root.firebase.firestore();
-    try { db.settings({ ignoreUndefinedProperties: true }); } catch (e) { /* already configured */ }
+    try { db.settings({ ignoreUndefinedProperties: true, merge: true }); } catch (e) { /* already configured */ }
     var persist = db.enablePersistence({ synchronizeTabs: true }).catch(function () { /* not supported: online only */ });
     var first = new Promise(function (res) { var off = auth.onAuthStateChanged(function (u) { off(); res(u); }); });
     return Promise.all([persist, first]).then(function (r) {

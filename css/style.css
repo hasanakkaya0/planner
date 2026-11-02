@@ -807,6 +807,10 @@ body.dragging-task #tl{outline:2px dashed var(--accent);outline-offset:4px;borde
 
 .kbadges{max-width:72%;justify-content:flex-end}
 .kbadge{overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+/* week view: badges sit at the bottom so the class name is not cut off */
+.wblk.keyed .bt{padding-right:0}
+.wblk.keyed .kbadges{top:auto;bottom:3px;max-width:none}
+.wblk.keyed.tiny .kbadges{display:none}
 
 /* ---------- sign-in screen (sync build) ---------- */
 .auth-bg{position:fixed;inset:0;z-index:100;background:var(--paper);display:grid;place-items:center;overflow-y:auto;
