@@ -873,3 +873,6 @@ body.dragging-task #tl{outline:2px dashed var(--accent);outline-offset:4px;borde
 .sync.busy{color:var(--ink-soft);border-color:var(--rule)}
 .sync.busy::before{animation:syncpulse 1s ease-in-out infinite}
 @keyframes syncpulse{50%{opacity:.25}}
+
+/* recurring task marker */
+.pill.rep{color:var(--accent);border-color:var(--accent)}

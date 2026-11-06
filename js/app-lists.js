@@ -2,9 +2,21 @@
    Shared mutable state lives on S and shared functions on App (both created in app-state.js). */
 (function () {
   "use strict";
+  /* real tasks + the occurrences of recurring tasks around the selected day (cached) */
+  let atKey = null, atVal = [];
+  function allTasks() {
+    if (!S.rtasks.length) return S.tasks;
+    const lo = S.sel < S.TODAY ? S.sel : S.TODAY, hi = S.sel > S.TODAY ? S.sel : S.TODAY;
+    const from = GD.addDays(lo, -45), to = GD.addDays(hi, 75);
+    if (atKey && atKey.t === S.tasks && atKey.r === S.rtasks && atKey.from === from && atKey.to === to) return atVal;
+    atKey = { t: S.tasks, r: S.rtasks, from: from, to: to };
+    atVal = S.tasks.concat(GD.expandRecurringTasks(S.rtasks, from, to));
+    return atVal;
+  }
+
   function renderTasks() {
     const searching = !!S.tSearch.trim();
-    const items = searching ? GD.searchTasks(S.tasks, S.tSearch, S.tFilter, S.TODAY) : GD.statusFilter(GD.visibleTasks(S.tasks, S.sel, S.TODAY), S.tFilter);
+    const items = searching ? GD.searchTasks(S.tasks, S.tSearch, S.tFilter, S.TODAY) : GD.statusFilter(GD.visibleTasks(allTasks(), S.sel, S.TODAY), S.tFilter);
     const open = items.filter((x) => !x.t.done).length;
     $("tCount").textContent = searching ? items.length + " sonuç" : items.length ? open + " açık / " + items.length : "";
 
@@ -21,7 +33,7 @@
       const groups = S.cfg.cats.map((c) => ({ c: c, items: items.filter((x) => x.t.cat === c.id) }));
       const other = items.filter((x) => known.indexOf(x.t.cat) < 0);
       if (other.length) groups.push({ c: { id: "_other", name: "Diğer", color: "slate" }, items: other });
-      const selLinks = GD.linkKeyTasks(App.currentBlocks(), S.tasks, S.sel, App.keyKinds()).byTask;
+      const selLinks = GD.linkKeyTasks(App.currentBlocks(), allTasks(), S.sel, App.keyKinds()).byTask;
       groups.forEach((gr) => {
         const g = gr.items, c = gr.c;
         if (!g.length) return;
@@ -36,11 +48,12 @@
           else if (!t.date) meta += '<span class="pill nodate">tarihsiz</span>';
           else if (searching) meta += '<span class="pill nodate">' + App.fmtShort(t.date) + "</span>";
           if (selLinks[t.id]) { const lb = selLinks[t.id]; meta += '<span class="pill at">' + GD.fmtMin(lb.s) + " · " + esc(lb.t) + (lb.loc ? " · " + esc(lb.loc) : "") + "</span>"; }
+          if (t.virtual) meta += '<span class="pill rep">↻ tekrar</span>';
           if (S.focusByTask[t.id]) meta += '<span class="pill fc">odak ' + GD.durText(S.focusByTask[t.id]) + "</span>";
-          html += '<li class="task' + (t.done ? " done" : "") + '"' + (t.done ? "" : ' draggable="true" data-tid="' + esc(t.id) + '" title="Çizelgeye sürükleyip saat ver"') + ">" +
+          html += '<li class="task' + (t.done ? " done" : "") + '"' + (t.done || t.virtual ? "" : ' draggable="true" data-tid="' + esc(t.id) + '" title="Çizelgeye sürükleyip saat ver"') + ">" +
             '<button class="chk" data-toggle="' + esc(t.id) + '" aria-label="Tamamlandı" aria-pressed="' + t.done + '">' + CHECK + "</button>" +
             '<button class="tx" data-edit-task="' + esc(t.id) + '"><span class="tt">' + esc(t.title) + "</span>" + (meta ? '<span class="meta">' + meta + "</span>" : "") + "</button>" +
-            '<span class="tact">' + (t.done ? "" : '<button class="star' + (t.imp ? " on" : "") + '" data-star="' + esc(t.id) + '" title="' + (t.imp ? "Öne çıkarmayı kaldır" : "Öne çıkar: Yaklaşanlar ve takvimde göster") + '" aria-label="Öne çıkar" aria-pressed="' + !!t.imp + '">★</button><button data-focus-task="' + esc(t.id) + '" title="Odak başlat" aria-label="Odak başlat">▶</button><button data-postpone="' + esc(t.id) + '" title="Ertesi güne ertele" aria-label="Ertele">→1g</button>') +
+            '<span class="tact">' + (t.done || t.virtual ? "" : '<button class="star' + (t.imp ? " on" : "") + '" data-star="' + esc(t.id) + '" title="' + (t.imp ? "Öne çıkarmayı kaldır" : "Öne çıkar: Yaklaşanlar ve takvimde göster") + '" aria-label="Öne çıkar" aria-pressed="' + !!t.imp + '">★</button><button data-focus-task="' + esc(t.id) + '" title="Odak başlat" aria-label="Odak başlat">▶</button><button data-postpone="' + esc(t.id) + '" title="Ertesi güne ertele" aria-label="Ertele">→1g</button>') +
             '<button class="del" data-del-task="' + esc(t.id) + '" title="Sil" aria-label="Görevi sil">×</button></span></li>';
         });
         html += "</ul></div>";
@@ -101,6 +114,7 @@
   function rawTask(t) { const o = Object.assign({}, t); delete o.id; return o; }
 
   function toggleTask(id) {
+    if (GD.parseVirtualId(id)) return App.toggleRep(id);
     const t = findTask(id); if (!t || !App.guard()) return;
     App.w(S.store.update("tasks", id, { done: !t.done, doneAt: !t.done ? Date.now() : null }));
   }
@@ -112,6 +126,7 @@
     App.toast("“" + t.title.slice(0, 40) + "” → " + App.fmtShort(nd), () => App.w(S.store.update("tasks", id, { date: old })));
   }
   function delTask(id) {
+    if (GD.parseVirtualId(id)) return App.skipRep(id);
     const t = findTask(id); if (!t || !App.guard()) return;
     const raw = rawTask(t);
     App.w(S.store.del("tasks", id));
@@ -127,6 +142,8 @@
     });
   }
   function openTaskModal(id) {
+    const v = GD.parseVirtualId(id);
+    if (v) return App.openRepModal(v.rid, v.date);
     const t = findTask(id); if (!t) return;
     const body =
       '<label class="field"><span>Görev</span><input type="text" id="mT" maxlength="140" value="' + esc(t.title) + '" autocomplete="off"></label>' +
@@ -209,6 +226,7 @@
 
   /* shared with the other app-*.js files */
   Object.assign(App, {
+    allTasks,
     renderTasks,
     renderHabits,
     renderNote,

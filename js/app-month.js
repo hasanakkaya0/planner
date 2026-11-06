@@ -8,13 +8,13 @@
     const grid = GD.monthGrid(S.sel), mon = S.sel.slice(0, 7), kk = App.keyKinds();
     let g = GD.weekDays(S.sel).map((k) => '<div class="mo-dn">' + App.dayName(GD.parseKey(k)) + "</div>").join("");
     grid.forEach((k) => {
-      const s = GD.daySummary(S.rangeDays[k] || null, S.recurring, S.tasks, k, kk);
+      const s = GD.daySummary(S.rangeDays[k] || null, S.recurring, App.allTasks(), k, kk);
       const dd = GD.parseKey(k), inMon = k.slice(0, 7) === mon;
       const keyOpen = s.key.filter((t) => !t.done).length;
       const metaTxt = (s.mins ? GD.durText(s.mins) : "") + (S.focusByDay[k] ? (s.mins ? " · " : "") + "odak " + GD.durText(S.focusByDay[k]) : "");
       let inner = '<span class="mo-head"><span class="mo-num">' + dd.getDate() + '</span><span class="mo-meta" title="Planlı süre">' + metaTxt + "</span></span>";
       /* order: highlighted → tasks → classes/blocks (by time); what doesn't fit becomes "+N daha" */
-      const nt = S.tasks.filter((t) => t.date === k && !App.isKeyTask(t)).sort((a, b) => (a.done - b.done) || ((a.createdAt || 0) - (b.createdAt || 0)));
+      const nt = App.allTasks().filter((t) => t.date === k && !App.isKeyTask(t)).sort((a, b) => (a.done - b.done) || ((a.createdAt || 0) - (b.createdAt || 0)));
       const items = s.key.map((t) => '<span class="mo-key c-' + App.keyColor(t) + (t.done ? " done" : "") + '">' + esc(t.title) + "</span>")
         .concat(nt.map((t) => '<span class="mo-task c-' + App.catOf(t.cat).color + (t.done ? " done" : "") + '"><i></i><span class="tx">' + esc(t.title) + "</span></span>"))
         .concat(s.blocks.map((b) => '<span class="mo-ev c-' + App.catOf(b.c).color + '"><i></i><b>' + GD.fmtMin(b.s) + '</b><span class="tx">' + esc(b.t) + "</span></span>"));
@@ -50,7 +50,7 @@
     }
 
     renderMonthDay();
-    const list = S.tasks.filter((t) => t.date && t.date.slice(0, 7) === mon && App.isKeyTask(t))
+    const list = App.allTasks().filter((t) => t.date && t.date.slice(0, 7) === mon && App.isKeyTask(t))
       .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     $("moKeyCount").textContent = list.length ? list.filter((t) => !t.done).length + " açık / " + list.length : "";
     $("moKeyList").innerHTML = list.length ? list.map(App.keyRow).join("")
@@ -59,9 +59,9 @@
 
   /* phone: the selected day's list under the calendar (the grid itself only has dots there) */
   function renderMonthDay() {
-    const k = S.sel, dd = GD.parseKey(k), s = GD.daySummary(S.rangeDays[k] || null, S.recurring, S.tasks, k, App.keyKinds());
+    const k = S.sel, dd = GD.parseKey(k), s = GD.daySummary(S.rangeDays[k] || null, S.recurring, App.allTasks(), k, App.keyKinds());
     $("moDayTitle").textContent = dd.getDate() + " " + GD.AY[dd.getMonth()] + " · " + GD.GUNK[dd.getDay()];
-    const nt = S.tasks.filter((t) => t.date === k && !App.isKeyTask(t)).sort((a, b) => (a.done - b.done) || ((a.createdAt || 0) - (b.createdAt || 0)));
+    const nt = App.allTasks().filter((t) => t.date === k && !App.isKeyTask(t)).sort((a, b) => (a.done - b.done) || ((a.createdAt || 0) - (b.createdAt || 0)));
     const rows = s.key.map((t) => '<li class="md-row' + (t.done ? " done" : "") + '"><span class="md-t"><span class="pill k c-' + App.keyColor(t) + '">' + esc(App.keyName(t)) + '</span></span><span class="md-x">' + esc(t.title) + "</span></li>")
       .concat(s.blocks.map((b) => '<li class="md-row c-' + App.catOf(b.c).color + '"><span class="md-t">' + GD.fmtMin(b.s) + '</span><span class="md-x"><i></i>' + esc(b.t) + (b.loc ? ' <small>' + esc(b.loc) + "</small>" : "") + "</span></li>"))
       .concat(nt.map((t) => '<li class="md-row c-' + App.catOf(t.cat).color + (t.done ? " done" : "") + '"><span class="md-t">görev</span><span class="md-x"><i></i>' + esc(t.title) + "</span></li>"));

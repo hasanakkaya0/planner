@@ -42,6 +42,7 @@
   };
 
   $("tAdd").onclick = App.addTask;
+  $("tRep").onclick = () => App.openRepModal();
   $("tTitle").onkeydown = (e) => { if (e.key === "Enter") App.addTask(); };
   $("tSearch").addEventListener("input", () => { S.tSearch = $("tSearch").value; App.renderTasks(); });
   $("tSearch").addEventListener("keydown", (e) => { if (e.key === "Escape" && $("tSearch").value) { e.stopPropagation(); $("tSearch").value = ""; S.tSearch = ""; App.renderTasks(); } });
@@ -170,9 +171,13 @@
       if (S.view !== "day") App.renderRange();
     }, App.onErr);
     S.store.watch("recurring", (rows) => {
-      S.recurring = rows.filter((o) => Array.isArray(o.dow) && typeof o.s === "number" && typeof o.e === "number")
+      /* one collection, two kinds of series: weekly blocks (have s/e) and recurring tasks (task: true) */
+      S.recurring = rows.filter((o) => !o.task && Array.isArray(o.dow) && typeof o.s === "number" && typeof o.e === "number")
         .map((o) => ({ id: o.id, t: o.t || "", c: o.c || S.cfg.defaultCat, loc: o.loc || "", s: o.s, e: o.e, dow: o.dow, from: o.from || null, until: o.until || null }));
-      App.renderHead(); App.renderTL();
+      S.rtasks = rows.filter((o) => o.task === true && Array.isArray(o.dow) && o.dow.length)
+        .map((o) => ({ id: o.id, title: o.title || "", cat: typeof o.cat === "string" && o.cat ? o.cat : S.cfg.defaultCat, kind: typeof o.kind === "string" && o.kind ? o.kind : "normal",
+          dow: o.dow, from: o.from || null, until: o.until || null, doneOn: o.doneOn && typeof o.doneOn === "object" ? o.doneOn : {}, skip: Array.isArray(o.skip) ? o.skip : [], createdAt: o.createdAt || 0 }));
+      App.renderHead(); App.renderTL(); App.renderWeek(); App.renderUpcoming(); App.renderTasks();
       if (S.view !== "day") App.renderRange();
     }, App.onErr);
     App.subDay();

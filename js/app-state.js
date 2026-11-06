@@ -16,6 +16,7 @@ S.sel = S.TODAY;
 S.store = null;
 S.writable = true;
 S.tasks = [];
+S.rtasks = [];
 S.habits = [];
 S.logs = {};
 S.recurring = [];

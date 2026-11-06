@@ -158,10 +158,30 @@
     var out = [];
     tasks.forEach(function (t) {
       if (t.date === sel) out.push({ t: t, late: false });
-      else if (sel === today && !t.done && t.date && t.date < today) out.push({ t: t, late: true });
+      else if (sel === today && !t.done && !t.virtual && t.date && t.date < today) out.push({ t: t, late: true });
       else if (!t.date && !t.done) out.push({ t: t, late: false });
     });
     return out;
+  }
+  /* Recurring tasks ("her pazartesi spor"): a series {id, title, cat, kind, dow:[1..7], from, until, doneOn:{date:true}, skip:[date]}
+     is expanded into virtual tasks, one per matching day in [from, to]. They have no document of their own:
+     id "r:<series>:<date>", virtual:true; completion lives in the series' doneOn. */
+  function expandRecurringTasks(series, from, to) {
+    var out = [];
+    (series || []).forEach(function (r) {
+      var skip = r.skip || [], done = r.doneOn || {};
+      for (var k = from, n = 0; k <= to && n < 800; k = addDays(k, 1), n++) {
+        if (skip.indexOf(k) >= 0 || !recurringOn(r, k)) continue;
+        out.push({ id: "r:" + r.id + ":" + k, rid: r.id, virtual: true, title: r.title || "", cat: r.cat, kind: r.kind || "normal",
+          date: k, done: !!done[k], imp: false, doneAt: null, createdAt: r.createdAt || 0, blk: null });
+      }
+    });
+    return out;
+  }
+  /* "r:<series>:<date>" → {rid, date}, or null */
+  function parseVirtualId(id) {
+    var m = /^r:(.+):(\d{4}-\d{2}-\d{2})$/.exec(String(id));
+    return m ? { rid: m[1], date: m[2] } : null;
   }
   /* "all" | "open" | "done" */
   function statusFilter(items, status) {
@@ -184,7 +204,7 @@
     });
   }
   function overdue(tasks, today) {
-    return tasks.filter(function (t) { return !t.done && t.date && t.date < today; });
+    return tasks.filter(function (t) { return !t.done && !t.virtual && t.date && t.date < today; });
   }
   var DEFAULT_KEY = ["sinav", "teslim"];
   /* is this a highlighted task: its kind is highlighted, or the task itself is starred (imp) */
@@ -513,7 +533,7 @@
     daySummary: daySummary,
     toMin: toMin, fmtMin: fmtMin, durText: durText, blockError: blockError,
     recurringOn: recurringOn, blocksForDay: blocksForDay, lanes: lanes, freeSlots: freeSlots, plannedMinutes: plannedMinutes,
-    visibleTasks: visibleTasks, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
+    visibleTasks: visibleTasks, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
     doneOn: doneOn, streak: streak, weekCount: weekCount, weekStreak: weekStreak, habitProgress: habitProgress,
     normalizeBackup: normalizeBackup,
     COLORS: COLORS, ACCENTS: ACCENTS, UPC_DAYS: UPC_DAYS, DEFAULT_SETTINGS: DEFAULT_SETTINGS,

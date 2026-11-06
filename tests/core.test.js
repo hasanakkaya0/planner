@@ -90,6 +90,20 @@ const ids = (arr) => arr.map((x) => (x.t ? x.t.id + (x.late ? "!" : "") : x.id))
 eq("today: own + overdue + undated", ids(GD.visibleTasks(T, TODAY, TODAY)), ["t1", "t2!", "t4"]);
 eq("tomorrow: today's task is NOT overdue (old bug)", ids(GD.visibleTasks(T, "2026-10-17", TODAY)), ["t4"]);
 eq("past day: only that day's tasks + undated", ids(GD.visibleTasks(T, "2026-10-14", TODAY)), ["t2", "t3", "t4"]);
+/* recurring tasks */
+const RT = [
+  { id: "s1", title: "Spor", cat: "kisisel", kind: "normal", dow: [1, 3], from: "2026-10-12", until: null, doneOn: { "2026-10-14": true }, skip: ["2026-10-19"], createdAt: 5 },
+  { id: "s2", title: "Rapor", cat: "ders", kind: "teslim", dow: [5], from: "2026-10-16", until: "2026-10-23", createdAt: 6 }
+];
+const occ = GD.expandRecurringTasks(RT, "2026-10-12", "2026-10-26");
+eq("recurring tasks: one per matching day, skips and from/until respected", occ.map((x) => x.id),
+  ["r:s1:2026-10-12", "r:s1:2026-10-14", "r:s1:2026-10-21", "r:s1:2026-10-26", "r:s2:2026-10-16", "r:s2:2026-10-23"]);
+eq("recurring tasks: done comes from doneOn", occ.filter((x) => x.done).map((x) => x.id), ["r:s1:2026-10-14"]);
+eq("recurring tasks: virtual fields", [occ[0].virtual, occ[0].rid, occ[0].date, occ[0].kind, occ[0].imp], [true, "s1", "2026-10-12", "normal", false]);
+eq("recurring tasks: empty / bad input", [GD.expandRecurringTasks(null, "2026-10-12", "2026-10-13"), GD.expandRecurringTasks(RT, "2026-10-13", "2026-10-12")], [[], []]);
+eq("parseVirtualId", [GD.parseVirtualId("r:abc:2026-10-12"), GD.parseVirtualId("t123"), GD.parseVirtualId("r:a:b:2026-10-12")], [{ rid: "abc", date: "2026-10-12" }, null, { rid: "a:b", date: "2026-10-12" }]);
+const past = GD.expandRecurringTasks(RT, "2026-10-12", "2026-10-14");
+eq("a missed recurring task is never overdue", [GD.overdue(past, TODAY).length, ids(GD.visibleTasks(past, TODAY, TODAY))], [0, []]);
 /* task search / status filter */
 const ST = [
   { id: "a", title: "Matematik ödevi", date: "2026-10-20", done: false, createdAt: 2 },

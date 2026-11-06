@@ -7,7 +7,7 @@
     let total = 0, done = 0, key = 0, mins = 0, fmin = 0;
     const kk = App.keyKinds();
     days.forEach((k) => {
-      const s = GD.daySummary(S.rangeDays[k] || null, S.recurring, S.tasks, k, kk);
+      const s = GD.daySummary(S.rangeDays[k] || null, S.recurring, App.allTasks(), k, kk);
       total += s.open + s.done; done += s.done; key += s.key.filter((t) => !t.done).length; mins += s.mins; fmin += S.focusByDay[k] || 0;
     });
     return { total: total, done: done, key: key, mins: mins, fmin: fmin };
@@ -39,7 +39,7 @@
     else if (S.sel === GD.addDays(S.TODAY, -1)) rel = " · dün";
     $("dateSub").textContent = GD.GUN[d.getDay()] + ", " + d.getFullYear() + rel;
 
-    const dayTasks = S.tasks.filter((t) => t.date === S.sel);
+    const dayTasks = App.allTasks().filter((t) => t.date === S.sel);
     const done = dayTasks.filter((t) => t.done).length;
     const lg = S.logs[S.sel] || {};
     const hd = S.habits.filter((h) => lg[h.id]).length;
@@ -52,8 +52,8 @@
     let html = "";
     for (let i = 0; i < 7; i++) {
       const k = GD.addDays(ws, i), dd = GD.parseKey(k);
-      const n = GD.openCountByDay(S.tasks, k);
-      const ex = S.tasks.some((t) => t.date === k && !t.done && App.isKeyTask(t));
+      const n = GD.openCountByDay(App.allTasks(), k);
+      const ex = App.allTasks().some((t) => t.date === k && !t.done && App.isKeyTask(t));
       let pips = ex ? '<span class="pip ex"></span>' : "";
       for (let j = 0; j < Math.min(n - (ex ? 1 : 0), ex ? 2 : 3); j++) pips += '<span class="pip"></span>';
       html += '<button class="wd' + (k === S.sel ? " sel" : "") + (k === S.TODAY ? " today" : "") + '" data-k="' + k + '" aria-label="' + dd.getDate() + " " + GD.AY[dd.getMonth()] + (n ? ", " + n + " açık görev" : "") + '">' +
@@ -78,7 +78,7 @@
       html += '<div class="hour"><span class="hl">' + GD.pad(h) + ':00</span><button class="slot" data-h="' + h + '" aria-label="' + GD.pad(h) + ':00 için blok ekle"></button></div>';
     }
     const blocks = App.currentBlocks();
-    const links = GD.linkKeyTasks(blocks, S.tasks, S.sel, App.keyKinds());
+    const links = GD.linkKeyTasks(blocks, App.allTasks(), S.sel, App.keyKinds());
     let bh = "";
     GD.lanes(blocks).forEach((b) => {
       const kd = App.keyDeco(links.byBlock[b.id]);
@@ -133,7 +133,7 @@
       '<span class="ul' + (!t.done && diff >= 0 && diff <= 2 ? " soon" : "") + '">' + right + "</span></button></li>";
   }
   function renderUpcoming() {
-    const list = GD.upcoming(S.tasks, S.TODAY, S.cfg.upcomingDays, App.keyKinds());
+    const list = GD.upcoming(App.allTasks(), S.TODAY, S.cfg.upcomingDays, App.keyKinds());
     $("upcPanel").hidden = !list.length;
     $("upcDays").textContent = S.cfg.upcomingDays + " gün";
     $("upcList").innerHTML = list.map(keyRow).join("");
@@ -304,7 +304,7 @@
   }
   /* in the block dialog: what's on in this class that day (quiz, exam…) */
   function keySection(src) {
-    const linked = GD.linkKeyTasks(App.currentBlocks(), S.tasks, S.sel, App.keyKinds()).byBlock[src.id] || [];
+    const linked = GD.linkKeyTasks(App.currentBlocks(), App.allTasks(), S.sel, App.keyKinds()).byBlock[src.id] || [];
     const kinds = S.cfg.kinds.filter((k) => k.key).concat(S.cfg.kinds.filter((k) => !k.key));
     return '<div class="field"><span>Bu derste / blokta · ' + fmtShort(S.sel) + '</span>' +
       '<input type="text" id="mKT" maxlength="140" placeholder="Bu bloğa görev ekle, ör. slaytları getir (Enter)" autocomplete="off">' +

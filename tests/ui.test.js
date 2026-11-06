@@ -69,6 +69,28 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("status filter: done only", [$("taskList").textContent.includes("Test görevi"), $("taskList").textContent.includes("Başka iş")], [true, false]);
   $("tFilter").value = "all"; $("tFilter").dispatchEvent(new w.Event("change", { bubbles: true }));
 
+  /* recurring tasks */
+  $("tTitle").value = "Tekrar işi"; $("tRep").click(); await wait(80);
+  eq("recurring modal opens prefilled with today's weekday", [$("mT").value, w.document.querySelectorAll("#modal .chip[aria-pressed=true]").length], ["Tekrar işi", 1]);
+  $("mForm").dispatchEvent(new w.Event("submit", { cancelable: true, bubbles: true })); await wait(150);
+  eq("series created and shown in today's list", [w.eval("S.rtasks.length"), $("taskList").textContent.includes("Tekrar işi"), $("taskList").textContent.includes("tekrar")], [1, true, true]);
+  eq("add row cleared after creating a series", $("tTitle").value, "");
+  const repLi = () => [...$("taskList").querySelectorAll("li.task")].find((l) => l.textContent.includes("Tekrar işi"));
+  repLi().querySelector(".chk").click(); await wait(100);
+  eq("ticking an occurrence stores it in doneOn", [Object.keys(w.eval("S.rtasks[0].doneOn")).length, repLi().classList.contains("done")], [1, true]);
+  d.querySelector('[data-view="month"]').click(); await wait(100);
+  eq("month view lists the occurrence too", d.querySelector("#moGrid").textContent.includes("Tekrar işi"), true);
+  d.querySelector('[data-view="day"]').click(); await wait(100);
+  repLi().querySelector(".tx").click(); await wait(80);
+  eq("clicking an occurrence edits the series", [$("modal").textContent.includes("Tekrarlayan görevi düzenle"), !!$("mSkip"), !!$("mDel")], [true, true, true]);
+  $("mSkip").click(); await wait(100);
+  eq("'Bu gün yok' skips only that day", [w.eval("S.rtasks[0].skip.length"), !!repLi()], [1, false]);
+  $("undoBtn").click(); await wait(100);
+  eq("undo brings the occurrence back", [w.eval("S.rtasks[0].skip.length"), !!repLi()], [0, true]);
+  repLi().querySelector(".tx").click(); await wait(80);
+  $("mDel").click(); $("mDel").click(); await wait(150);
+  eq("deleting the series removes all occurrences", [w.eval("S.rtasks.length"), !!repLi()], [0, false]);
+
   $("bTitle").value = "Test bloğu"; $("bAdd").click(); await wait(150);
   eq("block added", $("tl").textContent.includes("Test bloğu"), true);
 
