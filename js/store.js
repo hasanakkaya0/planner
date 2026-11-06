@@ -14,13 +14,14 @@
 
   var COLS = ["tasks", "habits", "habitlog", "days", "recurring", "settings", "focus"];
   var QUERY = {
-    tasks: { order: ["createdAt", "desc"], limit: 1000 },
+    tasks: { order: ["createdAt", "desc"], limit: 3000 },
     habits: { order: ["order", "asc"], limit: 100 },
-    habitlog: { order: ["date", "desc"], limit: 400 },
+    habitlog: { order: ["date", "desc"], limit: 1500 },
     recurring: { order: ["createdAt", "asc"], limit: 200 },
     days: { order: ["date", "desc"], limit: 1000 },
-    focus: { order: ["start", "desc"], limit: 1000 }
+    focus: { order: ["start", "desc"], limit: 3000 }
   };
+  var BATCH = 400;   /* Firestore allows 500 writes per batch */
   var LS_KEY = "gunDefteri.v1";
 
   function rows(snapDocs) {
@@ -35,11 +36,17 @@
       var c = db.collection(pre + col), o = QUERY[col];
       return o ? c.orderBy(o.order[0], o.order[1]).limit(o.limit) : c;
     }
-    return {
+    var api = {
       mode: "cloud",
       persistent: true,
+      /* set by the app: called (col, limit) when a live list is full, i.e. older documents may be hidden */
+      onLimit: null,
       watch: function (col, cb, onErr) {
-        return q(col).onSnapshot(function (s) { cb(rows(s.docs)); }, onErr);
+        var lim = QUERY[col] && QUERY[col].limit;
+        return q(col).onSnapshot(function (s) {
+          if (lim && s.docs.length >= lim && api.onLimit) api.onLimit(col, lim);
+          cb(rows(s.docs));
+        }, onErr);
       },
       watchDoc: function (col, id, cb, onErr) {
         return db.doc(pre + col + "/" + id).onSnapshot(function (s) { cb(s.exists ? (s.data() || {}) : null); }, onErr);
@@ -57,7 +64,8 @@
         var out = {};
         return COLS.reduce(function (p, col) {
           return p.then(function () {
-            return q(col).get().then(function (s) {
+            /* backup reads everything: no limit, and no orderBy (it would skip documents missing that field) */
+            return db.collection(pre + col).get().then(function (s) {
               out[col] = {};
               s.docs.forEach(function (d) { out[col][d.id] = d.data(); });
             });
@@ -69,12 +77,25 @@
         COLS.forEach(function (col) {
           Object.keys(data[col] || {}).forEach(function (id) { jobs.push([col, id, data[col][id]]); });
         });
-        /* one write per document, sequentially — to stay under rate limits */
-        return jobs.reduce(function (p, j) {
-          return p.then(function () { return db.doc(pre + j[0] + "/" + j[1]).set(j[2]); });
-        }, Promise.resolve()).then(function () { return jobs.length; });
+        var done = function () { return jobs.length; };
+        if (typeof db.batch !== "function") {
+          /* database without batch support: one write per document, sequentially */
+          return jobs.reduce(function (p, j) {
+            return p.then(function () { return db.doc(pre + j[0] + "/" + j[1]).set(j[2]); });
+          }, Promise.resolve()).then(done);
+        }
+        var chunks = [];
+        for (var i = 0; i < jobs.length; i += BATCH) chunks.push(jobs.slice(i, i + BATCH));
+        return chunks.reduce(function (p, chunk) {
+          return p.then(function () {
+            var b = db.batch();
+            chunk.forEach(function (j) { b.set(db.doc(pre + j[0] + "/" + j[1]), j[2]); });
+            return b.commit();
+          });
+        }, Promise.resolve()).then(done);
       }
     };
+    return api;
   }
 
   /* ---------- yerel ---------- */

@@ -40,8 +40,9 @@ js/sync.js             Firebase sign-in and connection
 js/firebase-config.js  Firebase web config (null = data stays in this browser only)
 js/app.js              user interface
 sw.js, manifest.webmanifest, icons/   installable PWA and offline support
-build.js               node build.js → dist/planner.html (single-file build)
+build.js               node build.js → stamps the cache version into sw.js / index.html, writes dist/planner.html (single-file build)
 tests/core.test.js     node tests/core.test.js (157 tests)
+tests/store.test.js    node tests/store.test.js (cloud store: limits, full backup, batched restore)
 ```
 
 ### Data model

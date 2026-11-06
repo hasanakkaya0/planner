@@ -1621,6 +1621,13 @@
   const SEED_HABITS = [["h_ders", "Ders tekrarı", 7], ["h_spor", "Spor", 3], ["h_kitap", "Kitap okuma", 7], ["h_erken", "Erken kalkma", 5]];
 
   function startSubs() {
+    /* a live list hit its size limit: older records may be hidden (a backup still contains everything) */
+    const warned = {};
+    store.onLimit = (col) => {
+      if (warned[col]) return;
+      warned[col] = true;
+      toast("Liste çok büyüdü; en eski kayıtlar görünmeyebilir. Yedeğin hepsini içerir.");
+    };
     store.watchDoc("settings", "main", (d) => { cfg = GD.normalizeSettings(d); applyCfg(); }, onErr);
     store.watch("tasks", (rows) => {
       tasks = rows.map((o) => ({
