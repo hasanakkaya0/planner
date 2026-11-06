@@ -73,6 +73,16 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
     const el = v === "week" ? $("wkGrid") : v === "month" ? $("moGrid") : $("tl");
     eq(v + " view renders", el.innerHTML.length > 300, true);
   }
+  /* phone month view: first tap selects a day and lists it, the button opens it */
+  const mm = w.matchMedia; w.matchMedia = (q) => ({ matches: /max-width:\s*880/.test(q), media: q, addEventListener() {}, removeEventListener() {} });
+  view("month"); await wait(100);
+  const cells = [...d.querySelectorAll("#moGrid .mo-cell")], other = cells.find((c) => c.dataset.go !== w.eval("S.sel") && !c.classList.contains("out"));
+  other.click(); await wait(100);
+  eq("phone: tapping a day keeps the month view", [$("monthView").hidden, w.eval("S.sel") === other.dataset.go], [false, true]);
+  eq("phone: the day list shows under the calendar", $("moDayTitle").textContent.length > 3 && $("moDayList").children.length > 0, true);
+  $("moDayOpen").click(); await wait(100);
+  eq("phone: 'Günü aç' opens the day view", [$("dayView").hidden, $("monthView").hidden], [false, true]);
+  w.matchMedia = mm;
   view("week"); $("next").click(); $("prev").click(); $("todayBtn").click();
   view("month"); $("next").click(); $("todayBtn").click(); view("day"); await wait(100);
 

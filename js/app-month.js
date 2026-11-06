@@ -49,11 +49,23 @@
       }
     }
 
+    renderMonthDay();
     const list = S.tasks.filter((t) => t.date && t.date.slice(0, 7) === mon && App.isKeyTask(t))
       .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     $("moKeyCount").textContent = list.length ? list.filter((t) => !t.done).length + " açık / " + list.length : "";
     $("moKeyList").innerHTML = list.length ? list.map(App.keyRow).join("")
       : '<li class="empty">Bu ay öne çıkan bir şey yok. Görev eklerken öne çıkan bir tür (ör. ' + esc(S.cfg.kinds.filter((k) => k.key).map((k) => k.name).join(", ") || "Ayarlar → Görev türleri") + ") seçersen burada görünür.</li>";
+  }
+
+  /* phone: the selected day's list under the calendar (the grid itself only has dots there) */
+  function renderMonthDay() {
+    const k = S.sel, dd = GD.parseKey(k), s = GD.daySummary(S.rangeDays[k] || null, S.recurring, S.tasks, k, App.keyKinds());
+    $("moDayTitle").textContent = dd.getDate() + " " + GD.AY[dd.getMonth()] + " · " + GD.GUNK[dd.getDay()];
+    const nt = S.tasks.filter((t) => t.date === k && !App.isKeyTask(t)).sort((a, b) => (a.done - b.done) || ((a.createdAt || 0) - (b.createdAt || 0)));
+    const rows = s.key.map((t) => '<li class="md-row' + (t.done ? " done" : "") + '"><span class="md-t"><span class="pill k c-' + App.keyColor(t) + '">' + esc(App.keyName(t)) + '</span></span><span class="md-x">' + esc(t.title) + "</span></li>")
+      .concat(s.blocks.map((b) => '<li class="md-row c-' + App.catOf(b.c).color + '"><span class="md-t">' + GD.fmtMin(b.s) + '</span><span class="md-x"><i></i>' + esc(b.t) + (b.loc ? ' <small>' + esc(b.loc) + "</small>" : "") + "</span></li>"))
+      .concat(nt.map((t) => '<li class="md-row c-' + App.catOf(t.cat).color + (t.done ? " done" : "") + '"><span class="md-t">görev</span><span class="md-x"><i></i>' + esc(t.title) + "</span></li>"));
+    $("moDayList").innerHTML = rows.length ? rows.join("") : '<li class="empty">Bu günde kayıt yok.</li>';
   }
 
   function renderRange() {

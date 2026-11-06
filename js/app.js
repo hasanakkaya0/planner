@@ -15,9 +15,13 @@
     if ((x = e.target.closest("[data-go]"))) { if (x.dataset.tab) setTab(x.dataset.tab); App.go(x.dataset.go); App.setView("day"); }
   };
   $("monthView").onclick = (e) => {
+    const cell = e.target.closest(".mo-cell");
+    /* phone: the first tap selects the day (its list shows under the calendar), a tap on the selected day opens it */
+    if (cell && window.matchMedia("(max-width:880px)").matches && cell.dataset.go !== S.sel) { App.go(cell.dataset.go); return; }
     const x = e.target.closest("[data-go]");
     if (x) { App.go(x.dataset.go); App.setView("day"); }
   };
+  $("moDayOpen").onclick = () => App.setView("day");
   $("week").onclick = (e) => { const b = e.target.closest(".wd"); if (b) App.go(b.dataset.k); };
 
   function setTab(name) {
