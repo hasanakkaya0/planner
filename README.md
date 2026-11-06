@@ -61,6 +61,7 @@ fonts/                 Plus Jakarta Sans (latin + latin-ext, SIL OFL; see fonts/
 build.js               node build.js → stamps the cache version into sw.js / index.html, writes dist/planner.html (single-file build)
 tests/core.test.js     node tests/core.test.js (157 tests)
 tests/store.test.js    node tests/store.test.js (cloud store: limits, full backup, batched restore)
+tests/colors.test.js   node tests/colors.test.js (WCAG contrast of every colour pair in light / dark / black)
 tests/ui.test.js       node tests/ui.test.js (jsdom: boots dist/planner.html and drives the main flows; run `npm test`)
 ```
 

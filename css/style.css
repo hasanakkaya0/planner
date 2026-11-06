@@ -17,18 +17,18 @@
   --card:#fdfcff;
   --card-2:#f6f4fd;
   --ink:#1d1a33;
-  --ink-soft:#5d5880;
-  --ink-faint:#9590b3;
+  --ink-soft:#504b74;
+  --ink-faint:#6b6492;
   --rule:#e0dcf1;
   --grid:#e5e2f6;
   --accent:#5a4bd1;
   --accent-soft:#e9e5fd;
   --on-accent:#ffffff;
-  --moss:#2f7d58;
+  --moss:#2c7451;
   --moss-soft:#dcf2e6;
-  --ochre:#a2620c;
+  --ochre:#995c0b;
   --ochre-soft:#fcefd6;
-  --rose:#c2414b;
+  --rose:#b53a43;
   --rose-soft:#fde4e6;
   /* section tints */
   --tint-blue:#e3ecfd;
@@ -53,7 +53,7 @@
   :root:not([data-theme="light"]){
     --paper:#22233a; --top:#2a2b45; --card:#2b2c47;
     --card-2:#323452;
-    --ink:#f0eefb; --ink-soft:#b9b5d6; --ink-faint:#8a86aa;
+    --ink:#f0eefb; --ink-soft:#b9b5d6; --ink-faint:#a39fbc;
     --rule:#3e3f62; --grid:#28294a;
     --accent:#b3a8ff; --accent-soft:#3c3a6b; --on-accent:#1f1d3a;
     --moss:#8fd8b0; --moss-soft:#2a4a3d;
@@ -69,7 +69,7 @@
 :root:is([data-theme="dark"],[data-theme="black"]){
   --paper:#22233a; --top:#2a2b45; --card:#2b2c47;
   --card-2:#323452;
-  --ink:#f0eefb; --ink-soft:#b9b5d6; --ink-faint:#8a86aa;
+  --ink:#f0eefb; --ink-soft:#b9b5d6; --ink-faint:#a39fbc;
   --rule:#3e3f62; --grid:#28294a;
   --accent:#b3a8ff; --accent-soft:#3c3a6b; --on-accent:#1f1d3a;
   --moss:#8fd8b0; --moss-soft:#2a4a3d;
@@ -274,10 +274,8 @@ li.task:hover .tact,li.task:focus-within .tact{opacity:1}
 .tact button:hover{background:var(--rule);color:var(--ink)}
 .tact button.del:hover{color:var(--rose)}
 .tact button.star{font-family:inherit;font-size:13px}
-.tact button.star.on{color:#d49a12}
-.pill.imp{color:#a36f00;border-color:#e0b04a;background:#fff4d6;font-weight:600}
-:is([data-theme="dark"],[data-theme="black"]) .pill.imp{color:#f2c25b;border-color:#8a6a24;background:#3a3020}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pill.imp{color:#f2c25b;border-color:#8a6a24;background:#3a3020}}
+.tact button.star.on{color:var(--ochre)}
+.pill.imp{color:var(--ochre);border-color:var(--ochre);background:var(--ochre-soft);font-weight:600}
 .row.checks{display:flex;gap:18px;flex-wrap:wrap}
 @media (hover:none){.tact{opacity:1}}
 
@@ -474,13 +472,13 @@ ul.upc li.empty{padding:14px 10px;font-size:13.5px;color:var(--ink-faint);text-a
 .sig a:hover{text-decoration:underline;text-underline-offset:3px}
 
 /* ---------- color palette: category and kind colors (chosen in settings) ---------- */
-.c-blue{--c:#2f6fdb;--c-soft:#e1ebfd}
-.c-violet{--c:#6a4fd6;--c-soft:#ebe5fd}
-.c-green{--c:#2f7d58;--c-soft:#dcf2e6}
-.c-amber{--c:#a2620c;--c-soft:#fcefd6}
-.c-red{--c:#c2414b;--c-soft:#fde4e6}
-.c-pink{--c:#c03d8a;--c-soft:#fce4f1}
-.c-teal{--c:#0f7f86;--c-soft:#d9f3f3}
+.c-blue{--c:#2362cb;--c-soft:#e1ebfd}
+.c-violet{--c:#684dd6;--c-soft:#ebe5fd}
+.c-green{--c:#2c7451;--c-soft:#dcf2e6}
+.c-amber{--c:#995c0b;--c-soft:#fcefd6}
+.c-red{--c:#b53a43;--c-soft:#fde4e6}
+.c-pink{--c:#af377d;--c-soft:#fce4f1}
+.c-teal{--c:#0e747b;--c-soft:#d9f3f3}
 .c-slate{--c:#5d6480;--c-soft:#e7e9f1}
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]) .c-blue{--c:#8fb4ff;--c-soft:#2c3a62}
@@ -502,10 +500,10 @@ ul.upc li.empty{padding:14px 10px;font-size:13.5px;color:var(--ink-faint);text-a
 :root:is([data-theme="dark"],[data-theme="black"]) .c-slate{--c:#b4b9cf;--c-soft:#383b55}
 
 /* ---------- accent color options ---------- */
-:root[data-accent="blue"]{--accent:#2f6fdb;--accent-soft:#e2ecfd}
-:root[data-accent="green"]{--accent:#2f7d58;--accent-soft:#dcf2e6}
-:root[data-accent="pink"]{--accent:#c03d8a;--accent-soft:#fce4f1}
-:root[data-accent="orange"]{--accent:#c2611a;--accent-soft:#fde9d8}
+:root[data-accent="blue"]{--accent:#2363cd;--accent-soft:#e2ecfd}
+:root[data-accent="green"]{--accent:#2c7451;--accent-soft:#dcf2e6}
+:root[data-accent="pink"]{--accent:#af377d;--accent-soft:#fce4f1}
+:root[data-accent="orange"]{--accent:#a35116;--accent-soft:#fde9d8}
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"])[data-accent="blue"]{--accent:#8fb4ff;--accent-soft:#2c3a62}
   :root:not([data-theme="light"])[data-accent="green"]{--accent:#8fd8b0;--accent-soft:#2a4a3d}
