@@ -50,6 +50,7 @@ js/app-dnd.js          drag and drop on the timeline
 js/app-focus.js        focus timer
 js/app.js              event wiring, subscriptions, start-up (loaded last)
 sw.js, manifest.webmanifest, icons/   installable PWA and offline support
+fonts/                 Plus Jakarta Sans (latin + latin-ext, SIL OFL; see fonts/LICENSE.txt), served from this site so it works offline
 build.js               node build.js → stamps the cache version into sw.js / index.html, writes dist/planner.html (single-file build)
 tests/core.test.js     node tests/core.test.js (157 tests)
 tests/store.test.js    node tests/store.test.js (cloud store: limits, full backup, batched restore)

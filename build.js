@@ -15,6 +15,7 @@ const norm = (t) => t.replace(/\?v=[0-9a-f]+/g, "?v=X").replace(/planner-v[0-9a-
 const h = crypto.createHash("sha1");
 const LF = (t) => t.replace(/\r\n/g, "\n");   /* same hash on Windows (CRLF) and CI (LF) */
 VER_FILES.forEach((f) => h.update(LF(R(f))));
+["fonts/plus-jakarta-sans-latin.woff2", "fonts/plus-jakarta-sans-latin-ext.woff2"].forEach((f) => h.update(fs.readFileSync(path.join(__dirname, f))));
 h.update(LF(norm(R("index.html")))).update(LF(norm(R("sw.js"))));
 const VER = h.digest("hex").slice(0, 8);
 const stamp = (file) => {
@@ -29,7 +30,8 @@ console.log("version " + VER);
 const html = R("index.html");
 const m = html.match(/<!-- BODY START -->([\s\S]*?)<!-- BODY END -->/);
 if (!m) throw new Error("index.html is missing the BODY START / BODY END markers.");
-const fonts = (html.match(/<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^>]*>/) || [""])[0];
+/* the single-file build has no folders: the fonts are inlined into the CSS as data URIs */
+const css = R("css/style.css").replace(/url\(\.\.\/(fonts\/[^)]+)\)/g, (_, f) => "url(data:font/woff2;base64," + fs.readFileSync(path.join(__dirname, f)).toString("base64") + ")");
 
 const js = ["js/core.js", "js/store.js", ...APP_FILES].map(R).join("\n");
 if (/<\/script/i.test(js)) throw new Error("JS contains </script; it cannot be inlined into a single file.");
@@ -37,9 +39,7 @@ if (/<\/script/i.test(js)) throw new Error("JS contains </script; it cannot be i
 const out = [
   "<title>Planner</title>",
   '<meta name="claude:viewport-fit-sides" content="cover">',
-  '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
-  fonts,
-  "<style>\n" + R("css/style.css") + "\n</style>",
+  "<style>\n" + css + "\n</style>",
   m[1].trim(),
   "<script>\n" + js + "\n</script>",
   ""
