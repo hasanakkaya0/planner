@@ -312,6 +312,30 @@
     return { mode: "weekly", count: weekCount(logs, h.id, sel), target: target, weeks: weekStreak(logs, h.id, sel, target) };
   }
 
+  /* Reminders due right now (the app checks every ~30 s while it is open).
+     o: {now: Date, today: key, blocks: [{id, t, s, loc}] of today, keyTasks: [{id, title, date, kind}] (open, dated, highlighted),
+         lead: minutes before a block (0 = none, default 10), fired: {id: ts}, kindName: function(task)}
+     - a block: from `lead` minutes before it starts until it starts
+     - a highlighted task due today: from 08:00; due tomorrow: from 20:00 the evening before
+     Each reminder has a stable id so it is shown once. */
+  function dueReminders(o) {
+    var now = o.now, nowMin = now.getHours() * 60 + now.getMinutes(), fired = o.fired || {}, out = [];
+    var lead = o.lead == null ? 10 : o.lead;
+    var add = function (id, title, body) { if (!fired[id]) out.push({ id: id, title: title, body: body }); };
+    if (lead > 0) (o.blocks || []).forEach(function (b) {
+      if (nowMin < b.s - lead || nowMin > b.s) return;
+      var m = b.s - nowMin;
+      add("b:" + o.today + ":" + b.id, b.t, (m > 0 ? m + " dk sonra" : "şimdi") + " · " + fmtMin(b.s) + (b.loc ? " · " + b.loc : ""));
+    });
+    var tomorrow = addDays(o.today, 1);
+    (o.keyTasks || []).forEach(function (t) {
+      var name = o.kindName ? o.kindName(t) + ": " : "";
+      if (t.date === o.today && nowMin >= 8 * 60) add("k:" + t.id + ":m", name + t.title, "Bugün");
+      else if (t.date === tomorrow && nowMin >= 20 * 60) add("k:" + t.id + ":e", name + t.title, "Yarın");
+    });
+    return out;
+  }
+
   /* End of term. Weekly series still running on day k: no end date, or it ends on/after k */
   function activeSeries(recurring, k) {
     return (recurring || []).filter(function (r) { return !r.until || r.until >= k; });
@@ -590,7 +614,7 @@
     daySummary: daySummary,
     toMin: toMin, fmtMin: fmtMin, durText: durText, blockError: blockError,
     recurringOn: recurringOn, blocksForDay: blocksForDay, lanes: lanes, freeSlots: freeSlots, plannedMinutes: plannedMinutes,
-    visibleTasks: visibleTasks, activeSeries: activeSeries, oldDoneTasks: oldDoneTasks, statsRange: statsRange, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
+    visibleTasks: visibleTasks, dueReminders: dueReminders, activeSeries: activeSeries, oldDoneTasks: oldDoneTasks, statsRange: statsRange, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
     doneOn: doneOn, streak: streak, weekCount: weekCount, weekStreak: weekStreak, habitProgress: habitProgress,
     normalizeBackup: normalizeBackup,
     COLORS: COLORS, ACCENTS: ACCENTS, UPC_DAYS: UPC_DAYS, DEFAULT_SETTINGS: DEFAULT_SETTINGS,

@@ -69,6 +69,23 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("status filter: done only", [$("taskList").textContent.includes("Test görevi"), $("taskList").textContent.includes("Başka iş")], [true, false]);
   $("tFilter").value = "all"; $("tFilter").dispatchEvent(new w.Event("change", { bubbles: true }));
 
+  /* reminders */
+  $("setBtn").click(); await wait(60); $("sRemind").click(); await wait(60);
+  eq("reminder window opens", $("modal").textContent.includes("Hatırlatmalar"), true);
+  $("rmOn").checked = true; $("rmLead").value = "10";
+  $("mForm").dispatchEvent(new w.Event("submit", { cancelable: true, bubbles: true })); await wait(80);
+  eq("reminder choice is stored on this device", JSON.parse(w.localStorage.getItem("gunDefteri.notif")), { on: true, lead: 10, keys: true });
+  const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  if (nowMin + 6 < 24 * 60) {
+    w.eval('S.store.set("days", S.TODAY, { date: S.TODAY, blocks: [{ id: "rb", s: ' + (nowMin + 5) + ', e: ' + (nowMin + 35) + ', t: "Hatırlatma dersi", c: "ders" }], note: "", skip: [] })'); await wait(100);
+    $("toast").hidden = true; await w.eval("App.check()");
+    eq("a block about to start triggers a reminder (message: no system notifications here)", [$("toast").hidden, $("toast").textContent.includes("Hatırlatma dersi")], [false, true]);
+    $("toast").hidden = true; await w.eval("App.check()");
+    eq("the same reminder is not repeated", $("toast").hidden, true);
+    w.eval('S.store.del("days", S.TODAY)'); await wait(60);
+  }
+  w.localStorage.removeItem("gunDefteri.notif");
+
   /* end of term */
   w.eval('S.store.set("recurring", "cls1", { t: "Ders A", c: "ders", s: 540, e: 630, dow: [1, 3], from: "2026-01-05", until: null })');
   w.eval('S.store.set("tasks", "oldA", { title: "Eski biten", cat: "ders", kind: "normal", date: GD.addDays(S.TODAY, -200), done: true, createdAt: 1 })');

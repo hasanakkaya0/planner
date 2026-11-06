@@ -90,6 +90,16 @@ const ids = (arr) => arr.map((x) => (x.t ? x.t.id + (x.late ? "!" : "") : x.id))
 eq("today: own + overdue + undated", ids(GD.visibleTasks(T, TODAY, TODAY)), ["t1", "t2!", "t4"]);
 eq("tomorrow: today's task is NOT overdue (old bug)", ids(GD.visibleTasks(T, "2026-10-17", TODAY)), ["t4"]);
 eq("past day: only that day's tasks + undated", ids(GD.visibleTasks(T, "2026-10-14", TODAY)), ["t2", "t3", "t4"]);
+/* reminders */
+const RB = [{ id: "b1", t: "STAT 363", s: 640, loc: "MM-101" }];
+const at = (h, m) => new Date(2026, 9, 16, h, m);
+const dr = (extra) => GD.dueReminders(Object.assign({ now: at(10, 31), today: "2026-10-16", blocks: RB, keyTasks: [], lead: 10, fired: {} }, extra));
+eq("reminder: block 9 minutes ahead", dr({}).map((x) => [x.id, x.title, x.body]), [["b:2026-10-16:b1", "STAT 363", "9 dk sonra · 10:40 · MM-101"]]);
+eq("reminder: too early / already started", [dr({ now: at(10, 29) }).length, dr({ now: at(10, 41) }).length, dr({ now: at(10, 40) })[0].body.startsWith("şimdi")], [0, 0, true]);
+eq("reminder: shown once (fired) and lead 0 = off", [dr({ fired: { "b:2026-10-16:b1": 1 } }).length, dr({ lead: 0 }).length], [0, 0]);
+const KT = [{ id: "e1", title: "Quiz", date: "2026-10-16", kind: "sinav" }, { id: "e2", title: "Rapor", date: "2026-10-17", kind: "teslim" }];
+eq("reminder: highlighted task due today from 08:00", [dr({ now: at(7, 59), blocks: [], keyTasks: KT }).length, dr({ now: at(8, 0), blocks: [], keyTasks: KT }).map((x) => x.id)], [0, ["k:e1:m"]]);
+eq("reminder: tomorrow's one comes the evening before, after 20:00", [dr({ now: at(19, 59), blocks: [], keyTasks: [KT[1]] }).length, dr({ now: at(20, 0), blocks: [], keyTasks: [KT[1]], kindName: () => "Teslim" }).map((x) => [x.id, x.title, x.body])], [0, [["k:e2:e", "Teslim: Rapor", "Yarın"]]]);
 /* end of term */
 const SER = [{ id: "a", from: "2026-09-01", until: null }, { id: "b", from: "2026-09-01", until: "2026-10-20" }, { id: "c", from: "2026-09-01", until: "2026-10-10" }];
 eq("activeSeries: no end date or ending on/after the day", GD.activeSeries(SER, "2026-10-16").map((r) => r.id), ["a", "b"]);

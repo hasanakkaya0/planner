@@ -151,7 +151,7 @@
         '<label class="btn-ghost filebtn">Yedek yükle<input type="file" id="sImport" accept="application/json,.json" hidden></label>' +
         (S.store && S.store.signOut ? '<span class="sp"></span><button type="button" class="btn-ghost" id="sSignOut">Çıkış yap</button>' : "") + "</div>" +
       "</section>" +
-      '<section class="set-sec"><h3>Dönem sonu ve yardım</h3><div class="set-row"><button type="button" class="btn-ghost" id="sTerm">Dönem sonu…</button><button type="button" class="btn-ghost" id="sWelcome">Tanıtımı göster</button></div></section>' +
+      '<section class="set-sec"><h3>Hatırlatma, dönem sonu ve yardım</h3><div class="set-row"><button type="button" class="btn-ghost" id="sRemind">Hatırlatmalar…</button><button type="button" class="btn-ghost" id="sTerm">Dönem sonu…</button><button type="button" class="btn-ghost" id="sWelcome">Tanıtımı göster</button></div></section>' +
       '<section class="set-sec about"><h3>Hakkında</h3>' +
         '<div class="about-row">' + document.querySelector(".brand .logo").outerHTML + '<div><b>Planner</b><br><span>Hasan Akkaya · <a href="https://github.com/hasanakkaya0" target="_blank" rel="noopener">GitHub</a> · <a href="https://www.linkedin.com/in/hasanakkaya0" target="_blank" rel="noopener">LinkedIn</a></span></div></div>' +
         '<p class="set-hint">Kısayollar: / hızlı ekle · G / H / A gün-hafta-ay · ← → önceki/sonraki · T bugün · N görev · B blok · O odak · K tema · , ayarlar</p>' +
@@ -227,6 +227,8 @@
         App.closeModal(); S.store.signOut().then(() => location.reload());
       } else if (e.target.closest("#sWelcome")) {
         App.closeModal(); App.openWelcome();
+      } else if (e.target.closest("#sRemind")) {
+        App.closeModal(); App.openReminders();
       } else if (e.target.closest("#sTerm")) {
         App.closeModal(); App.openTermEnd();
       } else if (e.target.closest("#sExport")) {
