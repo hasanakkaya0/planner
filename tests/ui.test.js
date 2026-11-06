@@ -69,6 +69,15 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("status filter: done only", [$("taskList").textContent.includes("Test görevi"), $("taskList").textContent.includes("Başka iş")], [true, false]);
   $("tFilter").value = "all"; $("tFilter").dispatchEvent(new w.Event("change", { bubbles: true }));
 
+  /* statistics window */
+  w.eval('S.store.set("focus", "f1", { date: S.TODAY, start: Date.now(), mins: 25, title: "x", cat: "ders" })'); await wait(80);
+  $("statsBtn").click(); await wait(80);
+  eq("stats window opens with tiles and charts", [$("modal").textContent.includes("İstatistikler"), $("modal").querySelectorAll(".st-tile").length, $("modal").querySelectorAll(".bars i").length], [true, 4, 60]);  /* two charts × 30 days */
+  eq("stats counts the focus session", $("modal").querySelector(".st-tile b").textContent.includes("25"), true);
+  $("stPeriod").querySelector('[data-days="7"]').click(); await wait(40);
+  eq("stats period switch redraws", [$("modal").querySelectorAll(".bars i").length, w.eval("S.statsDays")], [14, 7]);
+  key("Escape"); await wait(40);
+
   /* notes and sub-tasks */
   [...$("taskList").querySelectorAll("li.task")].find((l) => l.textContent.includes("Test görevi")).querySelector(".tx").click(); await wait(80);
   $("mNote").value = "Hocaya mail at";

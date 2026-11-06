@@ -13,6 +13,7 @@ and can be added to the iPhone home screen like a native app.
 - **Three views:** day (timeline, tasks, habits, note), week (7-column timeline) and month (calendar with each day's exams, tasks and classes).
 - **Quick add:** type one line such as `yarın 14:00-15:30 Matematik @MM-101 #ders` and the date, time, place and category are parsed for you.
 - **Weekly classes:** enter your timetable once and it repeats every week. You can skip a single day (a holiday) or end the series (end of term).
+- **Statistics** (chart button or `I`): focus time, finished tasks, habit completion and active days over the last 7 / 30 / 90 days, with daily bars and a per-category breakdown.
 - **Notes and sub-tasks:** any task can carry a note and a checklist; the row shows progress (`1/3`) and expands in place. Search also looks inside them.
 - **Recurring tasks:** "every Monday and Wednesday: gym". Each occurrence is ticked off separately; a single day can be skipped or the series ended.
 - **Exams, quizzes and deadlines:** shown in an "Upcoming" list and highlighted on the calendars. They attach themselves to the matching class
@@ -27,7 +28,7 @@ and can be added to the iPhone home screen like a native app.
 ## Keyboard
 
 `/` quick add · `G` `H` `A` day / week / month · `←` `→` previous / next · `T` today · `N` new task · `B` new block ·
-`O` start / pause focus · `K` theme · `,` settings · `Esc` close
+`O` start / pause focus · `I` statistics · `K` theme · `,` settings · `Esc` close
 
 ## Tech
 

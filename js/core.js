@@ -312,6 +312,45 @@
     return { mode: "weekly", count: weekCount(logs, h.id, sel), target: target, weeks: weekStreak(logs, h.id, sel, target) };
   }
 
+  /* Numbers for the statistics window over the day keys [from, to].
+     input: {tasks:[{done, doneAt}], focus:[{date, mins, cat}], logs:{date:{habitId:true}}, habits:[{id, name, target, createdAt}]} */
+  function statsRange(input, from, to) {
+    var days = [];
+    for (var k = from; k <= to && days.length < 400; k = addDays(k, 1)) days.push(k);
+    var inRange = function (d) { return d >= from && d <= to; };
+    var focusByDay = {}, tasksByDay = {}, byCat = {}, focusTotal = 0, tasksTotal = 0;
+    (input.focus || []).forEach(function (r) {
+      var m = +r.mins || 0;
+      if (!m || !isKey(r.date) || !inRange(r.date)) return;
+      focusByDay[r.date] = (focusByDay[r.date] || 0) + m;
+      byCat[r.cat || "_"] = (byCat[r.cat || "_"] || 0) + m;
+      focusTotal += m;
+    });
+    (input.tasks || []).forEach(function (t) {
+      if (!t.done || !t.doneAt) return;
+      var d = key(new Date(t.doneAt));
+      if (!inRange(d)) return;
+      tasksByDay[d] = (tasksByDay[d] || 0) + 1; tasksTotal++;
+    });
+    var logs = input.logs || {};
+    var habits = (input.habits || []).map(function (h) {
+      var since = h.createdAt ? key(new Date(h.createdAt)) : from;
+      var mine = days.filter(function (d) { return d >= since; });
+      var target = h.target && h.target < 7 ? h.target : 7;
+      var done = mine.filter(function (d) { return logs[d] && logs[d][h.id]; }).length;
+      var expected = target === 7 ? mine.length : Math.round(target * mine.length / 7);
+      return { id: h.id, name: h.name, done: done, expected: expected, rate: expected ? Math.min(1, done / expected) : null };
+    });
+    var rated = habits.filter(function (h) { return h.rate != null; });
+    var activeDays = days.filter(function (d) {
+      return focusByDay[d] || tasksByDay[d] || (logs[d] && Object.keys(logs[d]).some(function (x) { return logs[d][x]; }));
+    }).length;
+    return {
+      days: days, focusByDay: focusByDay, tasksByDay: tasksByDay, byCat: byCat, focusTotal: focusTotal, tasksTotal: tasksTotal, activeDays: activeDays,
+      habits: habits, habitRate: rated.length ? rated.reduce(function (a, h) { return a + h.rate; }, 0) / rated.length : null
+    };
+  }
+
   /* ---------- quick add: a task / block from one line ----------
      "yarın 14:00-15:30 Matematik #ders"      → block
      "cuma STAT quiz !sınav"                  → task (highlighted kind)
@@ -538,7 +577,7 @@
     daySummary: daySummary,
     toMin: toMin, fmtMin: fmtMin, durText: durText, blockError: blockError,
     recurringOn: recurringOn, blocksForDay: blocksForDay, lanes: lanes, freeSlots: freeSlots, plannedMinutes: plannedMinutes,
-    visibleTasks: visibleTasks, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
+    visibleTasks: visibleTasks, statsRange: statsRange, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
     doneOn: doneOn, streak: streak, weekCount: weekCount, weekStreak: weekStreak, habitProgress: habitProgress,
     normalizeBackup: normalizeBackup,
     COLORS: COLORS, ACCENTS: ACCENTS, UPC_DAYS: UPC_DAYS, DEFAULT_SETTINGS: DEFAULT_SETTINGS,

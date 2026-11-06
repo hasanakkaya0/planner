@@ -41,6 +41,7 @@
     if (slot) { const h = +slot.dataset.h; App.openBlockModal({ s: h * 60, e: Math.min((h + 1) * 60, 24 * 60) }); }
   };
 
+  $("statsBtn").onclick = () => App.openStats();
   $("tAdd").onclick = App.addTask;
   $("tRep").onclick = () => App.openRepModal();
   $("tTitle").onkeydown = (e) => { if (e.key === "Enter") App.addTask(); };
@@ -98,6 +99,7 @@
     else if (key === "h") App.setView("week");
     else if (key === "a") App.setView("month");
     else if (key === "k") App.toggleTheme();
+    else if (key === "i") App.openStats();
     else if (e.key === "/") { e.preventDefault(); $("qa").focus(); }
     else if (key === "o") { e.preventDefault(); if (!S.focus) App.openFocusPop(); else if (S.focus.phase === "done") App.stopFocus(); else App.pauseFocus(); }
     else if (e.key === ",") App.openSettings();
@@ -165,6 +167,7 @@
         if (r.taskId) byTask[r.taskId] = (byTask[r.taskId] || 0) + m;
       });
       S.focusByDay = byDay; S.focusByTask = byTask;
+      S.focusRows = rows.map((r) => ({ date: r.date, mins: +r.mins || 0, cat: r.cat }));
       App.renderHead(); App.renderTasks();
       if (S.view !== "day") App.renderRange();
     }, App.onErr);

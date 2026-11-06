@@ -47,3 +47,5 @@ S.canExport = false;
 S.tSearch = "";
 S.tFilter = "all";
 S.subsOpen = {};
+S.focusRows = [];
+S.statsDays = 30;

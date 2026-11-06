@@ -90,6 +90,22 @@ const ids = (arr) => arr.map((x) => (x.t ? x.t.id + (x.late ? "!" : "") : x.id))
 eq("today: own + overdue + undated", ids(GD.visibleTasks(T, TODAY, TODAY)), ["t1", "t2!", "t4"]);
 eq("tomorrow: today's task is NOT overdue (old bug)", ids(GD.visibleTasks(T, "2026-10-17", TODAY)), ["t4"]);
 eq("past day: only that day's tasks + undated", ids(GD.visibleTasks(T, "2026-10-14", TODAY)), ["t2", "t3", "t4"]);
+/* statistics */
+const SI = {
+  tasks: [{ done: true, doneAt: new Date("2026-10-14T12:00:00").getTime() }, { done: true, doneAt: new Date("2026-10-14T18:00:00").getTime() }, { done: true, doneAt: new Date("2026-10-10T12:00:00").getTime() }, { done: false, doneAt: null }, { done: true }],
+  focus: [{ date: "2026-10-14", mins: 25, cat: "ders" }, { date: "2026-10-15", mins: 50, cat: "ders" }, { date: "2026-10-15", mins: 25, cat: "kisisel" }, { date: "2026-10-01", mins: 99, cat: "ders" }],
+  logs: { "2026-10-13": { h1: true }, "2026-10-14": { h1: true, h2: true }, "2026-10-15": { h1: false } },
+  habits: [{ id: "h1", name: "Spor", target: 7 }, { id: "h2", name: "Kitap", target: 3 }]
+};
+const SR = GD.statsRange(SI, "2026-10-11", "2026-10-17");
+eq("stats: days in range", [SR.days.length, SR.days[0], SR.days[6]], [7, "2026-10-11", "2026-10-17"]);
+eq("stats: focus per day / total / category (out-of-range ignored)", [SR.focusByDay, SR.focusTotal, SR.byCat], [{ "2026-10-14": 25, "2026-10-15": 75 }, 100, { ders: 75, kisisel: 25 }]);
+eq("stats: tasks done per day (needs doneAt, in range)", [SR.tasksByDay, SR.tasksTotal], [{ "2026-10-14": 2 }, 2]);
+eq("stats: active days", SR.activeDays, 3);
+eq("stats: daily habit rate = done days / days", [SR.habits[0].done, SR.habits[0].expected, Math.round(SR.habits[0].rate * 100)], [2, 7, 29]);
+eq("stats: weekly habit expects target per 7 days", [SR.habits[1].done, SR.habits[1].expected, Math.round(SR.habits[1].rate * 100)], [1, 3, 33]);
+eq("stats: a habit is not expected before it existed", GD.statsRange({ habits: [{ id: "h1", name: "x", target: 7, createdAt: new Date("2026-10-15T09:00:00").getTime() }], logs: {} }, "2026-10-11", "2026-10-17").habits[0].expected, 3);
+eq("stats: empty input", [GD.statsRange({}, "2026-10-11", "2026-10-12").focusTotal, GD.statsRange({}, "2026-10-11", "2026-10-12").habitRate], [0, null]);
 /* sub-tasks and notes */
 const WS = [
   { id: "n1", title: "Rapor", note: "Hocaya mail at", subs: [{ t: "Giriş yaz", d: true }, { t: "Kaynakça ekle", d: false }, { t: "Son okuma", d: false }], date: "2026-10-20", done: false, createdAt: 1 },
