@@ -13,6 +13,7 @@ and can be added to the iPhone home screen like a native app.
 - **Three views:** day (timeline, tasks, habits, note), week (7-column timeline) and month (calendar with each day's exams, tasks and classes).
 - **Quick add:** type one line such as `yarın 14:00-15:30 Matematik @MM-101 #ders` and the date, time, place and category are parsed for you.
 - **Weekly classes:** enter your timetable once and it repeats every week. You can skip a single day (a holiday) or end the series (end of term).
+- **Notes and sub-tasks:** any task can carry a note and a checklist; the row shows progress (`1/3`) and expands in place. Search also looks inside them.
 - **Recurring tasks:** "every Monday and Wednesday: gym". Each occurrence is ticked off separately; a single day can be skipped or the series ended.
 - **Exams, quizzes and deadlines:** shown in an "Upcoming" list and highlighted on the calendars. They attach themselves to the matching class
   block as a badge (`Stat363 quiz` → the Stat363 block that day). Any task can be pinned to a block, and any task can be starred.
@@ -75,7 +76,7 @@ service cloud.firestore {
 
 | Collection | Document | Fields |
 |---|---|---|
-| `tasks` | random id | title, cat, kind, imp (starred), date (YYYY-MM-DD or null), done, doneAt, createdAt, blk (linked block id, "-" = none) |
+| `tasks` | random id | title, cat, kind, imp (starred), date (YYYY-MM-DD or null), done, doneAt, createdAt, blk (linked block id, "-" = none), note, subs [{t, d}] |
 | `days` | date | date, blocks [{id, s, e, t, c, loc}] (s/e = minutes from midnight), note, skip [weekly block ids skipped that day] |
 | `recurring` | random id | t, c, loc, s, e, dow [1=Mon … 7=Sun], from, until, createdAt |<br>recurring tasks use the same collection with `task: true`: title, cat, kind, dow, from, until, doneOn {date: ts}, skip [dates], createdAt
 | `habits` | random id | name, target (7 = daily), order, createdAt |

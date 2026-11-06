@@ -245,13 +245,13 @@ ul.upc li button:hover{background:var(--card-2)}
 .swatch{background:var(--c,var(--accent))}
 .tgroup>h3 .n{margin-left:auto;font-family:var(--f-mono);font-size:11px;color:var(--ink-faint);font-variant-numeric:tabular-nums;letter-spacing:0}
 ul.tasks{list-style:none;margin:0;padding:0 10px 10px;display:grid;gap:2px}
-li.task{display:flex;align-items:flex-start;gap:9px;padding:6px;border-radius:7px}
+li.task{display:flex;flex-wrap:wrap;align-items:flex-start;gap:9px;padding:6px;border-radius:7px}
 li.task:hover{background:var(--card-2)}
 .chk{flex:0 0 auto;width:18px;height:18px;margin-top:2px;border:1.5px solid var(--ink-faint);border-radius:5px;display:grid;place-items:center;color:transparent}
 .chk svg{width:11px;height:11px}
 li.task:hover .chk{border-color:var(--accent)}
 li.task.done .chk{background:var(--moss);border-color:var(--moss);color:var(--card)}
-li.task .tx{flex:1 1 auto;min-width:0;font-size:14.5px;line-height:1.35;word-break:break-word;text-align:left}
+li.task .tx{flex:1 1 0;min-width:0;font-size:14.5px;line-height:1.35;word-break:break-word;text-align:left}
 li.task.done .tx .tt{color:var(--ink-faint);text-decoration:line-through}
 .meta{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:3px}
 .pill{font-family:var(--f-mono);font-size:10.5px;padding:1px 6px;border-radius:999px;border:1px solid;letter-spacing:.02em;line-height:1.5}
@@ -876,3 +876,23 @@ body.dragging-task #tl{outline:2px dashed var(--accent);outline-offset:4px;borde
 
 /* recurring task marker */
 .pill.rep{color:var(--accent);border-color:var(--accent)}
+
+/* notes and sub-tasks */
+.pill.sub{color:var(--ink-soft);border-color:var(--rule);cursor:pointer}
+.pill.sub:hover{border-color:var(--accent);color:var(--accent)}
+.pill.sub.all{color:var(--moss);border-color:var(--moss)}
+.tdetail{flex:0 0 100%;padding:2px 0 4px 27px;display:grid;gap:6px}
+.tnote{margin:0;font-size:13px;line-height:1.45;color:var(--ink-soft);white-space:pre-wrap;overflow-wrap:anywhere}
+ul.subs{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+li.sub{display:flex;align-items:flex-start;gap:8px;font-size:13.5px;line-height:1.35}
+li.sub .chk{width:15px;height:15px;margin-top:2px;border-radius:4px}
+li.sub .chk svg{width:9px;height:9px}
+li.sub.done .chk{background:var(--moss);border-color:var(--moss);color:var(--card)}
+li.sub.done span{color:var(--ink-faint);text-decoration:line-through}
+.sub-edit-list{display:grid;gap:6px;margin-bottom:4px}
+.sub-edit{display:flex;gap:8px;align-items:center}
+.sub-edit input[type=text]{flex:1 1 auto;min-width:0}
+.sub-x{width:26px;height:26px;border-radius:6px;color:var(--ink-faint);font-size:16px;flex:0 0 auto}
+.sub-x:hover{background:var(--card-2);color:var(--rose)}
+.sub-edit input[type=checkbox]{flex:0 0 auto;width:16px;height:16px;margin:0;padding:0}
+.sub-edit input[type=text]{width:auto}

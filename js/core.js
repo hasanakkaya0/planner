@@ -183,6 +183,11 @@
     var m = /^r:(.+):(\d{4}-\d{2}-\d{2})$/.exec(String(id));
     return m ? { rid: m[1], date: m[2] } : null;
   }
+  /* sub-task progress of a task: {done, total} */
+  function subProgress(t) {
+    var s = (t && t.subs) || [];
+    return { done: s.filter(function (x) { return x.d; }).length, total: s.length };
+  }
   /* "all" | "open" | "done" */
   function statusFilter(items, status) {
     if (status === "open") return items.filter(function (x) { return !x.t.done; });
@@ -195,7 +200,7 @@
     var words = fold(query).split(/\s+/).filter(Boolean);
     if (!words.length) return [];
     var out = tasks.filter(function (t) {
-      var f = fold(t.title || "");
+      var f = fold((t.title || "") + " " + (t.note || "") + " " + ((t.subs || []).map(function (x) { return x.t; }).join(" ")));
       return words.every(function (w) { return f.indexOf(w) >= 0; });
     }).map(function (t) { return { t: t, late: !!(!t.done && t.date && today && t.date < today) }; });
     out = statusFilter(out, status);
@@ -533,7 +538,7 @@
     daySummary: daySummary,
     toMin: toMin, fmtMin: fmtMin, durText: durText, blockError: blockError,
     recurringOn: recurringOn, blocksForDay: blocksForDay, lanes: lanes, freeSlots: freeSlots, plannedMinutes: plannedMinutes,
-    visibleTasks: visibleTasks, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
+    visibleTasks: visibleTasks, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
     doneOn: doneOn, streak: streak, weekCount: weekCount, weekStreak: weekStreak, habitProgress: habitProgress,
     normalizeBackup: normalizeBackup,
     COLORS: COLORS, ACCENTS: ACCENTS, UPC_DAYS: UPC_DAYS, DEFAULT_SETTINGS: DEFAULT_SETTINGS,

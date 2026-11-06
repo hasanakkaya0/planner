@@ -2,6 +2,19 @@
    Shared mutable state lives on S and shared functions on App (both created in app-state.js). */
 (function () {
   "use strict";
+  /* note and sub-task checklist shown under an expanded task row */
+  function detailHtml(t) {
+    return '<div class="tdetail">' + (t.note && t.note.trim() ? '<p class="tnote">' + esc(t.note) + "</p>" : "") +
+      (t.subs.length ? '<ul class="subs">' + t.subs.map((x, i) => '<li class="sub' + (x.d ? " done" : "") + '"><button class="chk" data-sub="' + esc(t.id) + ":" + i + '" aria-label="Alt görev tamamlandı" aria-pressed="' + x.d + '">' + CHECK + "</button><span>" + esc(x.t) + "</span></li>").join("") + "</ul>" : "") + "</div>";
+  }
+  function toggleSubsOpen(id) { S.subsOpen[id] = !S.subsOpen[id]; renderTasks(); }
+  function toggleSub(ref) {
+    const i = ref.lastIndexOf(":"), id = ref.slice(0, i), n = +ref.slice(i + 1), t = findTask(id);
+    if (!t || !t.subs[n] || !App.guard()) return;
+    const subs = t.subs.map((x, j) => (j === n ? { t: x.t, d: !x.d } : x));
+    App.w(S.store.update("tasks", id, { subs: subs }));
+  }
+
   /* real tasks + the occurrences of recurring tasks around the selected day (cached) */
   let atKey = null, atVal = [];
   function allTasks() {
@@ -49,12 +62,14 @@
           else if (searching) meta += '<span class="pill nodate">' + App.fmtShort(t.date) + "</span>";
           if (selLinks[t.id]) { const lb = selLinks[t.id]; meta += '<span class="pill at">' + GD.fmtMin(lb.s) + " · " + esc(lb.t) + (lb.loc ? " · " + esc(lb.loc) : "") + "</span>"; }
           if (t.virtual) meta += '<span class="pill rep">↻ tekrar</span>';
+          const sp = GD.subProgress(t), hasDetail = sp.total || (t.note && t.note.trim());
+          if (hasDetail) meta += '<span class="pill sub' + (sp.total && sp.done === sp.total ? " all" : "") + '" data-subs-toggle="' + esc(t.id) + '" title="Alt görevleri ve notu göster / gizle">' + (S.subsOpen[t.id] ? "▾ " : "▸ ") + (sp.total ? sp.done + "/" + sp.total : "not") + "</span>";
           if (S.focusByTask[t.id]) meta += '<span class="pill fc">odak ' + GD.durText(S.focusByTask[t.id]) + "</span>";
           html += '<li class="task' + (t.done ? " done" : "") + '"' + (t.done || t.virtual ? "" : ' draggable="true" data-tid="' + esc(t.id) + '" title="Çizelgeye sürükleyip saat ver"') + ">" +
             '<button class="chk" data-toggle="' + esc(t.id) + '" aria-label="Tamamlandı" aria-pressed="' + t.done + '">' + CHECK + "</button>" +
             '<button class="tx" data-edit-task="' + esc(t.id) + '"><span class="tt">' + esc(t.title) + "</span>" + (meta ? '<span class="meta">' + meta + "</span>" : "") + "</button>" +
             '<span class="tact">' + (t.done || t.virtual ? "" : '<button class="star' + (t.imp ? " on" : "") + '" data-star="' + esc(t.id) + '" title="' + (t.imp ? "Öne çıkarmayı kaldır" : "Öne çıkar: Yaklaşanlar ve takvimde göster") + '" aria-label="Öne çıkar" aria-pressed="' + !!t.imp + '">★</button><button data-focus-task="' + esc(t.id) + '" title="Odak başlat" aria-label="Odak başlat">▶</button><button data-postpone="' + esc(t.id) + '" title="Ertesi güne ertele" aria-label="Ertele">→1g</button>') +
-            '<button class="del" data-del-task="' + esc(t.id) + '" title="Sil" aria-label="Görevi sil">×</button></span></li>';
+            '<button class="del" data-del-task="' + esc(t.id) + '" title="Sil" aria-label="Görevi sil">×</button></span>' + (hasDetail && S.subsOpen[t.id] ? detailHtml(t) : "") + "</li>";
         });
         html += "</ul></div>";
       });
@@ -141,6 +156,7 @@
       olds.reduce((p, x) => p.then(() => S.store.update("tasks", x[0], { date: x[1] })), Promise.resolve()).catch(App.onErr);
     });
   }
+  const subRow = (x) => '<div class="sub-edit"><input type="checkbox" aria-label="Tamamlandı"' + (x.d ? " checked" : "") + '><input type="text" maxlength="80" value="' + esc(x.t) + '" placeholder="Alt görev" autocomplete="off"><button type="button" class="sub-x" aria-label="Alt görevi sil">×</button></div>';
   function openTaskModal(id) {
     const v = GD.parseVirtualId(id);
     if (v) return App.openRepModal(v.rid, v.date);
@@ -151,6 +167,8 @@
       '<label class="field"><span>Tür</span><select id="mK">' + App.kindOptions(t.kind) + "</select></label></div>" +
       '<div class="row"><label class="field"><span>Tarih</span><input type="date" id="mD" value="' + (t.date || "") + '"></label>' +
       '<div class="field"><span>&nbsp;</span><button type="button" class="btn-ghost" id="mNoDate">Tarihsiz yap</button></div></div>' +
+      '<label class="field"><span>Not</span><textarea id="mNote" rows="3" maxlength="600" placeholder="Açıklama, bağlantı, hatırlatma…">' + esc(t.note || "") + "</textarea></label>" +
+      '<div class="field"><span>Alt görevler</span><div id="mSubs" class="sub-edit-list">' + (t.subs || []).map(subRow).join("") + '</div><button type="button" class="linkbtn" id="mSubAdd">+ Alt görev ekle</button></div>' +
       '<label class="field" id="mBWrap" hidden><span>Hangi derste / blokta</span><select id="mB"><option value="">Otomatik (adından bul)</option></select></label>' +
       '<div class="row checks"><label class="check" title="Yaklaşanlar listesinde ve haftalık/aylık takvimde göster"><input type="checkbox" id="mImp"' + (t.imp ? " checked" : "") + "> ★ Öne çıkar</label>" +
       '<label class="check"><input type="checkbox" id="mDone"' + (t.done ? " checked" : "") + "> Tamamlandı</label></div>";
@@ -165,10 +183,19 @@
       if (!App.guard()) return;
       const done = $("mDone").checked;
       const blk = $("mBWrap").hidden ? t.blk : ($("mB").value || null);
-      App.w(S.store.update("tasks", id, { title: title, cat: $("mC").value, kind: kind, imp: imp, date: date, done: done, doneAt: done ? (t.doneAt || Date.now()) : null, blk: blk }));
+      const subs = Array.from($("mSubs").querySelectorAll(".sub-edit")).map((r) => ({ t: r.querySelector("input[type=text]").value.trim(), d: r.querySelector("input[type=checkbox]").checked })).filter((x) => x.t);
+      App.w(S.store.update("tasks", id, { title: title, cat: $("mC").value, kind: kind, imp: imp, date: date, done: done, doneAt: done ? (t.doneAt || Date.now()) : null, blk: blk, note: $("mNote").value.trim(), subs: subs }));
       App.closeModal();
     });
     $("mNoDate").onclick = () => { $("mD").value = ""; };
+    const addSub = () => {
+      if ($("mSubs").children.length >= 20) { App.mErr("En fazla 20 alt görev."); return; }
+      $("mSubs").insertAdjacentHTML("beforeend", subRow({ t: "", d: false }));
+      $("mSubs").lastElementChild.querySelector("input[type=text]").focus();
+    };
+    $("mSubAdd").onclick = addSub;
+    $("mSubs").addEventListener("click", (ev) => { const x = ev.target.closest(".sub-x"); if (x) x.closest(".sub-edit").remove(); });
+    $("mSubs").addEventListener("keydown", (ev) => { if (ev.key === "Enter" && ev.target.matches("input[type=text]")) { ev.preventDefault(); addSub(); } });
     if (t.date) App.blocksOn(t.date).then((bl) => {
       if (!$("mB") || !bl.length) return;
       $("mB").innerHTML = App.opt("", "Otomatik (adından bul)", t.blk || "") + App.opt("-", "Hiçbir derse bağlama", t.blk || "") +
@@ -234,6 +261,8 @@
     addTask,
     findTask,
     toggleTask,
+    toggleSub,
+    toggleSubsOpen,
     postpone,
     delTask,
     moveOverdue,

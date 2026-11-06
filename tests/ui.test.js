@@ -69,6 +69,24 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("status filter: done only", [$("taskList").textContent.includes("Test görevi"), $("taskList").textContent.includes("Başka iş")], [true, false]);
   $("tFilter").value = "all"; $("tFilter").dispatchEvent(new w.Event("change", { bubbles: true }));
 
+  /* notes and sub-tasks */
+  [...$("taskList").querySelectorAll("li.task")].find((l) => l.textContent.includes("Test görevi")).querySelector(".tx").click(); await wait(80);
+  $("mNote").value = "Hocaya mail at";
+  $("mSubAdd").click(); $("mSubs").querySelector("input[type=text]").value = "Taslak";
+  $("mSubAdd").click(); $("mSubs").lastElementChild.querySelector("input[type=text]").value = "Son okuma";
+  eq("modal has two sub-task rows", $("mSubs").children.length, 2);
+  $("mForm").dispatchEvent(new w.Event("submit", { cancelable: true, bubbles: true })); await wait(120);
+  eq("note and sub-tasks saved on the task", [w.eval("S.tasks.find(t => t.title === 'Test görevi').note"), w.eval("S.tasks.find(t => t.title === 'Test görevi').subs.length")], ["Hocaya mail at", 2]);
+  const subPill = () => $("taskList").querySelector("[data-subs-toggle]");
+  eq("row shows sub-task progress", subPill().textContent.includes("0/2"), true);
+  subPill().click(); await wait(60);
+  eq("expanding shows the note and the checklist", [$("taskList").textContent.includes("Hocaya mail at"), $("taskList").querySelectorAll("li.sub").length], [true, 2]);
+  $("taskList").querySelector("li.sub .chk").click(); await wait(100);
+  eq("ticking a sub-task updates progress", [subPill().textContent.includes("1/2"), $("taskList").querySelector("li.sub").classList.contains("done")], [true, true]);
+  $("tSearch").value = "taslak"; $("tSearch").dispatchEvent(new w.Event("input", { bubbles: true }));
+  eq("search finds a task by its sub-task text", $("tCount").textContent, "1 sonuç");
+  $("tSearch").value = ""; $("tSearch").dispatchEvent(new w.Event("input", { bubbles: true }));
+
   /* recurring tasks */
   $("tTitle").value = "Tekrar işi"; $("tRep").click(); await wait(80);
   eq("recurring modal opens prefilled with today's weekday", [$("mT").value, w.document.querySelectorAll("#modal .chip[aria-pressed=true]").length], ["Tekrar işi", 1]);

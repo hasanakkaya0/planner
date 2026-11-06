@@ -90,6 +90,13 @@ const ids = (arr) => arr.map((x) => (x.t ? x.t.id + (x.late ? "!" : "") : x.id))
 eq("today: own + overdue + undated", ids(GD.visibleTasks(T, TODAY, TODAY)), ["t1", "t2!", "t4"]);
 eq("tomorrow: today's task is NOT overdue (old bug)", ids(GD.visibleTasks(T, "2026-10-17", TODAY)), ["t4"]);
 eq("past day: only that day's tasks + undated", ids(GD.visibleTasks(T, "2026-10-14", TODAY)), ["t2", "t3", "t4"]);
+/* sub-tasks and notes */
+const WS = [
+  { id: "n1", title: "Rapor", note: "Hocaya mail at", subs: [{ t: "Giriş yaz", d: true }, { t: "Kaynakça ekle", d: false }, { t: "Son okuma", d: false }], date: "2026-10-20", done: false, createdAt: 1 },
+  { id: "n2", title: "Market", date: null, done: false, createdAt: 2 }
+];
+eq("subProgress counts done / total", [GD.subProgress(WS[0]), GD.subProgress(WS[1]), GD.subProgress(null)], [{ done: 1, total: 3 }, { done: 0, total: 0 }, { done: 0, total: 0 }]);
+eq("search also looks in notes and sub-tasks", [ids(GD.searchTasks(WS, "kaynakca", "all", TODAY)), ids(GD.searchTasks(WS, "hocaya", "all", TODAY)), ids(GD.searchTasks(WS, "rapor kaynakca", "all", TODAY))], [["n1"], ["n1"], ["n1"]]);
 /* recurring tasks */
 const RT = [
   { id: "s1", title: "Spor", cat: "kisisel", kind: "normal", dow: [1, 3], from: "2026-10-12", until: null, doneOn: { "2026-10-14": true }, skip: ["2026-10-19"], createdAt: 5 },

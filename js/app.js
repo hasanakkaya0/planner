@@ -58,6 +58,8 @@
     if ((x = e.target.closest("[data-postpone]"))) return App.postpone(x.dataset.postpone);
     if ((x = e.target.closest("[data-focus-task]"))) { const t = App.findTask(x.dataset.focusTask); if (t) App.startFocus({ title: t.title, cat: t.cat, taskId: t.id }); return; }
     if ((x = e.target.closest("[data-del-task]"))) return App.delTask(x.dataset.delTask);
+    if ((x = e.target.closest("[data-sub]"))) return App.toggleSub(x.dataset.sub);
+    if ((x = e.target.closest("[data-subs-toggle]"))) return App.toggleSubsOpen(x.dataset.subsToggle);
     if ((x = e.target.closest("[data-edit-task]"))) return App.openTaskModal(x.dataset.editTask);
   };
   $("overdueBar").onclick = (e) => { if (e.target.closest("#moveOverdue")) App.moveOverdue(); };
@@ -141,7 +143,9 @@
         id: o.id, title: o.title || "", cat: typeof o.cat === "string" && o.cat ? o.cat : S.cfg.defaultCat,
         kind: typeof o.kind === "string" && o.kind ? o.kind : "normal",
         date: GD.isKey(o.date) ? o.date : null, done: !!o.done, imp: !!o.imp, doneAt: o.doneAt || null, createdAt: o.createdAt || 0,
-        blk: typeof o.blk === "string" && o.blk ? o.blk : null
+        blk: typeof o.blk === "string" && o.blk ? o.blk : null,
+        note: typeof o.note === "string" ? o.note : "",
+        subs: Array.isArray(o.subs) ? o.subs.filter((x) => x && typeof x.t === "string").map((x) => ({ t: x.t, d: !!x.d })) : []
       }));
       App.renderHead(); App.renderWeek(); App.renderUpcoming(); App.renderTasks();
       if (S.view === "day" && !S.drag) App.renderTL();   /* quiz/exam badges on blocks depend on tasks */

@@ -46,3 +46,4 @@ S.modeHtml = "bağlanıyor…";
 S.canExport = false;
 S.tSearch = "";
 S.tFilter = "all";
+S.subsOpen = {};
