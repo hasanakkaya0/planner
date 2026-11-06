@@ -3,15 +3,18 @@
 (function () {
   "use strict";
   function renderTasks() {
-    const items = GD.visibleTasks(S.tasks, S.sel, S.TODAY);
+    const searching = !!S.tSearch.trim();
+    const items = searching ? GD.searchTasks(S.tasks, S.tSearch, S.tFilter, S.TODAY) : GD.statusFilter(GD.visibleTasks(S.tasks, S.sel, S.TODAY), S.tFilter);
     const open = items.filter((x) => !x.t.done).length;
-    $("tCount").textContent = items.length ? open + " açık / " + items.length : "";
+    $("tCount").textContent = searching ? items.length + " sonuç" : items.length ? open + " açık / " + items.length : "";
 
-    const od = S.sel === S.TODAY ? GD.overdue(S.tasks, S.TODAY) : [];
+    const od = S.sel === S.TODAY && !searching && S.tFilter === "all" ? GD.overdue(S.tasks, S.TODAY) : [];
     $("overdueBar").innerHTML = od.length ? '<div class="overdue"><span>' + od.length + " gecikmiş görev</span>" + '<button class="linkbtn" id="moveOverdue">Hepsini bugüne taşı</button></div>' : "";
 
     let html = "";
-    if (!items.length) {
+    if (!items.length && (searching || S.tFilter !== "all")) {
+      html = '<div class="empty"><strong>' + (searching ? "Eşleşen görev yok" : S.tFilter === "open" ? "Açık görev yok" : "Biten görev yok") + "</strong>" + (searching ? "Başka bir kelime dene ya da aramayı temizle." : "Filtreyi “Hepsi” yapınca bu günün tüm görevleri görünür.") + "</div>";
+    } else if (!items.length) {
       html = '<div class="empty"><strong>' + (S.sel < S.TODAY ? "Bu günde görev yok" : "Bu gün için görev yok") + "</strong>Yukarıdan ekle. Öne çıkan türler ayrıca Yaklaşanlar listesinde görünür.</div>";
     } else {
       const known = S.cfg.cats.map((c) => c.id);
@@ -22,7 +25,7 @@
       groups.forEach((gr) => {
         const g = gr.items, c = gr.c;
         if (!g.length) return;
-        g.sort((a, b) => (a.t.done - b.t.done) || (App.kindRank(a.t) - App.kindRank(b.t)) || (b.late - a.late) || ((a.t.createdAt || 0) - (b.t.createdAt || 0)));
+        if (!searching) g.sort((a, b) => (a.t.done - b.t.done) || (App.kindRank(a.t) - App.kindRank(b.t)) || (b.late - a.late) || ((a.t.createdAt || 0) - (b.t.createdAt || 0)));
         html += '<div class="tgroup"><h3><span class="swatch c-' + c.color + '"></span>' + esc(c.name) + '<span class="n">' + g.filter((x) => !x.t.done).length + "</span></h3><ul class=\"tasks\">";
         g.forEach((x) => {
           const t = x.t;
@@ -31,6 +34,7 @@
           if (t.kind !== "normal") meta += App.kindPill(t);
           if (x.late) meta += '<span class="pill late">' + GD.untilText(S.TODAY, t.date) + "</span>";
           else if (!t.date) meta += '<span class="pill nodate">tarihsiz</span>';
+          else if (searching) meta += '<span class="pill nodate">' + App.fmtShort(t.date) + "</span>";
           if (selLinks[t.id]) { const lb = selLinks[t.id]; meta += '<span class="pill at">' + GD.fmtMin(lb.s) + " · " + esc(lb.t) + (lb.loc ? " · " + esc(lb.loc) : "") + "</span>"; }
           if (S.focusByTask[t.id]) meta += '<span class="pill fc">odak ' + GD.durText(S.focusByTask[t.id]) + "</span>";
           html += '<li class="task' + (t.done ? " done" : "") + '"' + (t.done ? "" : ' draggable="true" data-tid="' + esc(t.id) + '" title="Çizelgeye sürükleyip saat ver"') + ">" +

@@ -45,6 +45,18 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   $("taskList").querySelector(".chk").click(); await wait(100);
   eq("task toggled done", $("taskList").querySelector("li").classList.contains("done"), true);
 
+  $("tTitle").value = "Başka iş"; $("tAdd").click(); await wait(100);
+  $("tSearch").value = "TEST"; $("tSearch").dispatchEvent(new w.Event("input", { bubbles: true }));
+  eq("search keeps matching tasks only", [$("taskList").textContent.includes("Test görevi"), $("taskList").textContent.includes("Başka iş")], [true, false]);
+  eq("search shows result count", $("tCount").textContent, "1 sonuç");
+  $("tSearch").value = "yokboyle"; $("tSearch").dispatchEvent(new w.Event("input", { bubbles: true }));
+  eq("search with no match says so", $("taskList").textContent.includes("Eşleşen görev yok"), true);
+  $("tSearch").dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  eq("Escape clears the search", [$("tSearch").value, $("taskList").textContent.includes("Başka iş")], ["", true]);
+  $("tFilter").value = "done"; $("tFilter").dispatchEvent(new w.Event("change", { bubbles: true }));
+  eq("status filter: done only", [$("taskList").textContent.includes("Test görevi"), $("taskList").textContent.includes("Başka iş")], [true, false]);
+  $("tFilter").value = "all"; $("tFilter").dispatchEvent(new w.Event("change", { bubbles: true }));
+
   $("bTitle").value = "Test bloğu"; $("bAdd").click(); await wait(150);
   eq("block added", $("tl").textContent.includes("Test bloğu"), true);
 

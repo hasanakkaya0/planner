@@ -196,10 +196,12 @@ body:not([data-view="day"]) .day-only{display:none!important}
 /* ---------- formlar ---------- */
 .addrow{display:flex;gap:6px;padding:12px 16px;border-top:1px solid var(--rule);flex-wrap:wrap;align-items:center}
 .addrow.top{border-top:0;border-bottom:1px solid var(--rule)}
-input[type=text],input[type=email],input[type=password],input[type=time],input[type=date],select,textarea{
+.tfind{display:flex;gap:6px;padding:8px 16px;border-bottom:1px solid var(--rule)}
+.tfind input{min-width:0}
+input[type=text],input[type=search],input[type=email],input[type=password],input[type=time],input[type=date],select,textarea{
   background:var(--card-2);border:1px solid var(--rule);border-radius:8px;padding:7px 9px;font-size:14px;min-width:0;
 }
-input[type=text]::placeholder,input[type=email]::placeholder,textarea::placeholder{color:var(--ink-faint)}
+input[type=text]::placeholder,input[type=search]::placeholder,input[type=email]::placeholder,textarea::placeholder{color:var(--ink-faint)}
 input[type=time],input[type=date]{font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums}
 input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none}
 .grow{flex:1 1 140px}
@@ -827,7 +829,7 @@ body.dragging-task #tl{outline:2px dashed var(--accent);outline-offset:4px;borde
 
 /* iPhone: Safari zooms in when focusing an input under 16px; prevent that */
 @media (hover:none) and (pointer:coarse){
-  input[type=text],input[type=email],input[type=password],input[type=date],input[type=time],input[type=number],select,textarea{font-size:16px}
+  input[type=text],input[type=search],input[type=email],input[type=password],input[type=date],input[type=time],input[type=number],select,textarea{font-size:16px}
 }
 /* when launched from the home screen, no text selection / long-press menu on buttons */
 @media (display-mode:standalone){

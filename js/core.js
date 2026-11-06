@@ -163,6 +163,26 @@
     });
     return out;
   }
+  /* "all" | "open" | "done" */
+  function statusFilter(items, status) {
+    if (status === "open") return items.filter(function (x) { return !x.t.done; });
+    if (status === "done") return items.filter(function (x) { return x.t.done; });
+    return items;
+  }
+  /* search every task (any date) by title: all words must appear, ignoring case and Turkish diacritics.
+     Result like visibleTasks: [{t, late}], open ones first, then by date (undated last). */
+  function searchTasks(tasks, query, status, today) {
+    var words = fold(query).split(/\s+/).filter(Boolean);
+    if (!words.length) return [];
+    var out = tasks.filter(function (t) {
+      var f = fold(t.title || "");
+      return words.every(function (w) { return f.indexOf(w) >= 0; });
+    }).map(function (t) { return { t: t, late: !!(!t.done && t.date && today && t.date < today) }; });
+    out = statusFilter(out, status);
+    return out.sort(function (a, b) {
+      return (a.t.done - b.t.done) || String(a.t.date || "9999").localeCompare(String(b.t.date || "9999")) || ((a.t.createdAt || 0) - (b.t.createdAt || 0));
+    });
+  }
   function overdue(tasks, today) {
     return tasks.filter(function (t) { return !t.done && t.date && t.date < today; });
   }
@@ -493,7 +513,7 @@
     daySummary: daySummary,
     toMin: toMin, fmtMin: fmtMin, durText: durText, blockError: blockError,
     recurringOn: recurringOn, blocksForDay: blocksForDay, lanes: lanes, freeSlots: freeSlots, plannedMinutes: plannedMinutes,
-    visibleTasks: visibleTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
+    visibleTasks: visibleTasks, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
     doneOn: doneOn, streak: streak, weekCount: weekCount, weekStreak: weekStreak, habitProgress: habitProgress,
     normalizeBackup: normalizeBackup,
     COLORS: COLORS, ACCENTS: ACCENTS, UPC_DAYS: UPC_DAYS, DEFAULT_SETTINGS: DEFAULT_SETTINGS,

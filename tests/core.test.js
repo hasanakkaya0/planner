@@ -90,6 +90,22 @@ const ids = (arr) => arr.map((x) => (x.t ? x.t.id + (x.late ? "!" : "") : x.id))
 eq("today: own + overdue + undated", ids(GD.visibleTasks(T, TODAY, TODAY)), ["t1", "t2!", "t4"]);
 eq("tomorrow: today's task is NOT overdue (old bug)", ids(GD.visibleTasks(T, "2026-10-17", TODAY)), ["t4"]);
 eq("past day: only that day's tasks + undated", ids(GD.visibleTasks(T, "2026-10-14", TODAY)), ["t2", "t3", "t4"]);
+/* task search / status filter */
+const ST = [
+  { id: "a", title: "Matematik ödevi", date: "2026-10-20", done: false, createdAt: 2 },
+  { id: "b", title: "MATEMATİK quiz", date: "2026-10-18", done: false, createdAt: 3 },
+  { id: "c", title: "Fizik ödevi", date: null, done: false, createdAt: 1 },
+  { id: "d", title: "Matematik tekrar", date: "2026-10-10", done: true, createdAt: 4 },
+  { id: "e", title: "Çalışma ışığı", date: "2026-10-12", done: false, createdAt: 5 }
+];
+eq("search: all words, case + Turkish letters ignored", ids(GD.searchTasks(ST, "matematik", "all", TODAY)), ["b", "a", "d"]);
+eq("search: open ones first, then by date", ids(GD.searchTasks(ST, "odevi", "all", TODAY)), ["a", "c"]);
+eq("search: two words must both match", ids(GD.searchTasks(ST, "matematik quiz", "all", TODAY)), ["b"]);
+eq("search: ı/ş/ç folded", ids(GD.searchTasks(ST, "calisma isigi", "all", TODAY)), ["e!"]);
+eq("search: status open", ids(GD.searchTasks(ST, "matematik", "open", TODAY)), ["b", "a"]);
+eq("search: status done", ids(GD.searchTasks(ST, "matematik", "done", TODAY)), ["d"]);
+eq("search: empty query gives nothing", GD.searchTasks(ST, "  ", "all", TODAY), []);
+eq("status filter on day list", ids(GD.statusFilter(GD.visibleTasks(T, TODAY, TODAY), "done")), []);
 eq("overdue list", GD.overdue(T, TODAY).map((t) => t.id), ["t2"]);
 eq("upcoming 14 days, by date", GD.upcoming(T, TODAY, 14).map((t) => t.id), ["t7", "t6"]);
 eq("open tasks on a day", GD.openCountByDay(T, "2026-10-14"), 1);

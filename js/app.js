@@ -39,6 +39,9 @@
 
   $("tAdd").onclick = App.addTask;
   $("tTitle").onkeydown = (e) => { if (e.key === "Enter") App.addTask(); };
+  $("tSearch").addEventListener("input", () => { S.tSearch = $("tSearch").value; App.renderTasks(); });
+  $("tSearch").addEventListener("keydown", (e) => { if (e.key === "Escape" && $("tSearch").value) { e.stopPropagation(); $("tSearch").value = ""; S.tSearch = ""; App.renderTasks(); } });
+  $("tFilter").addEventListener("change", () => { S.tFilter = $("tFilter").value; App.renderTasks(); });
   $("taskList").onclick = (e) => {
     let x;
     if ((x = e.target.closest("[data-toggle]"))) return App.toggleTask(x.dataset.toggle);

@@ -43,3 +43,5 @@ S.modalOnClose = null;
 S.tlScrolledFor = "";
 S.modeHtml = "bağlanıyor…";
 S.canExport = false;
+S.tSearch = "";
+S.tFilter = "all";
