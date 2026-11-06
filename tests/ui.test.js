@@ -110,6 +110,21 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   $("focusBtn").click(); $("fpTitle").value = "Odak"; $("fpStart").click(); await wait(200);
   eq("focus timer starts", $("focus").hidden, false);
 
+  /* connection badge (Firebase build only): fake a firebase-like store */
+  const st = w.eval("S.store"); st.pending = 0;
+  w.eval("App.initSync()");
+  eq("badge hidden while online and idle", $("syncBadge").hidden, true);
+  Object.defineProperty(w.navigator, "onLine", { get: () => false, configurable: true });
+  st.pending = 2; w.dispatchEvent(new w.Event("offline"));
+  eq("offline badge shows pending writes", [$("syncBadge").hidden, $("syncBadge").textContent], [false, "Çevrimdışı · 2 bekliyor"]);
+  Object.defineProperty(w.navigator, "onLine", { get: () => true, configurable: true });
+  st.pending = 1; st.onPending(1); w.dispatchEvent(new w.Event("online"));
+  eq("short saves do not flash the badge", $("syncBadge").hidden, true);
+  await wait(800);
+  eq("slow save shows Kaydediliyor…", $("syncBadge").textContent, "Kaydediliyor…");
+  st.pending = 0; st.onPending(0);
+  eq("badge hides when everything is saved", $("syncBadge").hidden, true);
+
   eq("no script errors", errors, []);
   console.log((fail ? "✗ " : "✓ ") + pass + " UI tests passed" + (fail ? ", " + fail + " failed" : ""));
   w.close();

@@ -36,6 +36,12 @@
       var c = db.collection(pre + col), o = QUERY[col];
       return o ? c.orderBy(o.order[0], o.order[1]).limit(o.limit) : c;
     }
+    function track(p) {
+      api.pending++; if (api.onPending) api.onPending(api.pending);
+      var done = function () { api.pending--; if (api.onPending) api.onPending(api.pending); };
+      p.then(done, done);
+      return p;
+    }
     var api = {
       mode: "cloud",
       persistent: true,
@@ -57,9 +63,12 @@
           .onSnapshot(function (s) { cb(rows(s.docs)); }, onErr);
       },
       getDoc: function (col, id) { return db.doc(pre + col + "/" + id).get().then(function (d) { return d.exists ? (d.data() || {}) : null; }); },
-      set: function (col, id, data) { return db.doc(pre + col + "/" + id).set(data); },
-      update: function (col, id, patch) { return db.doc(pre + col + "/" + id).update(patch); },
-      del: function (col, id) { return db.doc(pre + col + "/" + id).delete(); },
+      /* writes not yet confirmed by the server (a write only settles once it is committed there; offline it stays pending) */
+      pending: 0,
+      onPending: null,
+      set: function (col, id, data) { return track(db.doc(pre + col + "/" + id).set(data)); },
+      update: function (col, id, patch) { return track(db.doc(pre + col + "/" + id).update(patch)); },
+      del: function (col, id) { return track(db.doc(pre + col + "/" + id).delete()); },
       dump: function () {
         var out = {};
         return COLS.reduce(function (p, col) {

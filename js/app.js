@@ -215,6 +215,7 @@
       }
     }
     startSubs();
+    if (S.store.mode === "firebase") App.initSync();
     if (S.focus) App.renderFocus();
     setTimeout(App.maybeWelcome, 1500);   /* once the first data has arrived */
   }

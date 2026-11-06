@@ -24,7 +24,7 @@ function fakeDb(data, opts) {
     onSnapshot: (cb) => { log.queries.push({ col, order, lim }); cb(snap(col, order, lim)); return () => {}; },
     get: () => { log.queries.push({ col, order, lim, get: true }); return Promise.resolve(snap(col, order, lim)); }
   });
-  const ref = (path) => ({ path, set: (v) => { log.singles++; const i = path.lastIndexOf("/"); (data[path.slice(0, i)] = data[path.slice(0, i)] || {})[path.slice(i + 1)] = v; return Promise.resolve(); } });
+  const ref = (path) => ({ path, update: (v) => (opts && opts.slow ? opts.slow() : Promise.resolve()), delete: () => (opts && opts.slow ? opts.slow() : Promise.resolve()), set: (v) => { log.singles++; const i = path.lastIndexOf("/"); (data[path.slice(0, i)] = data[path.slice(0, i)] || {})[path.slice(i + 1)] = v; return Promise.resolve(); } });
   const db = { collection: coll, doc: ref };
   if (!opts || opts.batch !== false) {
     db.batch = () => {
@@ -83,6 +83,19 @@ function fakeDb(data, opts) {
   const S5 = GDStore.cloudStore(f5.db, "");
   await S5.bulk({ tasks: { a: { title: "x" }, b: { title: "y" } } });
   eq("fallback: single writes", f5.log.singles, 2);
+
+  /* 5) pending writes are counted until the server confirms them */
+  let ctl; const slow = () => new Promise((res, rej) => { ctl = { res, rej }; });
+  const f6 = fakeDb({}, { slow });
+  const S6 = GDStore.cloudStore(f6.db, "users/u/");
+  const seen6 = []; S6.onPending = (n) => seen6.push(n);
+  const w6 = S6.update("tasks", "a", { done: true });
+  eq("a write in flight counts as pending", [S6.pending, seen6], [1, [1]]);
+  ctl.res(); await w6;
+  eq("confirmed write is no longer pending", [S6.pending, seen6], [0, [1, 0]]);
+  const w7 = S6.del("tasks", "a"); let failed = false; const w7r = w7.catch(() => { failed = true; });
+  ctl.rej({ code: "x" }); await w7r;
+  eq("a failed write is no longer pending either", [S6.pending, failed], [0, true]);
 
   console.log((fail ? "✗ " : "✓ ") + pass + " store tests passed" + (fail ? ", " + fail + " failed" : ""));
   process.exit(fail ? 1 : 0);
