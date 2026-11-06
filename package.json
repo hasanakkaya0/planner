@@ -4,10 +4,15 @@
   "private": true,
   "description": "Daily, weekly and monthly planner: class schedule, tasks, habits and a focus timer.",
   "scripts": {
-    "test": "node tests/core.test.js && node tests/store.test.js",
+    "test": "node tests/core.test.js && node tests/store.test.js && node build.js && node tests/ui.test.js",
     "build": "node build.js",
-    "check": "npm test && npm run build"
+    "check": "npm test"
   },
-  "engines": { "node": ">=18" },
-  "license": "UNLICENSED"
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "jsdom": "^25.0.1"
+  }
 }
