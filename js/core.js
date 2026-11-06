@@ -312,6 +312,26 @@
     return { mode: "weekly", count: weekCount(logs, h.id, sel), target: target, weeks: weekStreak(logs, h.id, sel, target) };
   }
 
+  /* Greeting for an hour of the day (0-23) */
+  function greeting(hour) {
+    return hour >= 5 && hour < 12 ? "Günaydın" : hour >= 12 && hour < 18 ? "İyi günler" : hour >= 18 && hour < 22 ? "İyi akşamlar" : "İyi geceler";
+  }
+  /* How far the day is: its tasks plus the habits ticked in `log` ({habitId: true}). pct is null when there is nothing to do. */
+  function dayProgress(tasks, habits, log) {
+    var done = (tasks || []).filter(function (t) { return t.done; }).length + (habits || []).filter(function (h) { return log && log[h.id]; }).length;
+    var total = (tasks || []).length + (habits || []).length;
+    return { done: done, total: total, pct: total ? Math.round(done / total * 100) : null };
+  }
+  /* Which icon a category gets, from its name: "book" | "dumbbell" | "bag" | "heart" | "dot" */
+  function catIcon(name) {
+    var n = fold(name || "");
+    if (/ders|okul|sinif|kampus|class|lecture|study|calisma|odev|sinav/.test(n)) return "book";
+    if (/spor|gym|egzersiz|antrenman|kosu|yuruyus/.test(n)) return "dumbbell";
+    if (/kulup|is\b|toplanti|proje|staj|work|meeting|club/.test(n)) return "bag";
+    if (/kisisel|ozel|hobi|aile|saglik|personal|home|ev\b/.test(n)) return "heart";
+    return "dot";
+  }
+
   /* The "Sıradaki" strip of today: the block in progress, the next one, task counts and the next highlighted task.
      o: {now: Date, today: key, blocks: [{s, e, t, loc}], tasks: [{date, done, ...}], keyKinds: [kind ids]}
      → {current, next, minsLeft, minsUntil, open, done, key: {t, days} | null} */
@@ -635,7 +655,7 @@
     daySummary: daySummary,
     toMin: toMin, fmtMin: fmtMin, durText: durText, blockError: blockError,
     recurringOn: recurringOn, blocksForDay: blocksForDay, lanes: lanes, freeSlots: freeSlots, plannedMinutes: plannedMinutes,
-    visibleTasks: visibleTasks, nextUp: nextUp, dueReminders: dueReminders, activeSeries: activeSeries, oldDoneTasks: oldDoneTasks, statsRange: statsRange, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
+    visibleTasks: visibleTasks, greeting: greeting, dayProgress: dayProgress, catIcon: catIcon, nextUp: nextUp, dueReminders: dueReminders, activeSeries: activeSeries, oldDoneTasks: oldDoneTasks, statsRange: statsRange, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
     doneOn: doneOn, streak: streak, weekCount: weekCount, weekStreak: weekStreak, habitProgress: habitProgress,
     normalizeBackup: normalizeBackup,
     COLORS: COLORS, ACCENTS: ACCENTS, UPC_DAYS: UPC_DAYS, DEFAULT_SETTINGS: DEFAULT_SETTINGS,

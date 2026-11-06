@@ -13,6 +13,7 @@ and can be added to the iPhone home screen like a native app.
 - **Three views:** day (timeline, tasks, habits, note), week (7-column timeline) and month (calendar with each day's exams, tasks and classes).
 - **Quick add:** type one line such as `yarın 14:00-15:30 Matematik @MM-101 #ders` and the date, time, place and category are parsed for you.
 - **Weekly classes:** enter your timetable once and it repeats every week. You can skip a single day (a holiday) or end the series (end of term).
+- **Polish:** category icons and durations on timeline blocks, a progress fill on the block in progress, a progress ring and a greeting next to the date, tick / modal / view transitions (all off with reduced motion).
 - **Today strip:** above today's timeline, "Şimdi" (block in progress, time left) or "Sıradaki" (next block, time until it), the day's task count and the next exam / deadline. The block in progress is outlined and the now line shows the time.
 - **Swipe on a phone:** right = done, left = move to tomorrow (on a mouse the same actions are the row buttons, now always faintly visible).
 - **Reminders** (Settings → Hatırlatmalar…): a class / block is announced a few minutes before it starts; exams and deadlines the morning of the day (08:00) and the evening before (20:00). Works while the app (or its tab) is open: it checks every ~30 s and uses a system notification when permitted, otherwise an in-app message. The choice is per device.

@@ -5,12 +5,13 @@
   /* note and sub-task checklist shown under an expanded task row */
   function detailHtml(t) {
     return '<div class="tdetail">' + (t.note && t.note.trim() ? '<p class="tnote">' + esc(t.note) + "</p>" : "") +
-      (t.subs.length ? '<ul class="subs">' + t.subs.map((x, i) => '<li class="sub' + (x.d ? " done" : "") + '"><button class="chk" data-sub="' + esc(t.id) + ":" + i + '" aria-label="Alt görev tamamlandı" aria-pressed="' + x.d + '">' + CHECK + "</button><span>" + esc(x.t) + "</span></li>").join("") + "</ul>" : "") + "</div>";
+      (t.subs.length ? '<ul class="subs">' + t.subs.map((x, i) => '<li class="sub' + (x.d ? " done" : "") + (isJust(t.id + ":" + i) ? " just" : "") + '"><button class="chk" data-sub="' + esc(t.id) + ":" + i + '" aria-label="Alt görev tamamlandı" aria-pressed="' + x.d + '">' + CHECK + "</button><span>" + esc(x.t) + "</span></li>").join("") + "</ul>" : "") + "</div>";
   }
   function toggleSubsOpen(id) { S.subsOpen[id] = !S.subsOpen[id]; renderTasks(); }
   function toggleSub(ref) {
     const i = ref.lastIndexOf(":"), id = ref.slice(0, i), n = +ref.slice(i + 1), t = findTask(id);
     if (!t || !t.subs[n] || !App.guard()) return;
+    if (!t.subs[n].d) S.justDone = { id: ref, ts: Date.now() };
     const subs = t.subs.map((x, j) => (j === n ? { t: x.t, d: !x.d } : x));
     App.w(S.store.update("tasks", id, { subs: subs }));
   }
@@ -26,6 +27,8 @@
     atVal = S.tasks.concat(GD.expandRecurringTasks(S.rtasks, from, to));
     return atVal;
   }
+
+  const isJust = (id) => !!S.justDone && S.justDone.id === id && Date.now() - S.justDone.ts < 1500;
 
   function renderTasks() {
     const searching = !!S.tSearch.trim();
@@ -65,7 +68,7 @@
           const sp = GD.subProgress(t), hasDetail = sp.total || (t.note && t.note.trim());
           if (hasDetail) meta += '<span class="pill sub' + (sp.total && sp.done === sp.total ? " all" : "") + '" data-subs-toggle="' + esc(t.id) + '" title="Alt görevleri ve notu göster / gizle">' + (S.subsOpen[t.id] ? "▾ " : "▸ ") + (sp.total ? sp.done + "/" + sp.total : "not") + "</span>";
           if (S.focusByTask[t.id]) meta += '<span class="pill fc">odak ' + GD.durText(S.focusByTask[t.id]) + "</span>";
-          html += '<li class="task' + (t.done ? " done" : "") + '"' + (t.done || t.virtual ? "" : ' draggable="true" data-tid="' + esc(t.id) + '" title="Çizelgeye sürükleyip saat ver"') + ">" +
+          html += '<li class="task' + (t.done ? " done" : "") + (isJust(t.id) ? " just" : "") + '"' + (t.done || t.virtual ? "" : ' draggable="true" data-tid="' + esc(t.id) + '" title="Çizelgeye sürükleyip saat ver"') + ">" +
             '<button class="chk" data-toggle="' + esc(t.id) + '" aria-label="Tamamlandı" aria-pressed="' + t.done + '">' + CHECK + "</button>" +
             '<button class="tx" data-edit-task="' + esc(t.id) + '"><span class="tt">' + esc(t.title) + "</span>" + (meta ? '<span class="meta">' + meta + "</span>" : "") + "</button>" +
             '<span class="tact">' + (t.done || t.virtual ? "" : '<button class="star' + (t.imp ? " on" : "") + '" data-star="' + esc(t.id) + '" title="' + (t.imp ? "Öne çıkarmayı kaldır" : "Öne çıkar: Yaklaşanlar ve takvimde göster") + '" aria-label="Öne çıkar" aria-pressed="' + !!t.imp + '">★</button><button data-focus-task="' + esc(t.id) + '" title="Odak başlat" aria-label="Odak başlat">▶</button><button data-postpone="' + esc(t.id) + '" title="Ertesi güne ertele" aria-label="Ertele">→1g</button>') +
@@ -95,7 +98,7 @@
       const prog = p.mode === "daily"
         ? '<span class="streak" title="Kesintisiz gün">' + (p.streak ? "<b>" + p.streak + "</b>g" : "–") + "</span>"
         : '<span class="streak" title="Bu hafta / hedef' + (p.weeks ? " · " + p.weeks + " haftadır tutuyor" : "") + '"><b>' + p.count + "</b>/" + p.target + "</span>";
-      html += '<li class="habit' + (lg[h.id] ? " on" : "") + '">' +
+      html += '<li class="habit' + (lg[h.id] ? " on" : "") + (isJust("h:" + h.id) ? " just" : "") + '">' +
         '<button class="htoggle" data-habit="' + esc(h.id) + '" aria-pressed="' + !!lg[h.id] + '" aria-label="' + esc(h.name) + ' yapıldı"' + (future ? " disabled title=\"Gelecek gün işaretlenemez\"" : "") + ">" + CHECK + "</button>" +
         '<button class="hn" data-edit-habit="' + esc(h.id) + '">' + esc(h.name) + "<small>" + (p.mode === "daily" ? "her gün" : "haftada " + p.target) + "</small></button>" +
         '<span class="spark" aria-hidden="true">' + sp + "</span>" + prog + "</li>";
@@ -129,6 +132,8 @@
   function rawTask(t) { const o = Object.assign({}, t); delete o.id; return o; }
 
   function toggleTask(id) {
+    const cur = allTasks().find((x) => x.id === id);
+    if (cur && !cur.done) S.justDone = { id: id, ts: Date.now() };
     if (GD.parseVirtualId(id)) return App.toggleRep(id);
     const t = findTask(id); if (!t || !App.guard()) return;
     App.w(S.store.update("tasks", id, { done: !t.done, doneAt: !t.done ? Date.now() : null }));
@@ -218,7 +223,7 @@
     k = k || S.sel;
     if (!GD.isKey(k) || k > S.TODAY || !App.guard()) return;
     const cur = Object.assign({}, S.logs[k] || {});
-    if (cur[id]) delete cur[id]; else cur[id] = true;
+    if (cur[id]) delete cur[id]; else { cur[id] = true; S.justDone = { id: "h:" + id, ts: Date.now() }; }
     S.logs = Object.assign({}, S.logs); S.logs[k] = cur;
     renderHabits(); App.renderHead();
     if (S.view !== "day") App.renderRange();

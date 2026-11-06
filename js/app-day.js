@@ -16,7 +16,17 @@
     return "görev <b>" + s.done + "/" + s.total + "</b> · " + esc(App.keyLabel()) + " <b>" + s.key + "</b> · plan <b>" + (s.mins ? GD.durText(s.mins) : "–") + "</b>" + (s.fmin ? " · odak <b>" + GD.durText(s.fmin) + "</b>" : "");
   }
 
+  /* category icons on the timeline blocks (the picture comes from the category's name, see GD.catIcon) */
+  const ICONS = {
+    book: '<path d="M2.5 3.5C4.5 3 6.5 3.3 8 4.5c1.5-1.2 3.5-1.5 5.5-1v8.5c-2-.5-4-.2-5.5 1-1.5-1.2-3.5-1.5-5.5-1z"/><path d="M8 4.5V13"/>',
+    dumbbell: '<path d="M2.5 6v4M4.5 4.5v7M11.5 4.5v7M13.5 6v4M4.5 8h7"/>',
+    bag: '<rect x="2" y="5" width="12" height="8" rx="1.5"/><path d="M6 5V3.8c0-.4.3-.8.8-.8h2.4c.5 0 .8.4.8.8V5M2 8.5h12"/>',
+    heart: '<path d="M8 13.5S2.5 10 2.5 6.2A2.9 2.9 0 0 1 8 5a2.9 2.9 0 0 1 5.5 1.2C13.5 10 8 13.5 8 13.5z"/>'
+  };
+  const iconSvg = (name) => { const k = GD.catIcon(name); return ICONS[k] ? '<svg class="bi" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[k] + "</svg>" : ""; };
+
   function renderHead() {
+    $("dayRing").setAttribute("hidden", ""); $("greet").hidden = true;   /* an SVG has no .hidden property: use the attribute */
     const d = GD.parseKey(S.sel);
     if (S.view === "week") {
       const days = GD.weekDays(S.sel);
@@ -44,6 +54,20 @@
     const lg = S.logs[S.sel] || {};
     const hd = S.habits.filter((h) => lg[h.id]).length;
     const mins = GD.plannedMinutes(App.currentBlocks());
+    const dp = GD.dayProgress(dayTasks, S.habits, lg);
+    if (dp.pct != null) {
+      $("dayRing").removeAttribute("hidden");
+      $("dayRingFg").setAttribute("stroke-dasharray", dp.pct + " 100");
+      $("dayRingTx").textContent = dp.pct + "%";
+      $("dayRing").classList.toggle("full", dp.pct === 100);
+      $("dayRing").setAttribute("aria-label", "Günün ilerlemesi: " + dp.done + "/" + dp.total);
+    }
+    if (S.sel === S.TODAY) {
+      const nb = App.currentBlocks().length, open = dayTasks.length - done;
+      const bits = [nb ? nb + " blok" : "", open ? open + " açık görev" : ""].filter(Boolean);
+      $("greet").textContent = GD.greeting(new Date().getHours()) + (bits.length ? " · " + bits.join(", ") : dp.total && dp.pct === 100 ? " · bugünkü her şey tamam" : " · bugün sakin");
+      $("greet").hidden = false;
+    }
     $("stat").innerHTML = "görev <b>" + done + "/" + dayTasks.length + "</b> · rutin <b>" + hd + "/" + S.habits.length + "</b> · plan <b>" + (mins ? GD.durText(mins) : "–") + "</b>" + (S.focusByDay[S.sel] ? " · odak <b>" + GD.durText(S.focusByDay[S.sel]) + "</b>" : "");
   }
 
@@ -90,8 +114,10 @@
       const loc = b.loc ? '<span class="loc">' + esc(b.loc) + "</span>" : "";
       bh += '<button class="blk c-' + App.catOf(b.c).color + (hgt < 50 ? " short" : "") + (hgt < 28 ? " tiny" : "") + (live ? " now" : "") + kd.cls + '" data-blk="' + esc(b.id) + '" data-rec="' + (b.rec ? 1 : 0) + '" ' +
         'style="top:' + top + "px;height:" + hgt + "px;left:calc(" + left + "% + 2px);width:calc(" + wdt + '% - 6px)" title="' + esc(b.t) + " · " + GD.fmtMin(b.s) + "–" + GD.fmtMin(b.e) + (b.loc ? " · " + esc(b.loc) : "") + (b.rec ? " · her hafta" : "") + esc(kd.tip) + '">' + kd.html +
+        (live ? '<span class="bprog" style="width:' + Math.round((nowMin - b.s) / (b.e - b.s) * 100) + '%"></span>' : "") +
+        (hgt >= 40 ? iconSvg(App.catOf(b.c).name) : "") +
         '<span class="bt">' + esc(b.t) + (b.rec ? '<span class="rec">↻</span>' : "") + "</span>" +
-        '<span class="bh">' + GD.fmtMin(b.s) + "–" + GD.fmtMin(b.e) + loc + "</span>" +
+        '<span class="bh">' + GD.fmtMin(b.s) + "–" + GD.fmtMin(b.e) + (hgt >= 66 ? '<span class="bd">' + GD.durText(b.e - b.s) + "</span>" : "") + loc + "</span>" +
         '<span class="rsz" aria-hidden="true"></span></button>';
     });
     if (S.sel === S.TODAY) {

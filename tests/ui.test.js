@@ -56,6 +56,7 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("task added", $("taskList").textContent.includes("Test görevi"), true);
   $("taskList").querySelector(".chk").click(); await wait(100);
   eq("task toggled done", $("taskList").querySelector("li").classList.contains("done"), true);
+  eq("a task ticked a moment ago carries the pop class", $("taskList").querySelector("li.task").classList.contains("just"), true);
 
   $("tTitle").value = "Başka iş"; $("tAdd").click(); await wait(100);
   $("tSearch").value = "TEST"; $("tSearch").dispatchEvent(new w.Event("input", { bubbles: true }));
@@ -75,6 +76,9 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   if (nm >= 10 && nm + 90 < 24 * 60 - 1) {
     w.eval('S.store.set("days", S.TODAY, { date: S.TODAY, blocks: [{ id: "nb1", s: ' + (nm - 10) + ', e: ' + (nm + 50) + ', t: "Şimdiki ders", c: "ders", loc: "A-1" }, { id: "nb2", s: ' + (nm + 90) + ', e: ' + (nm + 120 > 1439 ? 1439 : nm + 120) + ', t: "Sonraki ders", c: "ders" }], note: "", skip: [] })'); await wait(120);
     eq("strip shows the block in progress", [$("nextBar").hidden, $("nextBar").textContent.includes("Şimdi"), $("nextBar").textContent.includes("Şimdiki ders"), $("nextBar").textContent.includes("kaldı")], [false, true, true, true]);
+    eq("block in progress has a progress fill", !!d.querySelector("#tl .blk.now .bprog"), true);
+    if (nm - 10 >= w.eval("GD.DAY_START") * 60 && nm + 50 <= w.eval("GD.DAY_END") * 60) eq("blocks carry their category icon", !!d.querySelector("#tl .blk .bi"), true);   /* only when the block is inside the visible day range */
+    eq("day ring and greeting are shown for today", [$("dayRing").hasAttribute("hidden"), /%$/.test($("dayRingTx").textContent), /^(Günaydın|İyi günler|İyi akşamlar|İyi geceler)/.test($("greet").textContent)], [false, true, true]);
     eq("timeline highlights the block in progress", [d.querySelectorAll("#tl .blk.now").length, d.querySelector("#tl .blk.now").textContent.includes("Şimdiki ders")], [1, true]);
     if (nm >= w.eval("GD.DAY_START") * 60 && nm <= w.eval("GD.DAY_END") * 60) eq("the now line carries the time", d.querySelector("#tl .nowline .nl-t").textContent.length, 5);   /* only inside the visible day range */
     w.eval('S.store.set("days", S.TODAY, { date: S.TODAY, blocks: [{ id: "nb2", s: ' + (nm + 90) + ', e: ' + (nm + 120 > 1439 ? 1439 : nm + 120) + ', t: "Sonraki ders", c: "ders" }], note: "", skip: [] })'); await wait(120);

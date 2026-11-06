@@ -47,5 +47,6 @@ S.canExport = false;
 S.tSearch = "";
 S.tFilter = "all";
 S.subsOpen = {};
+S.justDone = null;   /* {id, ts}: the thing ticked a moment ago (for the tick animation) */
 S.focusRows = [];
 S.statsDays = 30;
