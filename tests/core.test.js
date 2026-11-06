@@ -90,6 +90,16 @@ const ids = (arr) => arr.map((x) => (x.t ? x.t.id + (x.late ? "!" : "") : x.id))
 eq("today: own + overdue + undated", ids(GD.visibleTasks(T, TODAY, TODAY)), ["t1", "t2!", "t4"]);
 eq("tomorrow: today's task is NOT overdue (old bug)", ids(GD.visibleTasks(T, "2026-10-17", TODAY)), ["t4"]);
 eq("past day: only that day's tasks + undated", ids(GD.visibleTasks(T, "2026-10-14", TODAY)), ["t2", "t3", "t4"]);
+/* end of term */
+const SER = [{ id: "a", from: "2026-09-01", until: null }, { id: "b", from: "2026-09-01", until: "2026-10-20" }, { id: "c", from: "2026-09-01", until: "2026-10-10" }];
+eq("activeSeries: no end date or ending on/after the day", GD.activeSeries(SER, "2026-10-16").map((r) => r.id), ["a", "b"]);
+eq("activeSeries: the end day itself still counts", GD.activeSeries(SER, "2026-10-20").map((r) => r.id), ["a", "b"]);
+const OT = [
+  { id: "1", done: true, date: "2026-07-01" }, { id: "2", done: true, date: null, doneAt: new Date("2026-06-01T12:00:00").getTime() },
+  { id: "3", done: true, date: "2026-10-01" }, { id: "4", done: false, date: "2026-06-01" }, { id: "5", done: true, date: null, doneAt: null, createdAt: new Date("2026-05-01T12:00:00").getTime() },
+  { id: "6", done: true, virtual: true, date: "2026-01-01" }, { id: "7", done: true, date: null }
+];
+eq("oldDoneTasks: finished and older than the cutoff only", GD.oldDoneTasks(OT, "2026-09-01").map((t) => t.id), ["1", "2", "5"]);
 /* statistics */
 const SI = {
   tasks: [{ done: true, doneAt: new Date("2026-10-14T12:00:00").getTime() }, { done: true, doneAt: new Date("2026-10-14T18:00:00").getTime() }, { done: true, doneAt: new Date("2026-10-10T12:00:00").getTime() }, { done: false, doneAt: null }, { done: true }],

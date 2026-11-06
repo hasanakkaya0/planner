@@ -312,6 +312,19 @@
     return { mode: "weekly", count: weekCount(logs, h.id, sel), target: target, weeks: weekStreak(logs, h.id, sel, target) };
   }
 
+  /* End of term. Weekly series still running on day k: no end date, or it ends on/after k */
+  function activeSeries(recurring, k) {
+    return (recurring || []).filter(function (r) { return !r.until || r.until >= k; });
+  }
+  /* Finished tasks whose day (its date, else the day it was ticked, else created) is before cutoff */
+  function oldDoneTasks(tasks, cutoff) {
+    return (tasks || []).filter(function (t) {
+      if (!t.done || t.virtual) return false;
+      var d = isKey(t.date) ? t.date : t.doneAt ? key(new Date(t.doneAt)) : t.createdAt ? key(new Date(t.createdAt)) : null;
+      return !!d && d < cutoff;
+    });
+  }
+
   /* Numbers for the statistics window over the day keys [from, to].
      input: {tasks:[{done, doneAt}], focus:[{date, mins, cat}], logs:{date:{habitId:true}}, habits:[{id, name, target, createdAt}]} */
   function statsRange(input, from, to) {
@@ -577,7 +590,7 @@
     daySummary: daySummary,
     toMin: toMin, fmtMin: fmtMin, durText: durText, blockError: blockError,
     recurringOn: recurringOn, blocksForDay: blocksForDay, lanes: lanes, freeSlots: freeSlots, plannedMinutes: plannedMinutes,
-    visibleTasks: visibleTasks, statsRange: statsRange, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
+    visibleTasks: visibleTasks, activeSeries: activeSeries, oldDoneTasks: oldDoneTasks, statsRange: statsRange, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
     doneOn: doneOn, streak: streak, weekCount: weekCount, weekStreak: weekStreak, habitProgress: habitProgress,
     normalizeBackup: normalizeBackup,
     COLORS: COLORS, ACCENTS: ACCENTS, UPC_DAYS: UPC_DAYS, DEFAULT_SETTINGS: DEFAULT_SETTINGS,

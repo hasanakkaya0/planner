@@ -69,6 +69,27 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("status filter: done only", [$("taskList").textContent.includes("Test görevi"), $("taskList").textContent.includes("Başka iş")], [true, false]);
   $("tFilter").value = "all"; $("tFilter").dispatchEvent(new w.Event("change", { bubbles: true }));
 
+  /* end of term */
+  w.eval('S.store.set("recurring", "cls1", { t: "Ders A", c: "ders", s: 540, e: 630, dow: [1, 3], from: "2026-01-05", until: null })');
+  w.eval('S.store.set("tasks", "oldA", { title: "Eski biten", cat: "ders", kind: "normal", date: GD.addDays(S.TODAY, -200), done: true, createdAt: 1 })');
+  w.eval('S.store.set("tasks", "oldB", { title: "Yeni biten", cat: "ders", kind: "normal", date: GD.addDays(S.TODAY, -5), done: true, createdAt: 2 })');
+  await wait(80);
+  $("setBtn").click(); await wait(80); $("sTerm").click(); await wait(80);
+  eq("term-end window lists the running class", $("tmSeries").textContent.includes("Ders A"), true);
+  eq("old finished tasks are counted (cutoff 60 days)", $("tmCount").textContent, "1 biten görev silinebilir.");
+  eq("delete stays locked until a backup was downloaded", $("tmDel").disabled, true);
+  w.URL.createObjectURL = () => "blob:x"; w.URL.revokeObjectURL = () => {}; w.HTMLAnchorElement.prototype.click = () => {};
+  $("tmBackup").click(); await wait(150);
+  eq("after the backup, delete unlocks", [$("tmDel").disabled, $("tmBackup").textContent.includes("✓")], [false, true]);
+  $("tmDel").click(); $("tmDel").click(); await wait(200);
+  eq("old finished tasks are deleted, newer ones stay", [w.eval('S.tasks.some(t => t.id === "oldA")'), w.eval('S.tasks.some(t => t.id === "oldB")')], [false, true]);
+  $("tmDate").value = w.eval("S.TODAY"); $("tmEnd").click(); await wait(100);
+  eq("classes end on the chosen day", w.eval('S.recurring.find(r => r.id === "cls1").until') === w.eval("S.TODAY"), true);
+  $("undoBtn").click(); await wait(100);
+  eq("undo restores the open end", w.eval('S.recurring.find(r => r.id === "cls1").until'), null);
+  key("Escape"); await wait(40);
+  w.eval('S.store.del("recurring", "cls1")'); w.eval('S.store.del("tasks", "oldB")'); await wait(60);
+
   /* statistics window */
   w.eval('S.store.set("focus", "f1", { date: S.TODAY, start: Date.now(), mins: 25, title: "x", cat: "ders" })'); await wait(80);
   $("statsBtn").click(); await wait(80);

@@ -28,22 +28,25 @@
       if (S.store.mode === "cloud") {
         const dl = await window.claude.use("downloads");
         if (!dl) { App.banner("Bu görünümde dosya indirilemiyor."); return; }
-        try { await dl.save({ filename: name, data: json }); App.toast("Yedek indirildi"); }
+        try { await dl.save({ filename: name, data: json }); App.toast("Yedek indirildi"); return true; }
         catch (e) { if (e && e.code !== "declined") App.banner("Yedek indirilemedi."); }
       } else {
         /* iPhone / iPad: "Save to Files" through the share sheet */
         const file = typeof File === "function" ? new File([json], name, { type: "application/json" }) : null;
         if (file && navigator.canShare && matchMedia("(hover:none)").matches && navigator.canShare({ files: [file] })) {
-          try { await navigator.share({ files: [file] }); } catch (e) { /* cancelled */ }
-          return;
+          let shared = false;
+          try { await navigator.share({ files: [file] }); shared = true; } catch (e) { /* cancelled */ }
+          return shared;
         }
         const a = document.createElement("a");
         a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
         a.download = name; document.body.appendChild(a); a.click();
         setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
         App.toast("Yedek indirildi");
+        return true;
       }
     } catch (e) { App.banner("Yedek hazırlanamadı."); }
+    return false;
   }
   function importFile(file) {
     const rd = new FileReader();
@@ -148,7 +151,7 @@
         '<label class="btn-ghost filebtn">Yedek yükle<input type="file" id="sImport" accept="application/json,.json" hidden></label>' +
         (S.store && S.store.signOut ? '<span class="sp"></span><button type="button" class="btn-ghost" id="sSignOut">Çıkış yap</button>' : "") + "</div>" +
       "</section>" +
-      '<section class="set-sec"><h3>Yardım</h3><div class="set-row"><button type="button" class="btn-ghost" id="sWelcome">Tanıtımı göster</button></div></section>' +
+      '<section class="set-sec"><h3>Dönem sonu ve yardım</h3><div class="set-row"><button type="button" class="btn-ghost" id="sTerm">Dönem sonu…</button><button type="button" class="btn-ghost" id="sWelcome">Tanıtımı göster</button></div></section>' +
       '<section class="set-sec about"><h3>Hakkında</h3>' +
         '<div class="about-row">' + document.querySelector(".brand .logo").outerHTML + '<div><b>Planner</b><br><span>Hasan Akkaya · <a href="https://github.com/hasanakkaya0" target="_blank" rel="noopener">GitHub</a> · <a href="https://www.linkedin.com/in/hasanakkaya0" target="_blank" rel="noopener">LinkedIn</a></span></div></div>' +
         '<p class="set-hint">Kısayollar: / hızlı ekle · G / H / A gün-hafta-ay · ← → önceki/sonraki · T bugün · N görev · B blok · O odak · K tema · , ayarlar</p>' +
@@ -224,6 +227,8 @@
         App.closeModal(); S.store.signOut().then(() => location.reload());
       } else if (e.target.closest("#sWelcome")) {
         App.closeModal(); App.openWelcome();
+      } else if (e.target.closest("#sTerm")) {
+        App.closeModal(); App.openTermEnd();
       } else if (e.target.closest("#sExport")) {
         exportData();
       } else if (e.target.closest("#sReset")) {
@@ -239,6 +244,7 @@
 
   /* shared with the other app-*.js files */
   Object.assign(App, {
+    exportData,
     toggleTheme,
     applyCfg,
     openSettings
