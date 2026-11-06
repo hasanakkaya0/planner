@@ -216,6 +216,7 @@
     }
     startSubs();
     if (S.focus) App.renderFocus();
+    setTimeout(App.maybeWelcome, 1500);   /* once the first data has arrived */
   }
   boot().catch(() => { S.modeHtml = "Kayıt bağlantısı kurulamadı. Sayfayı yenile."; App.banner(S.modeHtml, true); });
 })();

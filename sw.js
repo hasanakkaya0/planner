@@ -1,8 +1,8 @@
 /* Planner — service worker: caches the app files so it opens without internet.
    App files: network first (latest version), cache when offline.
    Firebase library and fonts: cache first. Firestore / auth requests are never cached. */
-const CACHE = "planner-v6e2ef1f1";
-const SHELL = ["./", "index.html", "css/style.css", "js/core.js", "js/store.js", "js/sync.js", "js/app-state.js", "js/app-ui.js", "js/app-day.js", "js/app-lists.js", "js/app-week.js", "js/app-month.js", "js/app-settings.js", "js/app-quickadd.js", "js/app-dnd.js", "js/app-focus.js", "js/app.js", "js/firebase-config.js", "manifest.webmanifest", "icons/apple-touch-icon.png", "icons/icon-192.png"];
+const CACHE = "planner-v1b1caea3";
+const SHELL = ["./", "index.html", "css/style.css", "js/core.js", "js/store.js", "js/sync.js", "js/app-state.js", "js/app-ui.js", "js/app-day.js", "js/app-lists.js", "js/app-week.js", "js/app-month.js", "js/app-settings.js", "js/app-quickadd.js", "js/app-dnd.js", "js/app-focus.js", "js/app-welcome.js", "js/app.js", "js/firebase-config.js", "manifest.webmanifest", "icons/apple-touch-icon.png", "icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting()));

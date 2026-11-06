@@ -24,6 +24,7 @@ vc.on("error", (m) => errors.push(String(m)));
 const dom = new JSDOM(html, {
   runScripts: "dangerously", url: "http://localhost/", pretendToBeVisual: true, virtualConsole: vc,
   beforeParse(w) {
+    w.localStorage.setItem("gunDefteri.welcome", "1");   /* no welcome card unless a test asks for it */
     w.matchMedia = w.matchMedia || ((q) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
     w.scrollTo = () => {}; w.HTMLElement.prototype.scrollIntoView = () => {};
     w.addEventListener("error", (e) => errors.push("error: " + e.message));
@@ -39,6 +40,17 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
 (async () => {
   await wait(300);
   eq("app booted (S and App exist)", [typeof w.eval("S"), typeof w.eval("App")], ["object", "object"]);
+
+  /* first-run welcome card */
+  w.localStorage.removeItem("gunDefteri.welcome"); w.eval("App.maybeWelcome()");
+  eq("welcome card shows on first run", [$("modalBg").hidden, $("modal").textContent.includes("Hoş geldin")], [false, true]);
+  $("modal").querySelector("button[type=submit]").click(); await wait(50);
+  eq("welcome closes and is remembered", [$("modalBg").hidden, w.localStorage.getItem("gunDefteri.welcome")], [true, "1"]);
+  w.eval("App.maybeWelcome()");
+  eq("welcome does not repeat", $("modalBg").hidden, true);
+  $("setBtn").click(); await wait(100); $("sWelcome").click(); await wait(50);
+  eq("settings can reopen the welcome card", $("modal").textContent.includes("Hoş geldin"), true);
+  key("Escape"); await wait(50);
 
   $("tTitle").value = "Test görevi"; $("tAdd").click(); await wait(100);
   eq("task added", $("taskList").textContent.includes("Test görevi"), true);
