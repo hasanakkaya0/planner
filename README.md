@@ -38,7 +38,17 @@ js/core.js             pure logic (dates, timeline lanes, quick-add parser, stre
 js/store.js            storage layer with one interface over three backends: Firebase Firestore, localStorage, or a claude.ai artifact database
 js/sync.js             Firebase sign-in and connection
 js/firebase-config.js  Firebase web config (null = data stays in this browser only)
-js/app.js              user interface
+js/app-state.js        shared basics: S (shared mutable state), App (shared functions), DOM helpers
+js/app-ui.js           settings helpers, banner / toast / modal
+js/app-day.js          day view: header, timeline, blocks, day document
+js/app-lists.js        day view: tasks, habits, note
+js/app-week.js         week view and fit-to-screen
+js/app-month.js        month view and range navigation
+js/app-settings.js     theme, backup (export / import), settings window
+js/app-quickadd.js     quick add bar
+js/app-dnd.js          drag and drop on the timeline
+js/app-focus.js        focus timer
+js/app.js              event wiring, subscriptions, start-up (loaded last)
 sw.js, manifest.webmanifest, icons/   installable PWA and offline support
 build.js               node build.js → stamps the cache version into sw.js / index.html, writes dist/planner.html (single-file build)
 tests/core.test.js     node tests/core.test.js (157 tests)

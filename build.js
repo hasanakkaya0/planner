@@ -9,7 +9,8 @@ const R = (p) => fs.readFileSync(path.join(__dirname, p), "utf8");
 
 /* ---- version stamp ---- */
 const crypto = require("crypto");
-const VER_FILES = ["css/style.css", "js/core.js", "js/store.js", "js/sync.js", "js/app.js", "js/firebase-config.js", "manifest.webmanifest"];
+const APP_FILES = ["js/app-state.js", "js/app-ui.js", "js/app-day.js", "js/app-lists.js", "js/app-week.js", "js/app-month.js", "js/app-settings.js", "js/app-quickadd.js", "js/app-dnd.js", "js/app-focus.js", "js/app.js"];
+const VER_FILES = ["css/style.css", "js/core.js", "js/store.js", "js/sync.js", ...APP_FILES, "js/firebase-config.js", "manifest.webmanifest"];
 const norm = (t) => t.replace(/\?v=[0-9a-f]+/g, "?v=X").replace(/planner-v[0-9a-f]+/g, "planner-vX");
 const h = crypto.createHash("sha1");
 const LF = (t) => t.replace(/\r\n/g, "\n");   /* same hash on Windows (CRLF) and CI (LF) */
@@ -30,7 +31,7 @@ const m = html.match(/<!-- BODY START -->([\s\S]*?)<!-- BODY END -->/);
 if (!m) throw new Error("index.html is missing the BODY START / BODY END markers.");
 const fonts = (html.match(/<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com[^>]*>/) || [""])[0];
 
-const js = ["js/core.js", "js/store.js", "js/app.js"].map(R).join("\n");
+const js = ["js/core.js", "js/store.js", ...APP_FILES].map(R).join("\n");
 if (/<\/script/i.test(js)) throw new Error("JS contains </script; it cannot be inlined into a single file.");
 
 const out = [
