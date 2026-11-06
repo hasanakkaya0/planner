@@ -90,6 +90,15 @@ const ids = (arr) => arr.map((x) => (x.t ? x.t.id + (x.late ? "!" : "") : x.id))
 eq("today: own + overdue + undated", ids(GD.visibleTasks(T, TODAY, TODAY)), ["t1", "t2!", "t4"]);
 eq("tomorrow: today's task is NOT overdue (old bug)", ids(GD.visibleTasks(T, "2026-10-17", TODAY)), ["t4"]);
 eq("past day: only that day's tasks + undated", ids(GD.visibleTasks(T, "2026-10-14", TODAY)), ["t2", "t3", "t4"]);
+/* next up */
+const NB = [{ id: "x", t: "Sonra", s: 840, e: 900 }, { id: "y", t: "Şimdi", s: 600, e: 660 }, { id: "z", t: "Çakışan", s: 630, e: 700 }];
+const NT = [{ id: "a", date: "2026-10-16", done: false, kind: "normal" }, { id: "b", date: "2026-10-16", done: true, kind: "normal" }, { id: "q", title: "Quiz", date: "2026-10-17", done: false, kind: "sinav" }, { id: "far", date: "2026-10-30", done: false, kind: "sinav" }];
+const nu = (h, m) => GD.nextUp({ now: new Date(2026, 9, 16, h, m), today: "2026-10-16", blocks: NB, tasks: NT, keyKinds: ["sinav", "teslim"] });
+eq("nextUp: block in progress, then the next one (overlaps are skipped)", [nu(10, 30).current.id, nu(10, 30).minsLeft, nu(10, 30).next.id, nu(10, 30).minsUntil], ["y", 30, "x", 210]);
+eq("nextUp: before the first block there is no current", [nu(9, 0).current, nu(9, 0).next.id, nu(9, 0).minsUntil], [null, "y", 60]);
+eq("nextUp: after the last block", [nu(15, 30).current, nu(15, 30).next, nu(15, 30).minsLeft], [null, null, null]);
+eq("nextUp: task counts of today and the next highlighted task", [nu(9, 0).open, nu(9, 0).done, nu(9, 0).key.t.id, nu(9, 0).key.days], [1, 1, "q", 1]);
+eq("nextUp: nothing to show", GD.nextUp({ now: new Date(2026, 9, 16, 9, 0), today: "2026-10-16" }).key, null);
 /* reminders */
 const RB = [{ id: "b1", t: "STAT 363", s: 640, loc: "MM-101" }];
 const at = (h, m) => new Date(2026, 9, 16, h, m);

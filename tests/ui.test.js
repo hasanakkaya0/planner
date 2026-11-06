@@ -69,6 +69,38 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("status filter: done only", [$("taskList").textContent.includes("Test görevi"), $("taskList").textContent.includes("Başka iş")], [true, false]);
   $("tFilter").value = "all"; $("tFilter").dispatchEvent(new w.Event("change", { bubbles: true }));
 
+  /* "Şimdi / Sıradaki" strip and the block in progress */
+  w.eval("App.go(S.TODAY)"); d.querySelector('[data-view="day"]').click(); await wait(100);
+  const nm = new Date().getHours() * 60 + new Date().getMinutes();
+  if (nm >= 10 && nm + 90 < 24 * 60 - 1) {
+    w.eval('S.store.set("days", S.TODAY, { date: S.TODAY, blocks: [{ id: "nb1", s: ' + (nm - 10) + ', e: ' + (nm + 50) + ', t: "Şimdiki ders", c: "ders", loc: "A-1" }, { id: "nb2", s: ' + (nm + 90) + ', e: ' + (nm + 120 > 1439 ? 1439 : nm + 120) + ', t: "Sonraki ders", c: "ders" }], note: "", skip: [] })'); await wait(120);
+    eq("strip shows the block in progress", [$("nextBar").hidden, $("nextBar").textContent.includes("Şimdi"), $("nextBar").textContent.includes("Şimdiki ders"), $("nextBar").textContent.includes("kaldı")], [false, true, true, true]);
+    eq("timeline highlights the block in progress", [d.querySelectorAll("#tl .blk.now").length, d.querySelector("#tl .blk.now").textContent.includes("Şimdiki ders")], [1, true]);
+    if (nm >= w.eval("GD.DAY_START") * 60 && nm <= w.eval("GD.DAY_END") * 60) eq("the now line carries the time", d.querySelector("#tl .nowline .nl-t").textContent.length, 5);   /* only inside the visible day range */
+    w.eval('S.store.set("days", S.TODAY, { date: S.TODAY, blocks: [{ id: "nb2", s: ' + (nm + 90) + ', e: ' + (nm + 120 > 1439 ? 1439 : nm + 120) + ', t: "Sonraki ders", c: "ders" }], note: "", skip: [] })'); await wait(120);
+    eq("strip shows the next block when none is running", [$("nextBar").textContent.includes("Sıradaki"), $("nextBar").textContent.includes("Sonraki ders"), $("nextBar").textContent.includes("sonra")], [true, true, true]);
+    w.eval('S.store.del("days", S.TODAY)'); await wait(80);
+  }
+
+  /* swipe a task row (touch) */
+  const touch = (type, el, x, y) => { const ev = new w.MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0 }); Object.defineProperty(ev, "pointerType", { value: "touch" }); Object.defineProperty(ev, "pointerId", { value: 7 }); el.dispatchEvent(ev); };
+  const swipe = async (title, dx) => { const li = [...$("taskList").querySelectorAll("li.task")].find((l) => l.textContent.includes(title)); touch("pointerdown", li, 100, 100); touch("pointermove", w, 100 + dx / 4, 101); touch("pointermove", w, 100 + dx, 102); eq("swipe moves the row (" + title + ")", li.style.transform.includes("translateX"), true); touch("pointerup", w, 100 + dx, 102); await wait(80); };
+  $("tTitle").value = "Sağa kaydır"; $("tAdd").click(); $("tTitle").value = "Sola kaydır"; $("tAdd").click(); await wait(120);
+  await swipe("Sağa kaydır", 140);
+  eq("swiping right completes the task", w.eval('S.tasks.find(t => t.title === "Sağa kaydır").done'), true);
+  await swipe("Sola kaydır", -140);
+  eq("swiping left moves the task to tomorrow", w.eval('S.tasks.find(t => t.title === "Sola kaydır").date') === w.eval("GD.addDays(S.TODAY, 1)"), true);
+  await swipe("Test görevi", 30);
+  eq("a short swipe does nothing", w.eval('S.tasks.find(t => t.title === "Test görevi").done'), true);   /* it was already done: unchanged */
+  w.eval('S.tasks.filter(t => /kaydır$/.test(t.title)).forEach(t => S.store.del("tasks", t.id))'); await wait(80);
+
+  /* black theme */
+  $("setBtn").click(); await wait(60);
+  d.querySelector('[data-theme-opt="black"]').click();
+  $("mForm").dispatchEvent(new w.Event("submit", { cancelable: true, bubbles: true })); await wait(100);
+  eq("the black theme is applied and remembered", [d.documentElement.getAttribute("data-theme"), w.localStorage.getItem("gunDefteri.theme")], ["black", "black"]);
+  w.localStorage.removeItem("gunDefteri.theme"); d.documentElement.removeAttribute("data-theme");
+
   /* reminders */
   $("setBtn").click(); await wait(60); $("sRemind").click(); await wait(60);
   eq("reminder window opens", $("modal").textContent.includes("Hatırlatmalar"), true);

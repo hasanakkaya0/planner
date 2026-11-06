@@ -78,6 +78,7 @@
       html += '<div class="hour"><span class="hl">' + GD.pad(h) + ':00</span><button class="slot" data-h="' + h + '" aria-label="' + GD.pad(h) + ':00 için blok ekle"></button></div>';
     }
     const blocks = App.currentBlocks();
+    const nowD = new Date(), nowMin = nowD.getHours() * 60 + nowD.getMinutes();
     const links = GD.linkKeyTasks(blocks, App.allTasks(), S.sel, App.keyKinds());
     let bh = "";
     GD.lanes(blocks).forEach((b) => {
@@ -85,8 +86,9 @@
       const top = (Math.max(b.s, GD.DAY_START * 60) - GD.DAY_START * 60) / 60 * hh;
       const hgt = Math.max((Math.min(b.e, GD.DAY_END * 60) - Math.max(b.s, GD.DAY_START * 60)) / 60 * hh - 3, 20);
       const wdt = 100 / b._lanes, left = b._lane * wdt;
+      const live = S.sel === S.TODAY && b.s <= nowMin && nowMin < b.e;
       const loc = b.loc ? '<span class="loc">' + esc(b.loc) + "</span>" : "";
-      bh += '<button class="blk c-' + App.catOf(b.c).color + (hgt < 50 ? " short" : "") + (hgt < 28 ? " tiny" : "") + kd.cls + '" data-blk="' + esc(b.id) + '" data-rec="' + (b.rec ? 1 : 0) + '" ' +
+      bh += '<button class="blk c-' + App.catOf(b.c).color + (hgt < 50 ? " short" : "") + (hgt < 28 ? " tiny" : "") + (live ? " now" : "") + kd.cls + '" data-blk="' + esc(b.id) + '" data-rec="' + (b.rec ? 1 : 0) + '" ' +
         'style="top:' + top + "px;height:" + hgt + "px;left:calc(" + left + "% + 2px);width:calc(" + wdt + '% - 6px)" title="' + esc(b.t) + " · " + GD.fmtMin(b.s) + "–" + GD.fmtMin(b.e) + (b.loc ? " · " + esc(b.loc) : "") + (b.rec ? " · her hafta" : "") + esc(kd.tip) + '">' + kd.html +
         '<span class="bt">' + esc(b.t) + (b.rec ? '<span class="rec">↻</span>' : "") + "</span>" +
         '<span class="bh">' + GD.fmtMin(b.s) + "–" + GD.fmtMin(b.e) + loc + "</span>" +
@@ -94,7 +96,7 @@
     });
     if (S.sel === S.TODAY) {
       const now = new Date(), nm = now.getHours() * 60 + now.getMinutes();
-      if (nm >= GD.DAY_START * 60 && nm <= GD.DAY_END * 60) bh += '<div class="nowline" style="top:' + ((nm - GD.DAY_START * 60) / 60 * hh) + 'px;left:0"></div>';
+      if (nm >= GD.DAY_START * 60 && nm <= GD.DAY_END * 60) bh += '<div class="nowline" style="top:' + ((nm - GD.DAY_START * 60) / 60 * hh) + 'px;left:0"><span class="nl-t">' + GD.fmtMin(nm) + "</span></div>";
     }
     $("tl").innerHTML = html + '<div class="blocks">' + bh + "</div>";
     S.dayHH = hh;
@@ -106,7 +108,27 @@
       box.scrollTop = Math.max(0, (target - GD.DAY_START * 60) / 60 * hh);
     }
     $("blkCount").textContent = blocks.length ? blocks.length + " blok · " + GD.durText(GD.plannedMinutes(blocks)) : "";
+    renderNextBar();
 
+  }
+
+  /* "Şimdi / Sıradaki" strip above today's timeline */
+  function renderNextBar() {
+    const el = $("nextBar");
+    if (S.view !== "day" || S.sel !== S.TODAY) { el.hidden = true; return; }
+    const blocks = App.currentBlocks();
+    const n = GD.nextUp({ now: new Date(), today: S.TODAY, blocks: blocks, tasks: App.allTasks(), keyKinds: App.keyKinds() });
+    const where = (b) => (b.loc ? " · " + esc(b.loc) : "");
+    let main;
+    if (n.current) main = '<span class="nb-dot" aria-hidden="true"></span><b>Şimdi</b> ' + esc(n.current.t) + ' <span class="nb-sub">' + GD.fmtMin(n.current.s) + "–" + GD.fmtMin(n.current.e) + where(n.current) + " · " + GD.durText(n.minsLeft) + " kaldı</span>";
+    else if (n.next) main = "<b>Sıradaki</b> " + esc(n.next.t) + ' <span class="nb-sub">' + GD.fmtMin(n.next.s) + where(n.next) + " · " + GD.durText(n.minsUntil) + " sonra</span>";
+    else main = blocks.length ? "<b>Bugünkü bloklar bitti</b>" : "";
+    let side = "";
+    if (n.open + n.done) side += '<span class="nb-chip">görev <b>' + n.done + "/" + (n.open + n.done) + "</b></span>";
+    if (n.key) side += '<span class="nb-chip"><span class="pill k c-' + App.keyColor(n.key.t) + '">' + esc(App.keyName(n.key.t)) + "</span> " + esc(n.key.t.title) + " · " + (n.key.days === 0 ? "bugün" : n.key.days === 1 ? "yarın" : n.key.days + " gün sonra") + "</span>";
+    if (!main && !side) { el.hidden = true; return; }
+    el.innerHTML = (main ? '<div class="nb-main">' + main + "</div>" : "") + (side ? '<div class="nb-side">' + side + "</div>" : "");
+    el.hidden = false;
   }
 
   function renderFreeHint() {
@@ -348,6 +370,7 @@
 
   /* shared with the other app-*.js files */
   Object.assign(App, {
+    renderNextBar,
     renderHead,
     renderWeek,
     renderTL,

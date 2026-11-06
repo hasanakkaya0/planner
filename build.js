@@ -9,7 +9,7 @@ const R = (p) => fs.readFileSync(path.join(__dirname, p), "utf8");
 
 /* ---- version stamp ---- */
 const crypto = require("crypto");
-const APP_FILES = ["js/app-state.js", "js/app-ui.js", "js/app-day.js", "js/app-lists.js", "js/app-week.js", "js/app-month.js", "js/app-settings.js", "js/app-quickadd.js", "js/app-dnd.js", "js/app-focus.js", "js/app-welcome.js", "js/app-sync.js", "js/app-repeat.js", "js/app-stats.js", "js/app-term.js", "js/app-remind.js", "js/app.js"];
+const APP_FILES = ["js/app-state.js", "js/app-ui.js", "js/app-day.js", "js/app-lists.js", "js/app-week.js", "js/app-month.js", "js/app-settings.js", "js/app-quickadd.js", "js/app-dnd.js", "js/app-focus.js", "js/app-welcome.js", "js/app-sync.js", "js/app-repeat.js", "js/app-stats.js", "js/app-term.js", "js/app-remind.js", "js/app-swipe.js", "js/app.js"];
 const VER_FILES = ["css/style.css", "js/core.js", "js/store.js", "js/sync.js", ...APP_FILES, "js/firebase-config.js", "manifest.webmanifest"];
 const norm = (t) => t.replace(/\?v=[0-9a-f]+/g, "?v=X").replace(/planner-v[0-9a-f]+/g, "planner-vX");
 const h = crypto.createHash("sha1");

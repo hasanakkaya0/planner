@@ -13,6 +13,8 @@ and can be added to the iPhone home screen like a native app.
 - **Three views:** day (timeline, tasks, habits, note), week (7-column timeline) and month (calendar with each day's exams, tasks and classes).
 - **Quick add:** type one line such as `yarın 14:00-15:30 Matematik @MM-101 #ders` and the date, time, place and category are parsed for you.
 - **Weekly classes:** enter your timetable once and it repeats every week. You can skip a single day (a holiday) or end the series (end of term).
+- **Today strip:** above today's timeline, "Şimdi" (block in progress, time left) or "Sıradaki" (next block, time until it), the day's task count and the next exam / deadline. The block in progress is outlined and the now line shows the time.
+- **Swipe on a phone:** right = done, left = move to tomorrow (on a mouse the same actions are the row buttons, now always faintly visible).
 - **Reminders** (Settings → Hatırlatmalar…): a class / block is announced a few minutes before it starts; exams and deadlines the morning of the day (08:00) and the evening before (20:00). Works while the app (or its tab) is open: it checks every ~30 s and uses a system notification when permitted, otherwise an in-app message. The choice is per device.
 - **End of term** (Settings → Dönem sonu…): end the weekly classes on a chosen day and clear old finished tasks (a backup has to be downloaded first). Past days stay as they were.
 - **Statistics** (chart button or `I`): focus time, finished tasks, habit completion and active days over the last 7 / 30 / 90 days, with daily bars and a per-category breakdown.
@@ -23,7 +25,7 @@ and can be added to the iPhone home screen like a native app.
 - **Drag and drop** (desktop): move or resize blocks, drag across the empty timeline to create one, or drop a task onto the timeline or onto a block.
 - **Focus timer:** a Pomodoro timer for a task, a block or a free session. Focus time is logged per day, week and task.
 - **Habits:** daily or N-times-a-week goals with streaks.
-- **Settings:** categories, task types, colors, theme (light / dark / system), accent color, day range and timer lengths.
+- **Settings:** categories, task types, colors, theme (light / dark / black / system), accent color, day range and timer lengths.
 - **Sync and offline:** Firebase email/password sign-in. Data is cached on the device and syncs when a connection is back.
 - **Backup:** export and import everything as JSON.
 

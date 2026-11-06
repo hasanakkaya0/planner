@@ -5,6 +5,7 @@
   /* ---------- tema ---------- */
   function effectiveTheme() {
     const a = document.documentElement.getAttribute("data-theme");
+    if (a === "black") return "dark";
     if (a === "dark" || a === "light") return a;
     return window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   }
@@ -68,11 +69,11 @@
 
   /* ---------- theme preference (per device) ---------- */
   function themePref() {
-    try { const t = localStorage.getItem("gunDefteri.theme"); return t === "light" || t === "dark" ? t : "system"; } catch (e) { return "system"; }
+    try { const t = localStorage.getItem("gunDefteri.theme"); return t === "light" || t === "dark" || t === "black" ? t : "system"; } catch (e) { return "system"; }
   }
   function setThemePref(p) {
     const root = document.documentElement;
-    if (p === "light" || p === "dark") { root.setAttribute("data-theme", p); try { localStorage.setItem("gunDefteri.theme", p); } catch (e) { /* none */ } }
+    if (p === "light" || p === "dark" || p === "black") { root.setAttribute("data-theme", p); try { localStorage.setItem("gunDefteri.theme", p); } catch (e) { /* none */ } }
     else { root.removeAttribute("data-theme"); try { localStorage.removeItem("gunDefteri.theme"); } catch (e) { /* none */ } }
   }
 
@@ -126,7 +127,7 @@
     const upcOpts = GD.UPC_DAYS.map((n) => App.opt(String(n), n + " gün", String(d.upcomingDays))).join("");
     const focOpts = GD.FOCUS_OPTS.map((n) => App.opt(String(n), n + " dk odak", String(d.focusMins))).join("");
     const brkOpts = GD.BREAK_OPTS.map((n) => App.opt(String(n), n + " dk mola", String(d.breakMins))).join("");
-    const themeOpts = [["system", "Cihaza göre"], ["light", "Açık"], ["dark", "Koyu"]].map((x) => '<button type="button" class="opt" data-theme-opt="' + x[0] + '" aria-pressed="' + (theme === x[0]) + '">' + x[1] + "</button>").join("");
+    const themeOpts = [["system", "Cihaza göre"], ["light", "Açık"], ["dark", "Koyu"], ["black", "Siyah"]].map((x) => '<button type="button" class="opt" data-theme-opt="' + x[0] + '" aria-pressed="' + (theme === x[0]) + '">' + x[1] + "</button>").join("");
     const accOpts = GD.ACCENTS.map((a) => '<button type="button" class="sw acc" data-acc="' + a + '" style="background:' + ACCENT_HEX[a] + '" aria-pressed="' + (d.accent === a) + '" title="' + ACCENTNAME[a] + '" aria-label="' + ACCENTNAME[a] + '"></button>').join("");
 
     const body =
