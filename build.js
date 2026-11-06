@@ -12,8 +12,9 @@ const crypto = require("crypto");
 const VER_FILES = ["css/style.css", "js/core.js", "js/store.js", "js/sync.js", "js/app.js", "js/firebase-config.js", "manifest.webmanifest"];
 const norm = (t) => t.replace(/\?v=[0-9a-f]+/g, "?v=X").replace(/planner-v[0-9a-f]+/g, "planner-vX");
 const h = crypto.createHash("sha1");
-VER_FILES.forEach((f) => h.update(R(f)));
-h.update(norm(R("index.html"))).update(norm(R("sw.js")));
+const LF = (t) => t.replace(/\r\n/g, "\n");   /* same hash on Windows (CRLF) and CI (LF) */
+VER_FILES.forEach((f) => h.update(LF(R(f))));
+h.update(LF(norm(R("index.html")))).update(LF(norm(R("sw.js"))));
 const VER = h.digest("hex").slice(0, 8);
 const stamp = (file) => {
   const cur = R(file);

@@ -1,0 +1,13 @@
+{
+  "name": "planner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Daily, weekly and monthly planner: class schedule, tasks, habits and a focus timer.",
+  "scripts": {
+    "test": "node tests/core.test.js && node tests/store.test.js",
+    "build": "node build.js",
+    "check": "npm test && npm run build"
+  },
+  "engines": { "node": ">=18" },
+  "license": "UNLICENSED"
+}
