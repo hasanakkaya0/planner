@@ -9,6 +9,7 @@
   $("viewSeg").onclick = (e) => { const b = e.target.closest("[data-view]"); if (b) App.setView(b.dataset.view); };
   $("weekView").onclick = (e) => {
     let x;
+    if ((x = e.target.closest("[data-wk-toggle]"))) { e.stopPropagation(); return App.toggleTask(x.dataset.wkToggle); }
     if ((x = e.target.closest(".wblk"))) return App.openFromRange(x.dataset.day, { id: x.dataset.blk, rec: x.dataset.rec === "1" });
     if ((x = e.target.closest(".wslot"))) { const h = +x.dataset.h; return App.openFromRange(x.dataset.day, { s: h * 60, e: Math.min((h + 1) * 60, 24 * 60) }); }
     if ((x = e.target.closest(".hcell"))) return App.toggleHabit(x.dataset.hab, x.dataset.day);

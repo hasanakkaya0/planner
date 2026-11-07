@@ -183,6 +183,17 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("the browser colour follows the palette: a single meta without media, with the top-bar colour", [metas.length, metas[0].hasAttribute("media"), /^#[0-9a-fA-F]{6}$/.test(metas[0].getAttribute("content"))], [1, false, true]);
   w.eval('App.setPalette("default")'); d.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.remove());
 
+  /* week view: tick boxes and the weekend / past classes */
+  d.querySelector('[data-view="week"]').click(); await wait(150);
+  eq("week grid: today's tasks have a tick box", d.querySelectorAll("#wkGrid .wk-task .wk-chk, #wkGrid .wk-key .wk-chk").length > 0, true);
+  eq("week grid: weekend and past columns are marked", [d.querySelectorAll("#wkGrid .wk-col.we").length, d.querySelectorAll("#wkGrid .wk-col.today").length], [w.eval("GD.weekDays(S.sel).filter(k => GD.isoDow(k) >= 6).length"), 1]);
+  const wkBox = [...d.querySelectorAll("#wkGrid .wk-chk")].find((c) => c.getAttribute("aria-checked") === "false");
+  if (wkBox) {
+    const wkId = wkBox.dataset.wkToggle; wkBox.click(); await wait(120);
+    eq("ticking in the week view completes that task and stays in the week view", [w.eval("App.allTasks().find(t => t.id === " + JSON.stringify(wkId) + ").done"), $("weekView").hidden], [true, false]);
+  }
+  d.querySelector('[data-view="day"]').click(); await wait(100);
+
   /* statistics window */
   w.eval('S.store.set("focus", "f1", { date: S.TODAY, start: Date.now(), mins: 25, title: "x", cat: "ders" })'); await wait(80);
   $("statsBtn").click(); await wait(80);

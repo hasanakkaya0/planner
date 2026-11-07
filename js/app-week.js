@@ -25,28 +25,31 @@
 
     /* desktop grid */
     let g = '<div class="wk-corner"></div>';
+    /* weekend and past days get a class so the grid can tell them apart */
+    const dayCls = (k) => (GD.isoDow(k) >= 6 ? " we" : "") + (k < S.TODAY ? " past" : "");
+    const chk = (t) => '<span class="wk-chk" data-wk-toggle="' + esc(t.id) + '" role="checkbox" aria-checked="' + !!t.done + '" title="' + (t.done ? "Tamamlandı: geri al" : "Tamamla") + '"></span>';
     days.forEach((k, i) => {
       const dd = GD.parseKey(k);
-      g += '<button class="wk-day' + (k === S.TODAY ? " today" : "") + '" data-go="' + k + '" title="' + dd.getDate() + " " + GD.AY[dd.getMonth()] + ' — güne git">' +
+      g += '<button class="wk-day' + (k === S.TODAY ? " today" : "") + dayCls(k) + '" data-go="' + k + '" title="' + dd.getDate() + " " + GD.AY[dd.getMonth()] + ' — güne git">' +
         '<span class="dn">' + App.dayName(dd) + '</span><span class="dd">' + dd.getDate() + '</span><span class="pl">' + (sums[i].mins ? GD.durText(sums[i].mins) : "") + (S.focusByDay[k] ? '<span class="fc"> · odak ' + GD.durText(S.focusByDay[k]) + "</span>" : "") + "</span></button>";
     });
     g += '<div class="wk-lbl">görev</div>';
     days.forEach((k, i) => {
       const s = sums[i];
-      let inner = s.key.slice(0, 3).map((t) => '<span class="wk-key c-' + App.keyColor(t) + (t.done ? " done" : "") + '" title="' + esc(App.keyName(t) + ": " + t.title) + '">' + esc(t.title) + "</span>").join("");
+      let inner = s.key.slice(0, 3).map((t) => '<span class="wk-key c-' + App.keyColor(t) + (t.done ? " done" : "") + '" title="' + esc(App.keyName(t) + ": " + t.title) + '">' + chk(t) + '<span class="wt">' + esc(t.title) + "</span></span>").join("");
       if (s.key.length > 3) inner += '<span class="wk-cnt">+' + (s.key.length - 3) + " " + esc(App.keyLabel()) + "</span>";
       const nt = App.allTasks().filter((t) => t.date === k && !App.isKeyTask(t)).sort((a, b) => (a.done - b.done) || ((a.createdAt || 0) - (b.createdAt || 0)));
       const room = Math.max(1, 3 - Math.min(s.key.length, 3) + 1);
-      inner += nt.slice(0, room).map((t) => '<span class="wk-task c-' + App.catOf(t.cat).color + (t.done ? " done" : "") + '" title="' + esc(t.title) + '">' + esc(t.title) + "</span>").join("");
+      inner += nt.slice(0, room).map((t) => '<span class="wk-task c-' + App.catOf(t.cat).color + (t.done ? " done" : "") + '" title="' + esc(t.title) + '">' + chk(t) + '<span class="wt">' + esc(t.title) + "</span></span>").join("");
       if (nt.length > room) inner += '<span class="wk-cnt">+' + (nt.length - room) + " görev</span>";
-      g += '<button class="wk-all" data-go="' + k + '" data-tab="gorevler" aria-label="' + k + ' görevleri">' + inner + "</button>";
+      g += '<button class="wk-all' + dayCls(k) + '" data-go="' + k + '" data-tab="gorevler" aria-label="' + k + ' görevleri">' + inner + "</button>";
     });
     g += '<div class="wk-hours">';
     for (let h = GD.DAY_START + 1; h < GD.DAY_END; h++) g += '<span style="top:' + ((h - GD.DAY_START) * WK) + 'px">' + GD.pad(h) + ":00</span>";
     g += "</div>";
     const now = new Date(), nm = now.getHours() * 60 + now.getMinutes();
     days.forEach((k, i) => {
-      g += '<div class="wk-col' + (k === S.TODAY ? " today" : "") + '">';
+      g += '<div class="wk-col' + (k === S.TODAY ? " today" : "") + dayCls(k) + '">';
       for (let h = GD.DAY_START; h < GD.DAY_END; h++) g += '<button class="wslot" data-day="' + k + '" data-h="' + h + '" style="top:' + ((h - GD.DAY_START) * WK) + 'px" aria-label="' + k + " " + GD.pad(h) + ':00 blok ekle"></button>';
       const wl = GD.linkKeyTasks(sums[i].blocks, App.allTasks(), k, kk);
       GD.lanes(sums[i].blocks).forEach((b) => {
@@ -90,7 +93,7 @@
       const s = sums[i], dd = GD.parseKey(k);
       const dts = App.allTasks().filter((t) => t.date === k).sort((x, y) => (x.done - y.done) || (App.kindRank(x) - App.kindRank(y)));
       let items = s.blocks.map((b) => '<li><span class="tm">' + GD.fmtMin(b.s) + "–" + GD.fmtMin(b.e) + '</span><span class="ti c-' + App.catOf(b.c).color + '">' + esc(b.t) + (b.rec ? " ↻" : "") + "</span></li>").join("");
-      items += dts.slice(0, 6).map((t) => { const kd = App.kindOf(t.kind); return '<li><span class="tm' + (App.isKeyTask(t) ? " key c-" + App.keyColor(t) : "") + '">' + (t.done ? "✓ " : "○ ") + esc(kd.name.toLocaleLowerCase("tr")) + '</span><span class="ti c-' + App.catOf(t.cat).color + (t.done ? " done" : "") + '">' + esc(t.title) + "</span></li>"; }).join("");
+      items += dts.slice(0, 6).map((t) => { const kd = App.kindOf(t.kind); return '<li><span class="tm' + (App.isKeyTask(t) ? " key c-" + App.keyColor(t) : "") + '">' + chk(t) + " " + esc(kd.name.toLocaleLowerCase("tr")) + '</span><span class="ti c-' + App.catOf(t.cat).color + (t.done ? " done" : "") + '">' + esc(t.title) + "</span></li>"; }).join("");
       if (dts.length > 6) items += '<li><span class="tm"></span><span class="ti">+' + (dts.length - 6) + " görev daha</span></li>";
       const pl = [s.mins ? GD.durText(s.mins) : "", s.open ? s.open + " açık" : ""].filter(Boolean).join(" · ");
       a += '<div class="ag-day' + (k === S.TODAY ? " today" : "") + '"><button class="ag-head" data-go="' + k + '"><span class="dd">' + dd.getDate() + '</span><span class="dn">' + GD.GUN[dd.getDay()] + '</span><span class="pl">' + pl + "</span></button>" +
