@@ -45,7 +45,7 @@
       const honor = GD.honorOf(last ? last.gpa : null);
       return '<div class="gr-big"><b>' + f2(main.cgpa) + "</b><span>" + (scn ? "senaryo GANO" : "GANO") + (scn ? " · gerçek " + f2(real.cgpa) : "") + "</span></div>" +
         '<div class="gr-mini"><b>' + (main.credits || 0) + "</b><span>kredi</span></div>" +
-        '<div class="gr-mini"><b>' + f2(last ? last.gpa : null) + "</b><span>son dönem GPA" + (honor ? " · " + honor : "") + "</span></div>" +
+        '<div class="gr-mini"><b>' + f2(last ? last.gpa : null) + "</b><span>" + (tab === "quick" ? "bu dönem GPA" : "son dönem GPA") + (honor ? " · " + honor : "") + "</span></div>" +
         '<label class="gr-target"><span>Hedef GANO</span><input type="number" id="grTarget" min="0" max="4" step="0.01" placeholder="ör. 3.00" value="' + esc(draft.target) + '"></label>' +
         '<p class="gr-need">' + needTxt + "</p>";
     }
@@ -53,14 +53,8 @@
       const st = GD.gpaStats(input(), draft.scenario).terms[i];
       return st && st.gpa != null ? "GPA <b>" + f2(st.gpa) + "</b> · " + st.credits + " kredi" + (GD.honorOf(st.gpa) ? " · " + GD.honorOf(st.gpa) : "") : "notu girilen ders yok";
     }
-    function termHtml(t, i) {
-      const open = !t.collapsed;
-      const head = '<button type="button" class="gr-chev" data-toggle-term="' + i + '" aria-expanded="' + open + '" aria-label="' + (open ? "Dönemi kapat" : "Dönemi aç") + '">' + (open ? "▾" : "▸") + "</button>" +
-        (open
-          ? '<input type="text" class="gr-tname" data-tname="' + i + '" maxlength="30" value="' + esc(t.name) + '" aria-label="Dönem adı"><button type="button" class="linkbtn" data-del-term="' + i + '">Dönemi sil</button>'
-          : '<button type="button" class="gr-tname-btn" data-toggle-term="' + i + '">' + esc(t.name) + '</button><span class="gr-tsum" id="grTerm' + i + '">' + termSumText(i) + "</span>");
-      if (!open) return '<section class="gr-term collapsed"><header>' + head + "</header></section>";
-      const rows = t.courses.map((c, j) =>
+    function rowsHtml(t, i) {
+      return t.courses.map((c, j) =>
         '<div class="gr-row" data-t="' + i + '" data-c="' + j + '">' +
           '<input type="text" class="gr-name" data-f="name" maxlength="40" placeholder="Ders (ör. STAT 363)" value="' + esc(c.name) + '" autocomplete="off">' +
           '<input type="number" class="gr-cr" data-f="credit" min="0" max="12" step="0.5" placeholder="Kredi" value="' + esc(c.credit) + '">' +
@@ -68,6 +62,21 @@
           '<select data-f="old" aria-label="Eski not (tekrar)" title="Bu dersi tekrar alıyorsan eski notu">' + letterOpts(c.old, false, "Eski –") + "</select>" +
           (draft.scenario ? '<select data-f="scn" class="gr-scn" aria-label="Senaryo notu" title="Ya olursa: bu notu alırsam">' + letterOpts(c.scn, true, "Ya olursa –") + "</select>" : "") +
           '<button type="button" class="gr-x" data-del-course aria-label="Dersi sil">×</button></div>').join("");
+    }
+    /* the quick calculator has no terms: one plain list of this term's courses */
+    function flatHtml(t) {
+      return '<section class="gr-term flat"><h4 class="gr-h">Bu dönem dersleri</h4>' + rowsHtml(t, 0) +
+        '<div class="gr-foot"><button type="button" class="linkbtn" data-add-course="0">+ Ders ekle</button><span class="gr-tsum" id="grTerm0">Dönem ' + termSumText(0) + "</span></div></section>";
+    }
+    function termHtml(t, i) {
+      if (tab === "quick") return flatHtml(t);
+      const open = !t.collapsed;
+      const head = '<button type="button" class="gr-chev" data-toggle-term="' + i + '" aria-expanded="' + open + '" aria-label="' + (open ? "Dönemi kapat" : "Dönemi aç") + '">' + (open ? "▾" : "▸") + "</button>" +
+        (open
+          ? '<input type="text" class="gr-tname" data-tname="' + i + '" maxlength="30" value="' + esc(t.name) + '" aria-label="Dönem adı"><button type="button" class="linkbtn" data-del-term="' + i + '">Dönemi sil</button>'
+          : '<button type="button" class="gr-tname-btn" data-toggle-term="' + i + '">' + esc(t.name) + '</button><span class="gr-tsum" id="grTerm' + i + '">' + termSumText(i) + "</span>");
+      if (!open) return '<section class="gr-term collapsed"><header>' + head + "</header></section>";
+      const rows = rowsHtml(t, i);
       return '<section class="gr-term"><header>' + head + "</header>" + rows +
         '<div class="gr-foot"><button type="button" class="linkbtn" data-add-course="' + i + '">+ Ders ekle</button><span class="gr-tsum" id="grTerm' + i + '">Dönem ' + termSumText(i) + "</span></div></section>";
     }
@@ -75,17 +84,19 @@
       const tabs = '<div class="seg gr-tabs" role="tablist" aria-label="Notlar"><button type="button" role="tab" data-gr-tab="mine" aria-selected="' + (tab === "mine") + '">Notlarım</button>' +
         '<button type="button" role="tab" data-gr-tab="quick" aria-selected="' + (tab === "quick") + '">Hızlı hesap</button></div>';
       const quickNote = tab === "quick" ? '<p class="info">Arkadaşının ya da denemek istediğin notlar için. <b>Kaydedilmez</b> ve senin notlarına karışmaz; sayfayı yenileyince silinir.</p>' : "";
-      const tools = draft.terms.length > 1 || tab === "quick"
-        ? '<div class="gr-tools">' + (draft.terms.length > 1 ? '<button type="button" class="linkbtn" data-collapse="all">Hepsini kapat</button><button type="button" class="linkbtn" data-collapse="none">Hepsini aç</button>' : "") +
-          (tab === "quick" ? '<span class="sp"></span><button type="button" class="linkbtn" id="grClear">Temizle</button>' : "") + "</div>" : "";
+      const quick = tab === "quick";
+      const tools = quick ? '<div class="gr-tools"><span class="sp"></span><button type="button" class="linkbtn" id="grClear">Temizle</button></div>'
+        : draft.terms.length > 1 ? '<div class="gr-tools"><button type="button" class="linkbtn" data-collapse="all">Hepsini kapat</button><button type="button" class="linkbtn" data-collapse="none">Hepsini aç</button></div>' : "";
+      const baseFields = '<div class="row"><label class="field"><span>GANO</span><input type="number" id="grBaseC" min="0" max="4" step="0.01" placeholder="ör. 2.65" value="' + esc(draft.base.cgpa) + '"></label>' +
+        '<label class="field"><span>Toplam kredi</span><input type="number" id="grBaseK" min="0" step="0.5" placeholder="ör. 62" value="' + esc(draft.base.credits) + '"></label></div>';
+      const baseBox = quick
+        ? '<section class="gr-base fixed"><h4 class="gr-h">Önceki dönemler</h4>' + baseFields + '<p class="set-hint">Şimdiye kadarki genel ortalaması ve toplam kredisi. Bu dönem tekrar aldığı dersin eski notunu derse yazarsan yeni not eskisinin yerine geçer, kredisi ikinci kez eklenmez.</p></section>'
+        : '<details class="gr-base"' + (draft.base.credits || draft.base.cgpa ? " open" : "") + '><summary>Önceki toplam (bu listede olmayan dönemler)</summary>' + baseFields +
+          '<p class="set-hint">Tekrar aldığın dersin eski notu bu toplamda sayılıyor kabul edilir: yeni not eskisinin yerine geçer, kredisi ikinci kez eklenmez.</p></details>';
       return tabs + quickNote + '<div class="gr-sum" id="grSum">' + summaryHtml() + "</div>" +
         '<label class="check gr-scn-toggle"><input type="checkbox" id="grScn"' + (draft.scenario ? " checked" : "") + '> Ya olursa modu (notu girilmemiş derslere ve hâlihazırdaki notlara senaryo notu ver)</label>' +
-        '<details class="gr-base"' + (draft.base.credits || draft.base.cgpa ? " open" : "") + '><summary>Önceki toplam (bu listede olmayan dönemler)</summary><div class="row">' +
-          '<label class="field"><span>GANO</span><input type="number" id="grBaseC" min="0" max="4" step="0.01" placeholder="ör. 2.65" value="' + esc(draft.base.cgpa) + '"></label>' +
-          '<label class="field"><span>Toplam kredi</span><input type="number" id="grBaseK" min="0" step="0.5" placeholder="ör. 62" value="' + esc(draft.base.credits) + '"></label></div>' +
-          '<p class="set-hint">Tekrar aldığın dersin eski notu bu toplamda sayılıyor kabul edilir: yeni not eskisinin yerine geçer, kredisi ikinci kez eklenmez.</p></details>' +
-        tools + '<div id="grTerms">' + draft.terms.map(termHtml).join("") + "</div>" +
-        '<button type="button" class="btn-ghost" id="grAddTerm">+ Dönem ekle</button>';
+        baseBox + tools + '<div id="grTerms">' + draft.terms.map(termHtml).join("") + "</div>" +
+        (quick ? "" : '<button type="button" class="btn-ghost" id="grAddTerm">+ Dönem ekle</button>');
     }
     function refresh() {
       $("grSum").innerHTML = summaryHtml();

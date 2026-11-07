@@ -236,6 +236,7 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   /* the friend's calculator: separate, never saved */
   d.querySelector('[data-gr-tab="quick"]').click();
   eq("the quick-calculator tab is empty, hides the save button and says it is not saved", [d.querySelectorAll("#grBody .gr-row").length, $("modal").querySelector('footer button[type="submit"]').hidden, $("modal").textContent.includes("Kaydedilmez")], [1, true, true]);
+  eq("the quick calculator has no term logic: a fixed 'previous' box, one list of this term's courses", [$("modal").textContent.includes("Önceki dönemler"), $("modal").textContent.includes("Bu dönem dersleri"), d.querySelectorAll("#grBody .gr-chev, #grBody #grAddTerm, #grBody details, #grBody .gr-tname").length], [true, true, 0]);
   setVal($("grBaseC"), "3"); setVal($("grBaseK"), "40");
   const qrow = d.querySelector("#grBody .gr-row"); setVal(qrow.querySelector('[data-f="credit"]'), "4"); setVal(qrow.querySelector('[data-f="grade"]'), "AA");
   eq("a friend's numbers are calculated on their own (3.00 over 40 credits + AA x4)", $("grSum").textContent.includes("3.09"), true);

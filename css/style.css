@@ -1271,3 +1271,7 @@ li.empty .art{margin-bottom:6px}
 .gr-term.collapsed{padding:6px 10px;background:var(--card-2)}
 .gr-term.collapsed>header{margin-bottom:0}
 .gr-term.collapsed .gr-tsum{margin-left:auto}
+.gr-base.fixed{display:block}
+.gr-base.fixed .row{margin-top:8px}
+.gr-h{margin:0 0 8px;font-size:calc(11.5px * var(--fs,1));font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--accent)}
+.gr-term.flat{border:0;background:none;padding:0}
