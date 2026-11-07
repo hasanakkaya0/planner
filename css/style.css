@@ -1166,3 +1166,18 @@ li.habit .hn{font-weight:550}
   #splash .sp-bar i{animation:splideal 1.1s ease-in-out infinite}
   #splash .sp-in{animation:splpop .35s cubic-bezier(.2,.8,.3,1)}
 }
+
+/* ---------- the main colour in the small places (so a palette changes the whole feel) ---------- */
+::selection{background:var(--accent-soft);color:var(--ink)}
+input,textarea,select{caret-color:var(--accent)}
+input[type=checkbox],input[type=radio],input[type=range]{accent-color:var(--accent)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+*{scrollbar-color:var(--accent-soft) transparent}
+.topbar{border-bottom-color:var(--accent-soft)}
+li.task:hover,li.task:focus-within{box-shadow:inset 3px 0 0 var(--accent)}
+li.task.swiping{box-shadow:none}
+li.task[data-swipe="right"]{box-shadow:inset 0 0 0 100px var(--moss-soft)}
+li.task[data-swipe="left"]{box-shadow:inset 0 0 0 100px var(--ochre-soft)}
+.btn-ghost:hover,.linkbtn:hover{border-color:var(--accent)}
+.modal{border-top:3px solid var(--accent)}
+.toast{border-left:4px solid var(--accent)}
