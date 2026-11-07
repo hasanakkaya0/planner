@@ -105,23 +105,27 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("the black theme is applied and remembered", [d.documentElement.getAttribute("data-theme"), w.localStorage.getItem("gunDefteri.theme")], ["black", "black"]);
   w.localStorage.removeItem("gunDefteri.theme"); d.documentElement.removeAttribute("data-theme");
 
-  /* palettes */
+  /* palettes: every palette follows the light / dark theme choice */
   const root = d.documentElement;
-  $("setBtn").click(); await wait(60);
-  d.querySelector('[data-palette-opt="mandalina"]').click();
-  eq("palette previews live (own dark mode)", [root.getAttribute("data-palette"), root.getAttribute("data-theme")], ["mandalina", "dark"]);
+  const choose = async (palette, theme) => { $("setBtn").click(); await wait(60); if (palette) d.querySelector('[data-palette-opt="' + palette + '"]').click(); if (theme) d.querySelector('[data-theme-opt="' + theme + '"]').click(); };
+  const save = async () => { $("mForm").dispatchEvent(new w.Event("submit", { cancelable: true, bubbles: true })); await wait(100); };
+  const attrs = () => [root.getAttribute("data-palette"), root.getAttribute("data-theme")];
+  await choose("sakiz", "light");
+  eq("palette previews live together with the theme", attrs(), ["sakiz", "light"]);
+  d.querySelector('[data-theme-opt="dark"]').click();
+  eq("switching the theme in the window switches the palette variant (Sakız koyu)", attrs(), ["sakiz", "dark"]);
   key("Escape"); await wait(60);
-  eq("closing without saving reverts the preview", [root.getAttribute("data-palette"), root.getAttribute("data-theme")], [null, null]);
-  $("setBtn").click(); await wait(60);
-  d.querySelector('[data-palette-opt="sakiz"]').click();
-  $("mForm").dispatchEvent(new w.Event("submit", { cancelable: true, bubbles: true })); await wait(100);
-  eq("saving keeps the palette (light mode, no accent override) and remembers it", [root.getAttribute("data-palette"), root.getAttribute("data-theme"), root.hasAttribute("data-accent"), w.localStorage.getItem("gunDefteri.palette")], ["sakiz", "light", false, "sakiz"]);
+  eq("closing without saving reverts the preview", attrs(), [null, null]);
+  await choose("sakiz", "dark"); await save();
+  eq("saved: Sakız in dark, remembered, no accent override", [attrs(), root.hasAttribute("data-accent"), w.localStorage.getItem("gunDefteri.palette"), w.localStorage.getItem("gunDefteri.theme")], [["sakiz", "dark"], false, "sakiz", "dark"]);
   key("k"); await wait(60);
-  eq("the theme key does not break out of a palette", root.getAttribute("data-theme"), "light");
-  $("setBtn").click(); await wait(60);
-  d.querySelector('[data-palette-opt="default"]').click();
-  $("mForm").dispatchEvent(new w.Event("submit", { cancelable: true, bubbles: true })); await wait(100);
-  eq("choosing Mor goes back to the normal themes", [root.hasAttribute("data-palette"), w.localStorage.getItem("gunDefteri.palette")], [false, null]);
+  eq("the theme key flips the variant inside a palette (dark to light)", attrs(), ["sakiz", "light"]);
+  key("k"); await wait(60);
+  eq("and back", attrs(), ["sakiz", "dark"]);
+  await choose("akuamarin", "light"); await save();
+  eq("another palette in light", attrs(), ["akuamarin", "light"]);
+  await choose("default", "system"); await save();
+  eq("choosing Mor goes back to the normal themes", [root.hasAttribute("data-palette"), root.hasAttribute("data-theme"), w.localStorage.getItem("gunDefteri.palette")], [false, false, null]);
 
   /* reminders */
   $("setBtn").click(); await wait(60); $("sRemind").click(); await wait(60);

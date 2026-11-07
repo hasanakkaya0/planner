@@ -10,10 +10,8 @@
     return window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   }
   function toggleTheme() {
-    if (document.documentElement.hasAttribute("data-palette")) { App.toast("Palet açıkken tema palete bağlı. Açık / koyu için Ayarlar → Palet → Mor."); return; }
     const next = effectiveTheme() === "dark" ? "light" : "dark";
-    document.documentElement.setAttribute("data-theme", next);
-    try { localStorage.setItem("gunDefteri.theme", next); } catch (e) { /* none */ }
+    setThemePref(next);
     App.toast(next === "dark" ? "Koyu tema" : "Açık tema");
   }
   $("themeBtn").innerHTML =
@@ -72,31 +70,33 @@
   function themePref() {
     try { const t = localStorage.getItem("gunDefteri.theme"); return t === "light" || t === "dark" || t === "black" ? t : "system"; } catch (e) { return "system"; }
   }
-  /* palettes: whole-app colour schemes; each carries its own light / dark mode (see the data-palette blocks in style.css) */
+  /* palettes: whole-app colour schemes, each with a light and a dark variant (the data-palette blocks in style.css) */
   const PALETTES = [
     ["default", "Mor", ["#5a4bd1", "#e9e5fd", "#fdfcff"]],
     ["mandalina", "Mandalina", ["#21232E", "#105BFF", "#FE8500"]],
     ["sakiz", "Sakız", ["#F0F0F0", "#5841FF", "#FF6AD2"]],
     ["akuamarin", "Akuamarin", ["#171F44", "#74FFED", "#FE81D1"]]
   ];
-  const PALETTE_MODE = { mandalina: "dark", sakiz: "light", akuamarin: "dark" };
+  const PALETTE_IDS = ["mandalina", "sakiz", "akuamarin"];
   function palettePref() {
-    try { const p = localStorage.getItem("gunDefteri.palette"); return PALETTE_MODE[p] ? p : "default"; } catch (e) { return "default"; }
+    try { const p = localStorage.getItem("gunDefteri.palette"); return PALETTE_IDS.indexOf(p) >= 0 ? p : "default"; } catch (e) { return "default"; }
   }
-  /* only the attributes (used for the live preview in the settings window) */
-  function paletteAttrs(p) {
+  /* palette (or "default") + theme choice ("system" | "light" | "dark" | "black") → the attributes on <html>.
+     With a palette the mode is always light or dark (black counts as dark), so the palette's matching variant applies. */
+  function applyAppearance(p, t) {
     const root = document.documentElement;
-    if (PALETTE_MODE[p]) { root.setAttribute("data-palette", p); root.setAttribute("data-theme", PALETTE_MODE[p]); }
-    else {
+    if (PALETTE_IDS.indexOf(p) >= 0) {
+      const dark = t === "dark" || t === "black" || (t !== "light" && !!window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+      root.setAttribute("data-palette", p); root.setAttribute("data-theme", dark ? "dark" : "light");
+    } else {
       root.removeAttribute("data-palette");
-      const t = themePref();
-      if (t === "system") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", t);
+      if (t === "light" || t === "dark" || t === "black") root.setAttribute("data-theme", t); else root.removeAttribute("data-theme");
     }
     applyAccent();
   }
   function setPalette(p) {
-    paletteAttrs(p);
-    try { if (PALETTE_MODE[p]) localStorage.setItem("gunDefteri.palette", p); else localStorage.removeItem("gunDefteri.palette"); } catch (e) { /* none */ }
+    try { if (PALETTE_IDS.indexOf(p) >= 0) localStorage.setItem("gunDefteri.palette", p); else localStorage.removeItem("gunDefteri.palette"); } catch (e) { /* none */ }
+    applyAppearance(palettePref(), themePref());
   }
   /* the main colour of the settings belongs to the default palette; the others bring their own */
   function applyAccent() {
@@ -105,9 +105,14 @@
   }
 
   function setThemePref(p) {
-    const root = document.documentElement;
-    if (p === "light" || p === "dark" || p === "black") { root.setAttribute("data-theme", p); try { localStorage.setItem("gunDefteri.theme", p); } catch (e) { /* none */ } }
-    else { root.removeAttribute("data-theme"); try { localStorage.removeItem("gunDefteri.theme"); } catch (e) { /* none */ } }
+    try { if (p === "light" || p === "dark" || p === "black") localStorage.setItem("gunDefteri.theme", p); else localStorage.removeItem("gunDefteri.theme"); } catch (e) { /* none */ }
+    applyAppearance(palettePref(), themePref());
+  }
+  /* "Cihaza göre" + a palette: follow the device when it switches between light and dark */
+  if (window.matchMedia) {
+    const mq = matchMedia("(prefers-color-scheme: dark)");
+    const onSys = () => { if (themePref() === "system" && palettePref() !== "default") applyAppearance(palettePref(), "system"); };
+    if (mq.addEventListener) mq.addEventListener("change", onSys); else if (mq.addListener) mq.addListener(onSys);
   }
 
   /* ---------- apply settings ---------- */
@@ -168,7 +173,7 @@
       '<section class="set-sec"><h3>Görünüm</h3>' +
         '<div class="set-row"><span class="set-l">Tema</span><div class="opts" id="sTheme">' + themeOpts + "</div></div>" +
         '<div class="set-row"><span class="set-l">Palet</span><div class="pals" id="sPal">' + palOpts + "</div></div>" +
-        '<p class="set-hint">Mor dışındaki paletler tüm renkleri ve açık / koyu görünümü kendisi belirler; tema ve ana renk onlarda kullanılmaz.</p>' +
+        '<p class="set-hint">Her palet açık ve koyu tema ile çalışır. Mor dışındaki paletlerde ana renk paletten gelir.</p>' +
         '<div class="set-row"><span class="set-l">Ana renk</span><div class="sws" id="sAcc">' + accOpts + "</div></div>" +
         '<div class="set-row"><span class="set-l">Saat çizelgesi</span><select id="sStart" aria-label="Başlangıç saati">' + startOpts + '</select><span class="dash">–</span><select id="sEnd" aria-label="Bitiş saati">' + endOpts + "</select></div>" +
         '<div class="set-row"><span class="set-l">Yaklaşanlar</span><select id="sUpc" aria-label="Yaklaşanlar süresi">' + upcOpts + "</select></div>" +
@@ -233,10 +238,11 @@
       if ((x = e.target.closest("[data-theme-opt]"))) {
         theme = x.dataset.themeOpt;
         M.querySelectorAll("[data-theme-opt]").forEach((b) => b.setAttribute("aria-pressed", String(b === x)));
+        applyAppearance(pal, theme);   /* live preview; reverted if the window is closed without saving */
       } else if ((x = e.target.closest("[data-palette-opt]"))) {
         pal = x.dataset.paletteOpt;
         M.querySelectorAll("[data-palette-opt]").forEach((b) => b.setAttribute("aria-pressed", String(b === x)));
-        paletteAttrs(pal);   /* live preview; reverted if the window is closed without saving */
+        applyAppearance(pal, theme);
       } else if ((x = e.target.closest("[data-acc]"))) {
         d.accent = x.dataset.acc;
         M.querySelectorAll("[data-acc]").forEach((b) => b.setAttribute("aria-pressed", String(b === x)));
@@ -281,7 +287,7 @@
         App.mErr("Varsayılanlar yüklendi; kaydedersen uygulanır.");
       }
     };
-    S.modalOnClose = () => { M.oninput = M.onchange = M.onclick = null; if (!paletteSaved) paletteAttrs(palettePref()); };
+    S.modalOnClose = () => { M.oninput = M.onchange = M.onclick = null; if (!paletteSaved) applyAppearance(palettePref(), themePref()); };
     const first = $("modal").querySelector(".body");
     if (first) first.scrollTop = 0;
   }

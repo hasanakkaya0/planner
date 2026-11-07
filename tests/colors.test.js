@@ -17,12 +17,13 @@ const acc = (re) => { const o = {}; let m; while ((m = re.exec(css))) o[m[1]] = 
 const accL = acc(/^:root\[data-accent="([a-z]+)"\]\{--accent:(#[0-9a-f]{6});--accent-soft:(#[0-9a-f]{6})\}/gm);
 const accD = acc(/^:root:is\(\[data-theme="dark"\],\[data-theme="black"\]\)\[data-accent="([a-z]+)"\]\{--accent:(#[0-9a-f]{6});--accent-soft:(#[0-9a-f]{6})\}/gm);
 const palettes = {};
-css.replace(/:root\[data-palette="([a-z]+)"\]\{([^}]*)\}/g, (_, name, body) => { palettes[name] = vars(body); });
+css.replace(/:root\[data-palette="([a-z]+)"\]\[data-theme="(light|dark)"\]\{([^}]*)\}/g, (_, name, mode, body) => { palettes[name + " " + mode] = vars(body); });
 const rows = [];
 const add = (theme, name, fg, bg, min) => { const r = ratio(fg, bg); rows.push({ theme, name, r: +r.toFixed(2), min, bad: r < min }); };
-const modes = { mandalina: [dark, catsDark], sakiz: [light, catsLight], akuamarin: [dark, catsDark] };
+const modes = (n) => (n.endsWith("light") ? [light, catsLight] : [dark, catsDark]);
 const sets = [["light", light, catsLight, accL], ["dark", dark, catsDark, accD], ["black", black, catsDark, accD]];
-Object.keys(palettes).forEach((n) => sets.push(["pal:" + n, Object.assign({}, modes[n][0], palettes[n]), modes[n][1], {}]));
+Object.keys(palettes).forEach((n) => sets.push(["pal:" + n, Object.assign({}, modes(n)[0], palettes[n]), modes(n)[1], {}]));
+if (Object.keys(palettes).length !== 6) { console.log("✗ expected 6 palette variants (3 palettes × light / dark), found " + Object.keys(palettes).length); process.exit(1); }
 for (const [tn, T, cats, accs] of sets) {
   add(tn, "ink / card", T.ink, T.card, 4.5);
   add(tn, "ink-soft / card", T["ink-soft"], T.card, 4.5);

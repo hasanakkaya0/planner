@@ -92,11 +92,12 @@
   --shadow:0 1px 2px rgba(0,0,0,.6), 0 10px 28px -18px rgba(0,0,0,.9);
 }
 
-/* palettes: whole-app colour schemes (Ayarlar → Palet). Each sets data-theme to its own mode as well, so the
-   category colours and every other theme rule follow; the palette only overrides surfaces, text and accents.
-   Colours from a colour-combination reel: charcoal #21232E / royal blue #105BFF / tangerine #FE8500,
-   marshmallow #F0F0F0 / violet #5841FF / bubblegum #FF6AD2, midnight #171F44 / aqua #74FFED / baby pink #FE81D1. */
-:root[data-palette="mandalina"]{
+/* palettes: whole-app colour schemes (Ayarlar → Palet), each in a light and a dark variant that follows the theme choice
+   (the app sets data-theme to light / dark when a palette is on). They only override surfaces, text and accents;
+   the category colours come from the theme rules. Colours from a colour-combination reel:
+   charcoal #21232E / royal blue #105BFF / tangerine #FE8500, marshmallow #F0F0F0 / violet #5841FF / bubblegum #FF6AD2,
+   midnight #171F44 / aqua #74FFED / baby pink #FE81D1. */
+:root[data-palette="mandalina"][data-theme="dark"]{
   --paper:#181A22; --top:#21232E; --card:#262938; --card-2:#2E3243;
   --ink:#F3F4F8; --ink-soft:#BDC1D3; --ink-faint:#9DA2B8;
   --rule:#3B3F54; --grid:#1E2029;
@@ -110,7 +111,18 @@
   --shadow-lg:0 2px 6px rgba(0,0,0,.5), 0 24px 60px -20px rgba(0,0,0,.9);
   color-scheme:dark;
 }
-:root[data-palette="sakiz"]{
+:root[data-palette="mandalina"][data-theme="light"]{
+  --paper:#EEF1F8; --top:#F7F8FC; --card:#FFFFFF; --card-2:#F3F5FA;
+  --ink:#21232E; --ink-soft:#454A63; --ink-faint:#5E647F;
+  --rule:#DADFEC; --grid:#E3E8F3;
+  --accent:#0050FF; --accent-soft:#DCE7FF; --on-accent:#FFFFFF;
+  --moss:#2C7451; --moss-soft:#DCF2E6;
+  --ochre:#A64F00; --ochre-soft:#FFEBD2;
+  --rose:#B53A43; --rose-soft:#FDE4E6;
+  --tint-blue:#DCE8FF; --tint-lilac:#E3E9FF; --tint-mint:#D9EEFF; --tint-peach:#FFE3C7; --tint-butter:#FFEBD2;
+  color-scheme:light;
+}
+:root[data-palette="sakiz"][data-theme="light"]{
   --paper:#F0F0F0; --top:#FAFAFA; --card:#FFFFFF; --card-2:#F6F5FB;
   --ink:#1D1A3D; --ink-soft:#4B4680; --ink-faint:#65608F;
   --rule:#DEDBEA; --grid:#E7E5EF;
@@ -121,7 +133,21 @@
   --tint-blue:#E3E0FF; --tint-lilac:#EBE3FF; --tint-mint:#FFE1F3; --tint-peach:#FFD8EE; --tint-butter:#F1E7FF;
   color-scheme:light;
 }
-:root[data-palette="akuamarin"]{
+:root[data-palette="sakiz"][data-theme="dark"]{
+  --paper:#15122B; --top:#1D1940; --card:#241F52; --card-2:#2D2763;
+  --ink:#F6F2FF; --ink-soft:#C6BEEA; --ink-faint:#A79FD6;
+  --rule:#3C3585; --grid:#1A1636;
+  --accent:#FF6AD2; --accent-soft:#52184A; --on-accent:#1B0F2E;
+  --moss:#86DDB0; --moss-soft:#244637;
+  --ochre:#B7A9FF; --ochre-soft:#3A2F85;
+  --rose:#FF9BC9; --rose-soft:#4C2145;
+  --tint-blue:#29268A; --tint-lilac:#33268F; --tint-mint:#4A1F5E; --tint-peach:#5A1F4F; --tint-butter:#2D2F7A;
+  --scrim:rgba(8,9,16,.62);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+  --shadow-lg:0 2px 6px rgba(0,0,0,.5), 0 24px 60px -20px rgba(0,0,0,.9);
+  color-scheme:dark;
+}
+:root[data-palette="akuamarin"][data-theme="dark"]{
   --paper:#121936; --top:#171F44; --card:#1C2552; --card-2:#232E64;
   --ink:#EAFBFF; --ink-soft:#B9CBEA; --ink-faint:#9DB1DB;
   --rule:#2F3A78; --grid:#161E45;
@@ -134,6 +160,17 @@
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
   --shadow-lg:0 2px 6px rgba(0,0,0,.5), 0 24px 60px -20px rgba(0,0,0,.9);
   color-scheme:dark;
+}
+:root[data-palette="akuamarin"][data-theme="light"]{
+  --paper:#E8F6F6; --top:#F4FCFB; --card:#FFFFFF; --card-2:#F0FAF9;
+  --ink:#171F44; --ink-soft:#3F4A7A; --ink-faint:#59648F;
+  --rule:#D2E6EA; --grid:#DDEEF0;
+  --accent:#0B717E; --accent-soft:#CDF6F0; --on-accent:#FFFFFF;
+  --moss:#2C7451; --moss-soft:#DCF2E6;
+  --ochre:#B3237B; --ochre-soft:#FFE0F2;
+  --rose:#C21866; --rose-soft:#FFDDEE;
+  --tint-blue:#DCEBFF; --tint-lilac:#E4E8FF; --tint-mint:#CDF6F0; --tint-peach:#FFDDF0; --tint-butter:#E6ECFF;
+  color-scheme:light;
 }
 
 *{box-sizing:border-box}
