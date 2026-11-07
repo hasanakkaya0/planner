@@ -10,6 +10,10 @@ if (!fs.existsSync(file)) { console.log("✗ dist/planner.html is missing: run `
 const html = "<!doctype html><html lang=\"tr\"><head><meta charset=\"utf-8\"></head><body>" +
   fs.readFileSync(file, "utf8").replace(/<link[^>]*>/g, "") + "</body></html>";
 
+/* the newest entry of the "what's new" list (so the other tests are not interrupted by it) */
+const NEWS_ID = (html.match(/const NEWS = \[\s*\{\s*id: "([^"]+)"/) || [])[1];
+if (!NEWS_ID) { console.log("✗ could not find the newest news id"); process.exit(1); }
+
 let pass = 0, fail = 0;
 const eq = (name, got, want) => {
   const a = JSON.stringify(got), b = JSON.stringify(want);
@@ -25,6 +29,7 @@ const dom = new JSDOM(html, {
   runScripts: "dangerously", url: "http://localhost/", pretendToBeVisual: true, virtualConsole: vc,
   beforeParse(w) {
     w.localStorage.setItem("gunDefteri.welcome", "1");   /* no welcome card unless a test asks for it */
+    w.localStorage.setItem("gunDefteri.news", NEWS_ID);    /* ... and the list of changes counts as seen */
     w.matchMedia = w.matchMedia || ((q) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
     w.scrollTo = () => {}; w.HTMLElement.prototype.scrollIntoView = () => {};
     w.addEventListener("error", (e) => errors.push("error: " + e.message));
@@ -259,6 +264,22 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("a chevron toggles a single term", d.querySelectorAll("#grBody .gr-term:not(.collapsed)").length, 1);
   key("Escape"); await wait(60);
   w.eval('S.gradeTerms.forEach(t => S.store.del("grades", t.id)); S.store.del("grades", "base")'); await wait(100);
+
+  /* what's new */
+  w.localStorage.removeItem("gunDefteri.news");
+  w.eval("App.maybeNews()");
+  eq("a returning user who has not seen the list gets it, with a button for each big feature", [!$("modalBg").hidden, $("modal").textContent.includes("neler geldi"), d.querySelectorAll("#modal [data-news-open]").length > 0], [true, true, true]);
+  $("modal").querySelector('[data-news-open="grades"]').click(); await wait(80);
+  eq("the button closes the list and opens that feature, and the list counts as seen", [$("modal").textContent.includes("Notlar ve ortalama"), w.localStorage.getItem("gunDefteri.news")], [true, NEWS_ID]);
+  key("Escape"); await wait(60);
+  w.eval("App.maybeNews()");
+  eq("it is shown only once", $("modalBg").hidden, true);
+  $("setBtn").click(); await wait(60); $("sNews").click(); await wait(60);
+  eq("Settings → Yenilikler shows the whole list again", $("modal").textContent.includes("Renk paletleri"), true);
+  key("Escape"); await wait(60);
+  w.localStorage.removeItem("gunDefteri.news"); w.eval("App.openWelcome()");
+  eq("the welcome card marks a new user as up to date", w.localStorage.getItem("gunDefteri.news"), NEWS_ID);
+  key("Escape"); await wait(60);
 
   /* statistics window */
   w.eval('S.store.set("focus", "f1", { date: S.TODAY, start: Date.now(), mins: 25, title: "x", cat: "ders" })'); await wait(80);

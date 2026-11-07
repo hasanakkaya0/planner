@@ -7,6 +7,7 @@
   const markSeen = () => { try { localStorage.setItem(KEY, "1"); } catch (e) { /* none */ } };
 
   function openWelcome() {
+    if (App.markNewsSeen) App.markNewsSeen();   /* a new user gets the tour, not the list of changes */
     const body =
       '<p class="info">Kısa bir tur. İstediğin zaman Ayarlar → Yardım’dan tekrar açabilirsin.</p>' +
       '<ol class="welcome">' +

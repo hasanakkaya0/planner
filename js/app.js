@@ -241,6 +241,7 @@
     App.startReminders();
     if (S.focus) App.renderFocus();
     setTimeout(App.maybeWelcome, 1500);   /* once the first data has arrived */
+    setTimeout(App.maybeNews, 2600);      /* a returning user sees what changed (after the welcome check) */
   }
   /* the opening screen stays at least a moment (no flash on a warm start), then fades out */
   function hideSplash() {
