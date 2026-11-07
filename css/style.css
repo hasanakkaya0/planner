@@ -92,6 +92,50 @@
   --shadow:0 1px 2px rgba(0,0,0,.6), 0 10px 28px -18px rgba(0,0,0,.9);
 }
 
+/* palettes: whole-app colour schemes (Ayarlar → Palet). Each sets data-theme to its own mode as well, so the
+   category colours and every other theme rule follow; the palette only overrides surfaces, text and accents.
+   Colours from a colour-combination reel: charcoal #21232E / royal blue #105BFF / tangerine #FE8500,
+   marshmallow #F0F0F0 / violet #5841FF / bubblegum #FF6AD2, midnight #171F44 / aqua #74FFED / baby pink #FE81D1. */
+:root[data-palette="mandalina"]{
+  --paper:#181A22; --top:#21232E; --card:#262938; --card-2:#2E3243;
+  --ink:#F3F4F8; --ink-soft:#BDC1D3; --ink-faint:#9DA2B8;
+  --rule:#3B3F54; --grid:#1E2029;
+  --accent:#FE8500; --accent-soft:#4A2E0E; --on-accent:#1B1D27;
+  --moss:#86DDB0; --moss-soft:#244637;
+  --ochre:#FFC266; --ochre-soft:#473710;
+  --rose:#FF9AA3; --rose-soft:#4D2D39;
+  --tint-blue:#133171; --tint-lilac:#18367F; --tint-mint:#153A66; --tint-peach:#43301F; --tint-butter:#46361A;
+  --scrim:rgba(8,9,16,.62);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+  --shadow-lg:0 2px 6px rgba(0,0,0,.5), 0 24px 60px -20px rgba(0,0,0,.9);
+  color-scheme:dark;
+}
+:root[data-palette="sakiz"]{
+  --paper:#F0F0F0; --top:#FAFAFA; --card:#FFFFFF; --card-2:#F6F5FB;
+  --ink:#1D1A3D; --ink-soft:#4B4680; --ink-faint:#65608F;
+  --rule:#DEDBEA; --grid:#E7E5EF;
+  --accent:#5841FF; --accent-soft:#E5E1FF; --on-accent:#FFFFFF;
+  --moss:#2C7451; --moss-soft:#DCF2E6;
+  --ochre:#B3237B; --ochre-soft:#FFE0F2;
+  --rose:#C21866; --rose-soft:#FFDDEE;
+  --tint-blue:#E3E0FF; --tint-lilac:#EBE3FF; --tint-mint:#FFE1F3; --tint-peach:#FFD8EE; --tint-butter:#F1E7FF;
+  color-scheme:light;
+}
+:root[data-palette="akuamarin"]{
+  --paper:#121936; --top:#171F44; --card:#1C2552; --card-2:#232E64;
+  --ink:#EAFBFF; --ink-soft:#B9CBEA; --ink-faint:#9DB1DB;
+  --rule:#2F3A78; --grid:#161E45;
+  --accent:#74FFED; --accent-soft:#17495E; --on-accent:#0E1534;
+  --moss:#7FF0C8; --moss-soft:#1B4A44;
+  --ochre:#FE81D1; --ochre-soft:#4A2152;
+  --rose:#FF9BC9; --rose-soft:#4C2145;
+  --tint-blue:#1B2F78; --tint-lilac:#262C7D; --tint-mint:#14465A; --tint-peach:#46285E; --tint-butter:#243B6B;
+  --scrim:rgba(8,9,16,.62);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+  --shadow-lg:0 2px 6px rgba(0,0,0,.5), 0 24px 60px -20px rgba(0,0,0,.9);
+  color-scheme:dark;
+}
+
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
@@ -985,3 +1029,11 @@ li.task[data-swipe="left"]::after{right:-92px}
   li.task.just{animation:glow 1.2s ease-out}
   li.task.just>.chk,li.sub.just .chk,li.habit.just .htoggle{animation:pop .38s cubic-bezier(.3,1.5,.5,1)}
 }
+
+/* palette picker */
+.pals{display:flex;flex-wrap:wrap;gap:8px}
+.pal{display:flex;align-items:center;gap:8px;height:34px;padding:0 12px 0 8px;border:1.5px solid var(--rule);border-radius:9px;background:var(--card-2);font-size:13px;font-weight:600;color:var(--ink-soft)}
+.pal[aria-pressed="true"]{border-color:var(--accent);color:var(--ink);box-shadow:0 0 0 2px var(--accent-soft)}
+.pal .dots{display:inline-flex}
+.pal .dots i{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--card-2);margin-left:-4px}
+.pal .dots i:first-child{margin-left:0}

@@ -105,6 +105,24 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("the black theme is applied and remembered", [d.documentElement.getAttribute("data-theme"), w.localStorage.getItem("gunDefteri.theme")], ["black", "black"]);
   w.localStorage.removeItem("gunDefteri.theme"); d.documentElement.removeAttribute("data-theme");
 
+  /* palettes */
+  const root = d.documentElement;
+  $("setBtn").click(); await wait(60);
+  d.querySelector('[data-palette-opt="mandalina"]').click();
+  eq("palette previews live (own dark mode)", [root.getAttribute("data-palette"), root.getAttribute("data-theme")], ["mandalina", "dark"]);
+  key("Escape"); await wait(60);
+  eq("closing without saving reverts the preview", [root.getAttribute("data-palette"), root.getAttribute("data-theme")], [null, null]);
+  $("setBtn").click(); await wait(60);
+  d.querySelector('[data-palette-opt="sakiz"]').click();
+  $("mForm").dispatchEvent(new w.Event("submit", { cancelable: true, bubbles: true })); await wait(100);
+  eq("saving keeps the palette (light mode, no accent override) and remembers it", [root.getAttribute("data-palette"), root.getAttribute("data-theme"), root.hasAttribute("data-accent"), w.localStorage.getItem("gunDefteri.palette")], ["sakiz", "light", false, "sakiz"]);
+  key("k"); await wait(60);
+  eq("the theme key does not break out of a palette", root.getAttribute("data-theme"), "light");
+  $("setBtn").click(); await wait(60);
+  d.querySelector('[data-palette-opt="default"]').click();
+  $("mForm").dispatchEvent(new w.Event("submit", { cancelable: true, bubbles: true })); await wait(100);
+  eq("choosing Mor goes back to the normal themes", [root.hasAttribute("data-palette"), w.localStorage.getItem("gunDefteri.palette")], [false, null]);
+
   /* reminders */
   $("setBtn").click(); await wait(60); $("sRemind").click(); await wait(60);
   eq("reminder window opens", $("modal").textContent.includes("Hatırlatmalar"), true);

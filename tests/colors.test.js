@@ -16,9 +16,14 @@ const catsDark = cc(/^:root:is\(\[data-theme="dark"\],\[data-theme="black"\]\) \
 const acc = (re) => { const o = {}; let m; while ((m = re.exec(css))) o[m[1]] = { a: m[2], s: m[3] }; return o; };
 const accL = acc(/^:root\[data-accent="([a-z]+)"\]\{--accent:(#[0-9a-f]{6});--accent-soft:(#[0-9a-f]{6})\}/gm);
 const accD = acc(/^:root:is\(\[data-theme="dark"\],\[data-theme="black"\]\)\[data-accent="([a-z]+)"\]\{--accent:(#[0-9a-f]{6});--accent-soft:(#[0-9a-f]{6})\}/gm);
+const palettes = {};
+css.replace(/:root\[data-palette="([a-z]+)"\]\{([^}]*)\}/g, (_, name, body) => { palettes[name] = vars(body); });
 const rows = [];
 const add = (theme, name, fg, bg, min) => { const r = ratio(fg, bg); rows.push({ theme, name, r: +r.toFixed(2), min, bad: r < min }); };
-for (const [tn, T, cats, accs] of [["light", light, catsLight, accL], ["dark", dark, catsDark, accD], ["black", black, catsDark, accD]]) {
+const modes = { mandalina: [dark, catsDark], sakiz: [light, catsLight], akuamarin: [dark, catsDark] };
+const sets = [["light", light, catsLight, accL], ["dark", dark, catsDark, accD], ["black", black, catsDark, accD]];
+Object.keys(palettes).forEach((n) => sets.push(["pal:" + n, Object.assign({}, modes[n][0], palettes[n]), modes[n][1], {}]));
+for (const [tn, T, cats, accs] of sets) {
   add(tn, "ink / card", T.ink, T.card, 4.5);
   add(tn, "ink-soft / card", T["ink-soft"], T.card, 4.5);
   add(tn, "ink-faint / card (small labels)", T["ink-faint"], T.card, 4.5);
@@ -26,6 +31,9 @@ for (const [tn, T, cats, accs] of [["light", light, catsLight, accL], ["dark", d
   add(tn, "accent / card", T.accent, T.card, 4.5);
   add(tn, "accent / accent-soft", T.accent, T["accent-soft"], 4.5);
   add(tn, "on-accent / accent (buttons)", T["on-accent"], T.accent, 4.5);
+  /* panel header titles sit on the section tints */
+  add(tn, "accent / tint-blue (header)", T.accent, T["tint-blue"], 4.5); add(tn, "accent / tint-lilac (header)", T.accent, T["tint-lilac"], 4.5);
+  add(tn, "moss / tint-mint (header)", T.moss, T["tint-mint"], 4.5); add(tn, "rose / tint-peach (header)", T.rose, T["tint-peach"], 4.5); add(tn, "ochre / tint-butter (header)", T.ochre, T["tint-butter"], 4.5);
   for (const k of ["moss", "ochre", "rose"]) { add(tn, k + " / card", T[k], T.card, 4.5); add(tn, k + " / " + k + "-soft", T[k], T[k + "-soft"], 4.5); }
   for (const [n, v] of Object.entries(cats)) { add(tn, "c-" + n + " / its soft", v.c, v.soft, 4.5); add(tn, "c-" + n + " / card (swatch, text)", v.c, T.card, 3); }
   for (const [n, v] of Object.entries(accs)) { add(tn, "accent " + n + " / soft", v.a, v.s, 4.5); add(tn, "accent " + n + " / card", v.a, T.card, 4.5); }

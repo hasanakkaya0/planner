@@ -10,6 +10,7 @@
     return window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   }
   function toggleTheme() {
+    if (document.documentElement.hasAttribute("data-palette")) { App.toast("Palet açıkken tema palete bağlı. Açık / koyu için Ayarlar → Palet → Mor."); return; }
     const next = effectiveTheme() === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
     try { localStorage.setItem("gunDefteri.theme", next); } catch (e) { /* none */ }
@@ -71,6 +72,38 @@
   function themePref() {
     try { const t = localStorage.getItem("gunDefteri.theme"); return t === "light" || t === "dark" || t === "black" ? t : "system"; } catch (e) { return "system"; }
   }
+  /* palettes: whole-app colour schemes; each carries its own light / dark mode (see the data-palette blocks in style.css) */
+  const PALETTES = [
+    ["default", "Mor", ["#5a4bd1", "#e9e5fd", "#fdfcff"]],
+    ["mandalina", "Mandalina", ["#21232E", "#105BFF", "#FE8500"]],
+    ["sakiz", "Sakız", ["#F0F0F0", "#5841FF", "#FF6AD2"]],
+    ["akuamarin", "Akuamarin", ["#171F44", "#74FFED", "#FE81D1"]]
+  ];
+  const PALETTE_MODE = { mandalina: "dark", sakiz: "light", akuamarin: "dark" };
+  function palettePref() {
+    try { const p = localStorage.getItem("gunDefteri.palette"); return PALETTE_MODE[p] ? p : "default"; } catch (e) { return "default"; }
+  }
+  /* only the attributes (used for the live preview in the settings window) */
+  function paletteAttrs(p) {
+    const root = document.documentElement;
+    if (PALETTE_MODE[p]) { root.setAttribute("data-palette", p); root.setAttribute("data-theme", PALETTE_MODE[p]); }
+    else {
+      root.removeAttribute("data-palette");
+      const t = themePref();
+      if (t === "system") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", t);
+    }
+    applyAccent();
+  }
+  function setPalette(p) {
+    paletteAttrs(p);
+    try { if (PALETTE_MODE[p]) localStorage.setItem("gunDefteri.palette", p); else localStorage.removeItem("gunDefteri.palette"); } catch (e) { /* none */ }
+  }
+  /* the main colour of the settings belongs to the default palette; the others bring their own */
+  function applyAccent() {
+    const root = document.documentElement;
+    if (root.hasAttribute("data-palette") || !S.cfg || S.cfg.accent === "violet") root.removeAttribute("data-accent"); else root.setAttribute("data-accent", S.cfg.accent);
+  }
+
   function setThemePref(p) {
     const root = document.documentElement;
     if (p === "light" || p === "dark" || p === "black") { root.setAttribute("data-theme", p); try { localStorage.setItem("gunDefteri.theme", p); } catch (e) { /* none */ } }
@@ -93,7 +126,7 @@
     GD.setDayRange(S.cfg.dayStart, S.cfg.dayEnd);
     const root = document.documentElement;
     root.style.setProperty("--hours", String(S.cfg.dayEnd - S.cfg.dayStart));
-    if (S.cfg.accent === "violet") root.removeAttribute("data-accent"); else root.setAttribute("data-accent", S.cfg.accent);
+    applyAccent();
     try { localStorage.setItem("gunDefteri.accent", S.cfg.accent); } catch (e) { /* none */ }
     fillSelects();
     App.renderAll();
@@ -104,7 +137,7 @@
 
   function openSettings(draft) {
     const d = JSON.parse(JSON.stringify(draft || S.cfg));
-    let theme = themePref(), picker = null;
+    let theme = themePref(), picker = null, pal = palettePref(), paletteSaved = false;
     const swBtn = (type, i, color) => '<button type="button" class="sw c-' + color + '" data-pick="' + type + '" data-i="' + i + '" title="Renk: ' + COLORNAME[color] + '" aria-label="Rengi değiştir (' + COLORNAME[color] + ')"></button>';
     const palette = (type, i, cur) => '<div class="palette">' + GD.COLORS.map((c) => '<button type="button" class="sw c-' + c + '" data-setcolor="' + type + '" data-i="' + i + '" data-c="' + c + '" aria-pressed="' + (c === cur) + '" title="' + COLORNAME[c] + '" aria-label="' + COLORNAME[c] + '"></button>').join("") + "</div>";
     const catRows = () => d.cats.map((c, i) =>
@@ -128,11 +161,14 @@
     const focOpts = GD.FOCUS_OPTS.map((n) => App.opt(String(n), n + " dk odak", String(d.focusMins))).join("");
     const brkOpts = GD.BREAK_OPTS.map((n) => App.opt(String(n), n + " dk mola", String(d.breakMins))).join("");
     const themeOpts = [["system", "Cihaza göre"], ["light", "Açık"], ["dark", "Koyu"], ["black", "Siyah"]].map((x) => '<button type="button" class="opt" data-theme-opt="' + x[0] + '" aria-pressed="' + (theme === x[0]) + '">' + x[1] + "</button>").join("");
+    const palOpts = PALETTES.map((x) => '<button type="button" class="pal" data-palette-opt="' + x[0] + '" aria-pressed="' + (pal === x[0]) + '" title="' + x[1] + '"><span class="dots">' + x[2].map((c) => '<i style="background:' + c + '"></i>').join("") + "</span>" + x[1] + "</button>").join("");
     const accOpts = GD.ACCENTS.map((a) => '<button type="button" class="sw acc" data-acc="' + a + '" style="background:' + ACCENT_HEX[a] + '" aria-pressed="' + (d.accent === a) + '" title="' + ACCENTNAME[a] + '" aria-label="' + ACCENTNAME[a] + '"></button>').join("");
 
     const body =
       '<section class="set-sec"><h3>Görünüm</h3>' +
         '<div class="set-row"><span class="set-l">Tema</span><div class="opts" id="sTheme">' + themeOpts + "</div></div>" +
+        '<div class="set-row"><span class="set-l">Palet</span><div class="pals" id="sPal">' + palOpts + "</div></div>" +
+        '<p class="set-hint">Mor dışındaki paletler tüm renkleri ve açık / koyu görünümü kendisi belirler; tema ve ana renk onlarda kullanılmaz.</p>' +
         '<div class="set-row"><span class="set-l">Ana renk</span><div class="sws" id="sAcc">' + accOpts + "</div></div>" +
         '<div class="set-row"><span class="set-l">Saat çizelgesi</span><select id="sStart" aria-label="Başlangıç saati">' + startOpts + '</select><span class="dash">–</span><select id="sEnd" aria-label="Bitiş saati">' + endOpts + "</select></div>" +
         '<div class="set-row"><span class="set-l">Yaklaşanlar</span><select id="sUpc" aria-label="Yaklaşanlar süresi">' + upcOpts + "</select></div>" +
@@ -165,6 +201,7 @@
       if (d.dayEnd - d.dayStart < 6) { App.mErr("Saat çizelgesi en az 6 saat olmalı."); return; }
       if (!App.guard()) return;
       setThemePref(theme);
+      setPalette(pal); paletteSaved = true;
       const clean = GD.normalizeSettings(d);
       App.w(S.store.set("settings", "main", Object.assign({}, clean, { updatedAt: Date.now() })));
       S.cfg = clean; App.closeModal(); applyCfg();
@@ -196,6 +233,10 @@
       if ((x = e.target.closest("[data-theme-opt]"))) {
         theme = x.dataset.themeOpt;
         M.querySelectorAll("[data-theme-opt]").forEach((b) => b.setAttribute("aria-pressed", String(b === x)));
+      } else if ((x = e.target.closest("[data-palette-opt]"))) {
+        pal = x.dataset.paletteOpt;
+        M.querySelectorAll("[data-palette-opt]").forEach((b) => b.setAttribute("aria-pressed", String(b === x)));
+        paletteAttrs(pal);   /* live preview; reverted if the window is closed without saving */
       } else if ((x = e.target.closest("[data-acc]"))) {
         d.accent = x.dataset.acc;
         M.querySelectorAll("[data-acc]").forEach((b) => b.setAttribute("aria-pressed", String(b === x)));
@@ -240,13 +281,15 @@
         App.mErr("Varsayılanlar yüklendi; kaydedersen uygulanır.");
       }
     };
-    S.modalOnClose = () => { M.oninput = M.onchange = M.onclick = null; };
+    S.modalOnClose = () => { M.oninput = M.onchange = M.onclick = null; if (!paletteSaved) paletteAttrs(palettePref()); };
     const first = $("modal").querySelector(".body");
     if (first) first.scrollTop = 0;
   }
 
   /* shared with the other app-*.js files */
   Object.assign(App, {
+    palettePref,
+    setPalette,
     exportData,
     toggleTheme,
     applyCfg,

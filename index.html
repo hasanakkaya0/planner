@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preload" href="fonts/plus-jakarta-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/plus-jakarta-sans-latin-ext.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/style.css?v=28a19147">
+<link rel="stylesheet" href="css/style.css?v=67029412">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c6cf6'/%3E%3Cstop offset='1' stop-color='%234a8af0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='url(%23g)'/%3E%3Crect x='7.5' y='9.5' width='17' height='15.5' rx='3.2' fill='white'/%3E%3Cpath d='M7.5 14.2h17' stroke='%23c9c2fb' stroke-width='1.4'/%3E%3Cpath d='M12 6.8v4.6M20 6.8v4.6' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M12.4 19.6l2.5 2.4 4.8-4.8' fill='none' stroke='%235a4bd1' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -24,7 +24,9 @@
 /* theme: apply the saved choice before first paint (no flash) */
 try {
   var _t = localStorage.getItem("gunDefteri.theme"); if (_t === "light" || _t === "dark" || _t === "black") document.documentElement.setAttribute("data-theme", _t);
-  var _a = localStorage.getItem("gunDefteri.accent"); if (_a && _a !== "violet") document.documentElement.setAttribute("data-accent", _a);
+  var _p = localStorage.getItem("gunDefteri.palette"), _pm = { mandalina: "dark", sakiz: "light", akuamarin: "dark" };
+  if (_p && _pm[_p]) { document.documentElement.setAttribute("data-palette", _p); document.documentElement.setAttribute("data-theme", _pm[_p]); }
+  else { var _a = localStorage.getItem("gunDefteri.accent"); if (_a && _a !== "violet") document.documentElement.setAttribute("data-accent", _a); }
 } catch (e) {}
 </script>
 <header class="topbar">
@@ -220,28 +222,28 @@ try {
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="js/firebase-config.js?v=28a19147"></script>
-<script src="js/sync.js?v=28a19147"></script>
-<script src="js/core.js?v=28a19147"></script>
-<script src="js/store.js?v=28a19147"></script>
-<script src="js/app-state.js?v=28a19147"></script>
-<script src="js/app-ui.js?v=28a19147"></script>
-<script src="js/app-day.js?v=28a19147"></script>
-<script src="js/app-lists.js?v=28a19147"></script>
-<script src="js/app-week.js?v=28a19147"></script>
-<script src="js/app-month.js?v=28a19147"></script>
-<script src="js/app-settings.js?v=28a19147"></script>
-<script src="js/app-quickadd.js?v=28a19147"></script>
-<script src="js/app-dnd.js?v=28a19147"></script>
-<script src="js/app-focus.js?v=28a19147"></script>
-<script src="js/app-welcome.js?v=28a19147"></script>
-<script src="js/app-sync.js?v=28a19147"></script>
-<script src="js/app-repeat.js?v=28a19147"></script>
-<script src="js/app-stats.js?v=28a19147"></script>
-<script src="js/app-term.js?v=28a19147"></script>
-<script src="js/app-remind.js?v=28a19147"></script>
-<script src="js/app-swipe.js?v=28a19147"></script>
-<script src="js/app.js?v=28a19147"></script>
+<script src="js/firebase-config.js?v=67029412"></script>
+<script src="js/sync.js?v=67029412"></script>
+<script src="js/core.js?v=67029412"></script>
+<script src="js/store.js?v=67029412"></script>
+<script src="js/app-state.js?v=67029412"></script>
+<script src="js/app-ui.js?v=67029412"></script>
+<script src="js/app-day.js?v=67029412"></script>
+<script src="js/app-lists.js?v=67029412"></script>
+<script src="js/app-week.js?v=67029412"></script>
+<script src="js/app-month.js?v=67029412"></script>
+<script src="js/app-settings.js?v=67029412"></script>
+<script src="js/app-quickadd.js?v=67029412"></script>
+<script src="js/app-dnd.js?v=67029412"></script>
+<script src="js/app-focus.js?v=67029412"></script>
+<script src="js/app-welcome.js?v=67029412"></script>
+<script src="js/app-sync.js?v=67029412"></script>
+<script src="js/app-repeat.js?v=67029412"></script>
+<script src="js/app-stats.js?v=67029412"></script>
+<script src="js/app-term.js?v=67029412"></script>
+<script src="js/app-remind.js?v=67029412"></script>
+<script src="js/app-swipe.js?v=67029412"></script>
+<script src="js/app.js?v=67029412"></script>
 <script>
 /* offline support + add to home screen (http/https only) */
 if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
