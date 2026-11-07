@@ -175,6 +175,14 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   key("Escape"); await wait(40);
   w.eval('S.store.del("recurring", "cls1")'); w.eval('S.store.del("tasks", "oldB")'); await wait(60);
 
+  /* opening screen: gone once the app is up */
+  eq("the opening screen has been removed after start", d.getElementById("splash"), null);
+  d.head.insertAdjacentHTML("beforeend", '<meta name="theme-color" content="#fff" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#000" media="(prefers-color-scheme: dark)">');
+  w.eval('App.setPalette("sakin")');
+  const metas = d.querySelectorAll('meta[name="theme-color"]');
+  eq("the browser colour follows the palette: a single meta without media, with the top-bar colour", [metas.length, metas[0].hasAttribute("media"), /^#[0-9a-fA-F]{6}$/.test(metas[0].getAttribute("content"))], [1, false, true]);
+  w.eval('App.setPalette("default")'); d.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.remove());
+
   /* statistics window */
   w.eval('S.store.set("focus", "f1", { date: S.TODAY, start: Date.now(), mins: 25, title: "x", cat: "ders" })'); await wait(80);
   $("statsBtn").click(); await wait(80);

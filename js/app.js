@@ -232,5 +232,12 @@
     if (S.focus) App.renderFocus();
     setTimeout(App.maybeWelcome, 1500);   /* once the first data has arrived */
   }
-  boot().catch(() => { S.modeHtml = "Kayıt bağlantısı kurulamadı. Sayfayı yenile."; App.banner(S.modeHtml, true); });
+  /* the opening screen stays at least a moment (no flash on a warm start), then fades out */
+  function hideSplash() {
+    const el = $("splash");
+    if (!el || el.classList.contains("done")) return;
+    setTimeout(() => { el.classList.add("done"); setTimeout(() => el.remove(), 500); }, Math.max(0, 450 - (window.performance ? performance.now() : 450)));
+  }
+  setTimeout(hideSplash, 8000);   /* never trap the app behind it */
+  boot().then(hideSplash, () => { hideSplash(); S.modeHtml = "Kayıt bağlantısı kurulamadı. Sayfayı yenile."; App.banner(S.modeHtml, true); });
 })();

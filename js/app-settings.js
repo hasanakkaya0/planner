@@ -94,6 +94,15 @@
       if (t === "light" || t === "dark" || t === "black") root.setAttribute("data-theme", t); else root.removeAttribute("data-theme");
     }
     applyAccent();
+    syncThemeColor();
+  }
+  /* status bar / address bar colour = the colour of the top bar of the current theme or palette */
+  function syncThemeColor() {
+    const c = getComputedStyle(document.documentElement).getPropertyValue("--top").trim();
+    const metas = document.querySelectorAll('meta[name="theme-color"]');
+    if (!c || !metas.length) return;
+    metas.forEach((m, i) => { if (i) m.remove(); });
+    metas[0].removeAttribute("media"); metas[0].setAttribute("content", c);
   }
   function setPalette(p) {
     try { if (PALETTE_IDS.indexOf(p) >= 0) localStorage.setItem("gunDefteri.palette", p); else localStorage.removeItem("gunDefteri.palette"); } catch (e) { /* none */ }
@@ -112,7 +121,7 @@
   /* "Cihaza göre" + a palette: follow the device when it switches between light and dark */
   if (window.matchMedia) {
     const mq = matchMedia("(prefers-color-scheme: dark)");
-    const onSys = () => { if (themePref() === "system" && palettePref() !== "default") applyAppearance(palettePref(), "system"); };
+    const onSys = () => { if (themePref() === "system" && palettePref() !== "default") applyAppearance(palettePref(), "system"); syncThemeColor(); };
     if (mq.addEventListener) mq.addEventListener("change", onSys); else if (mq.addListener) mq.addListener(onSys);
   }
 
@@ -133,6 +142,7 @@
     const root = document.documentElement;
     root.style.setProperty("--hours", String(S.cfg.dayEnd - S.cfg.dayStart));
     applyAccent();
+    syncThemeColor();
     try { localStorage.setItem("gunDefteri.accent", S.cfg.accent); } catch (e) { /* none */ }
     fillSelects();
     App.renderAll();

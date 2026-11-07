@@ -41,6 +41,7 @@
           '<div class="auth-alt"><button type="button" class="linkbtn" id="auSwap">Hesabın yok mu? Hesap aç</button>' +
           '<button type="button" class="linkbtn" id="auReset">Şifremi unuttum</button></div>' +
         "</form>";
+      var sp = document.getElementById("splash"); if (sp) sp.remove();
       document.body.appendChild(el);
       var signup = false, $ = function (id) { return el.querySelector("#" + id); };
       var err = function (t, ok) { $("auErr").textContent = t || ""; $("auErr").classList.toggle("ok", !!ok); };
