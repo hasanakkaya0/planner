@@ -114,6 +114,22 @@
     if (root.hasAttribute("data-palette") || !S.cfg || S.cfg.accent === "violet") root.removeAttribute("data-accent"); else root.setAttribute("data-accent", S.cfg.accent);
   }
 
+  /* reading size and density: per device, applied at once (no save needed) */
+  const FONT_SIZES = [["s", "Küçük"], ["m", "Normal"], ["l", "Büyük"], ["xl", "Çok büyük"]];
+  const DENSITIES = [["comfy", "Rahat"], ["compact", "Sıkı"]];
+  function fsPref() { try { const v = localStorage.getItem("gunDefteri.fs"); return v === "s" || v === "l" || v === "xl" ? v : "m"; } catch (e) { return "m"; } }
+  function densPref() { try { return localStorage.getItem("gunDefteri.dens") === "compact" ? "compact" : "comfy"; } catch (e) { return "comfy"; } }
+  function applyScale() {
+    const root = document.documentElement, fs = fsPref(), dens = densPref();
+    if (fs === "m") root.removeAttribute("data-fs"); else root.setAttribute("data-fs", fs);
+    if (dens === "comfy") root.removeAttribute("data-dens"); else root.setAttribute("data-dens", dens);
+    window.dispatchEvent(new Event("resize"));   /* the fit-to-screen layout measures again */
+  }
+  function setScale(key, value, normal) {
+    try { if (value === normal) localStorage.removeItem(key); else localStorage.setItem(key, value); } catch (e) { /* none */ }
+    applyScale();
+  }
+
   function setThemePref(p) {
     try { if (p === "light" || p === "dark" || p === "black") localStorage.setItem("gunDefteri.theme", p); else localStorage.removeItem("gunDefteri.theme"); } catch (e) { /* none */ }
     applyAppearance(palettePref(), themePref());
@@ -185,6 +201,9 @@
         '<div class="set-row"><span class="set-l">Tema</span><div class="opts" id="sTheme">' + themeOpts + "</div></div>" +
         '<div class="set-row"><span class="set-l">Palet</span><div class="pals" id="sPal">' + palOpts + "</div></div>" +
         '<p class="set-hint">Her palet açık ve koyu tema ile çalışır. Ana renk seçeneği yalnız “Mor” paletinde var; diğerleri kendi ana rengini getirir.</p>' +
+        '<div class="set-row"><span class="set-l">Yazı boyutu</span><div class="opts" id="sFs">' + FONT_SIZES.map((x) => '<button type="button" class="opt" data-fs-opt="' + x[0] + '" aria-pressed="' + (fsPref() === x[0]) + '">' + x[1] + "</button>").join("") + "</div></div>" +
+        '<div class="set-row"><span class="set-l">Yerleşim</span><div class="opts" id="sDens">' + DENSITIES.map((x) => '<button type="button" class="opt" data-dens-opt="' + x[0] + '" aria-pressed="' + (densPref() === x[0]) + '">' + x[1] + "</button>").join("") + "</div></div>" +
+        '<p class="set-hint">Yazı boyutu ve yerleşim yalnız bu cihazda geçerli ve hemen uygulanır.</p>' +
         '<div class="set-row" id="sAccRow"' + (pal === "default" ? "" : " hidden") + '><span class="set-l">Ana renk</span><div class="sws" id="sAcc">' + accOpts + "</div></div>" +
         '<div class="set-row"><span class="set-l">Saat çizelgesi</span><select id="sStart" aria-label="Başlangıç saati">' + startOpts + '</select><span class="dash">–</span><select id="sEnd" aria-label="Bitiş saati">' + endOpts + "</select></div>" +
         '<div class="set-row"><span class="set-l">Yaklaşanlar</span><select id="sUpc" aria-label="Yaklaşanlar süresi">' + upcOpts + "</select></div>" +
@@ -250,6 +269,12 @@
         theme = x.dataset.themeOpt;
         M.querySelectorAll("[data-theme-opt]").forEach((b) => b.setAttribute("aria-pressed", String(b === x)));
         applyAppearance(pal, theme);   /* live preview; reverted if the window is closed without saving */
+      } else if ((x = e.target.closest("[data-fs-opt]"))) {
+        setScale("gunDefteri.fs", x.dataset.fsOpt, "m");
+        M.querySelectorAll("[data-fs-opt]").forEach((b) => b.setAttribute("aria-pressed", String(b === x)));
+      } else if ((x = e.target.closest("[data-dens-opt]"))) {
+        setScale("gunDefteri.dens", x.dataset.densOpt, "comfy");
+        M.querySelectorAll("[data-dens-opt]").forEach((b) => b.setAttribute("aria-pressed", String(b === x)));
       } else if ((x = e.target.closest("[data-palette-opt]"))) {
         pal = x.dataset.paletteOpt;
         M.querySelectorAll("[data-palette-opt]").forEach((b) => b.setAttribute("aria-pressed", String(b === x)));

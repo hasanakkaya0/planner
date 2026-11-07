@@ -194,6 +194,15 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   }
   d.querySelector('[data-view="day"]').click(); await wait(100);
 
+  /* reading size and density (per device) */
+  const rootEl = d.documentElement;
+  $("setBtn").click(); await wait(60);
+  d.querySelector('[data-fs-opt="xl"]').click(); d.querySelector('[data-dens-opt="compact"]').click();
+  eq("font size and density apply at once and are remembered", [rootEl.getAttribute("data-fs"), rootEl.getAttribute("data-dens"), w.localStorage.getItem("gunDefteri.fs"), w.localStorage.getItem("gunDefteri.dens")], ["xl", "compact", "xl", "compact"]);
+  d.querySelector('[data-fs-opt="m"]').click(); d.querySelector('[data-dens-opt="comfy"]').click();
+  eq("normal / comfortable remove the attributes again", [rootEl.hasAttribute("data-fs"), rootEl.hasAttribute("data-dens"), w.localStorage.getItem("gunDefteri.fs")], [false, false, null]);
+  key("Escape"); await wait(60);
+
   /* statistics window */
   w.eval('S.store.set("focus", "f1", { date: S.TODAY, start: Date.now(), mins: 25, title: "x", cat: "ders" })'); await wait(80);
   $("statsBtn").click(); await wait(80);
