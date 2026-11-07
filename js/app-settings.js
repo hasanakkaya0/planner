@@ -174,8 +174,8 @@
       '<section class="set-sec"><h3>Görünüm</h3>' +
         '<div class="set-row"><span class="set-l">Tema</span><div class="opts" id="sTheme">' + themeOpts + "</div></div>" +
         '<div class="set-row"><span class="set-l">Palet</span><div class="pals" id="sPal">' + palOpts + "</div></div>" +
-        '<p class="set-hint">Her palet açık ve koyu tema ile çalışır. Mor dışındaki paletlerde ana renk paletten gelir.</p>' +
-        '<div class="set-row"><span class="set-l">Ana renk</span><div class="sws" id="sAcc">' + accOpts + "</div></div>" +
+        '<p class="set-hint">Her palet açık ve koyu tema ile çalışır. Ana renk seçeneği yalnız “Mor” paletinde var; diğerleri kendi ana rengini getirir.</p>' +
+        '<div class="set-row" id="sAccRow"' + (pal === "default" ? "" : " hidden") + '><span class="set-l">Ana renk</span><div class="sws" id="sAcc">' + accOpts + "</div></div>" +
         '<div class="set-row"><span class="set-l">Saat çizelgesi</span><select id="sStart" aria-label="Başlangıç saati">' + startOpts + '</select><span class="dash">–</span><select id="sEnd" aria-label="Bitiş saati">' + endOpts + "</select></div>" +
         '<div class="set-row"><span class="set-l">Yaklaşanlar</span><select id="sUpc" aria-label="Yaklaşanlar süresi">' + upcOpts + "</select></div>" +
         '<div class="set-row"><span class="set-l">Odak sayacı</span><select id="sFoc" aria-label="Odak süresi">' + focOpts + '</select><select id="sBrk" aria-label="Mola süresi">' + brkOpts + "</select></div>" +
@@ -244,6 +244,7 @@
         pal = x.dataset.paletteOpt;
         M.querySelectorAll("[data-palette-opt]").forEach((b) => b.setAttribute("aria-pressed", String(b === x)));
         applyAppearance(pal, theme);
+        $("sAccRow").hidden = pal !== "default";   /* the other palettes bring their own main colour */
       } else if ((x = e.target.closest("[data-acc]"))) {
         d.accent = x.dataset.acc;
         M.querySelectorAll("[data-acc]").forEach((b) => b.setAttribute("aria-pressed", String(b === x)));

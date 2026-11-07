@@ -138,6 +138,15 @@
     return out;
   }
 
+  /* The longest free gap (>= min minutes) of a day, inside the chosen day range [dayStart, dayEnd] (hours).
+     nowMin (minutes since midnight) is given for today: nothing earlier than now (rounded up to 15 min) counts. */
+  function bestFreeSlot(blocks, dayStart, dayEnd, nowMin, min) {
+    var from = dayStart * 60;
+    if (nowMin != null) from = Math.max(from, Math.ceil(nowMin / 15) * 15);
+    var slots = freeSlots(blocks, from, dayEnd * 60, min == null ? 60 : min);
+    return slots.reduce(function (best, x) { return !best || x.e - x.s > best.e - best.s ? x : best; }, null);
+  }
+
   function plannedMinutes(blocks) {
     var segs = blocks.map(function (b) { return [b.s, b.e]; }).sort(function (a, b) { return a[0] - b[0]; });
     var total = 0, cs = -1, ce = -1;
@@ -654,7 +663,7 @@
     weekDays: weekDays, monthStart: monthStart, addMonths: addMonths, monthGrid: monthGrid, isoWeek: isoWeek, weekLabel: weekLabel,
     daySummary: daySummary,
     toMin: toMin, fmtMin: fmtMin, durText: durText, blockError: blockError,
-    recurringOn: recurringOn, blocksForDay: blocksForDay, lanes: lanes, freeSlots: freeSlots, plannedMinutes: plannedMinutes,
+    recurringOn: recurringOn, blocksForDay: blocksForDay, lanes: lanes, freeSlots: freeSlots, bestFreeSlot: bestFreeSlot, plannedMinutes: plannedMinutes,
     visibleTasks: visibleTasks, greeting: greeting, dayProgress: dayProgress, catIcon: catIcon, nextUp: nextUp, dueReminders: dueReminders, activeSeries: activeSeries, oldDoneTasks: oldDoneTasks, statsRange: statsRange, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
     doneOn: doneOn, streak: streak, weekCount: weekCount, weekStreak: weekStreak, habitProgress: habitProgress,
     normalizeBackup: normalizeBackup,

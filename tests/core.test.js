@@ -90,6 +90,12 @@ const ids = (arr) => arr.map((x) => (x.t ? x.t.id + (x.late ? "!" : "") : x.id))
 eq("today: own + overdue + undated", ids(GD.visibleTasks(T, TODAY, TODAY)), ["t1", "t2!", "t4"]);
 eq("tomorrow: today's task is NOT overdue (old bug)", ids(GD.visibleTasks(T, "2026-10-17", TODAY)), ["t4"]);
 eq("past day: only that day's tasks + undated", ids(GD.visibleTasks(T, "2026-10-14", TODAY)), ["t2", "t3", "t4"]);
+/* longest free gap follows the chosen day range */
+eq("free gap: the whole 07-24 range when nothing is planned", GD.bestFreeSlot([], 7, 24, null), { s: 420, e: 1440 });
+eq("free gap: the longest of several, within 07-24", GD.bestFreeSlot([{ s: 540, e: 600 }, { s: 780, e: 840 }], 7, 24, null), { s: 840, e: 1440 });
+eq("free gap: today starts at the next quarter hour", GD.bestFreeSlot([], 7, 24, 9 * 60 + 7), { s: 555, e: 1440 });
+eq("free gap: nothing left after the end of the day range, or when gaps are under an hour", [GD.bestFreeSlot([], 7, 22, 22 * 60 + 5), GD.bestFreeSlot([{ s: 450, e: 1390 }], 7, 24, null)], [null, null]);
+eq("free gap: 06-22 counts the early hours too, and picks the longest (here the afternoon)", [GD.bestFreeSlot([{ s: 600, e: 660 }], 6, 22, null), GD.bestFreeSlot([{ s: 480, e: 1200 }], 6, 22, null)], [{ s: 660, e: 1320 }, { s: 360, e: 480 }]);
 /* greeting, day progress, category icons */
 eq("greeting by hour", [4, 5, 11, 12, 17, 18, 21, 22, 0].map(GD.greeting), ["İyi geceler", "Günaydın", "Günaydın", "İyi günler", "İyi günler", "İyi akşamlar", "İyi akşamlar", "İyi geceler", "İyi geceler"]);
 eq("dayProgress counts tasks and ticked habits", [GD.dayProgress([{ done: true }, { done: false }], [{ id: "h1" }, { id: "h2" }], { h1: true }), GD.dayProgress([], [], {})], [{ done: 2, total: 4, pct: 50 }, { done: 0, total: 0, pct: null }]);

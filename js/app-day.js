@@ -161,13 +161,10 @@
     const blocks = App.currentBlocks();
     let hint = "";
     if (S.sel >= S.TODAY) {
-      let from = Math.max(GD.DAY_START, 8) * 60;
-      if (S.sel === S.TODAY) { const n = new Date(); from = Math.max(from, Math.ceil((n.getHours() * 60 + n.getMinutes()) / 15) * 15); }
-      const slots = GD.freeSlots(blocks, from, Math.min(GD.DAY_END, 23) * 60, 60);
-      if (slots.length) {
-        const best = slots.slice().sort((a, b) => (b.e - b.s) - (a.e - a.s))[0];
-        hint = "en uzun boş aralık <b>" + GD.fmtMin(best.s) + "–" + GD.fmtMin(best.e) + "</b> (" + GD.durText(best.e - best.s) + ")";
-      }
+      /* the whole chosen day range counts (Ayarlar → Saat çizelgesi); on today only what is still ahead */
+      const n = new Date();
+      const best = GD.bestFreeSlot(blocks, GD.DAY_START, GD.DAY_END, S.sel === S.TODAY ? n.getHours() * 60 + n.getMinutes() : null, 60);
+      if (best) hint = "en uzun boş aralık <b>" + GD.fmtMin(best.s) + "–" + GD.fmtMin(best.e) + "</b> (" + GD.durText(best.e - best.s) + ")";
     }
     $("freeHint").innerHTML = hint;
     $("freeHint").hidden = !hint;

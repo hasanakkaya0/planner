@@ -116,7 +116,13 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("switching the theme in the window switches the palette variant (Sakız koyu)", attrs(), ["sakiz", "dark"]);
   key("Escape"); await wait(60);
   eq("closing without saving reverts the preview", attrs(), [null, null]);
-  await choose("sakiz", "dark"); await save();
+  
+  await choose("sakiz", "dark");
+  eq("with a palette the main-colour row is hidden", $("sAccRow").hidden, true);
+  d.querySelector('[data-palette-opt="default"]').click();
+  eq("and it comes back with the default palette", $("sAccRow").hidden, false);
+  d.querySelector('[data-palette-opt="sakiz"]').click(); await save();
+
   eq("saved: Sakız in dark, remembered, no accent override", [attrs(), root.hasAttribute("data-accent"), w.localStorage.getItem("gunDefteri.palette"), w.localStorage.getItem("gunDefteri.theme")], [["sakiz", "dark"], false, "sakiz", "dark"]);
   key("k"); await wait(60);
   eq("the theme key flips the variant inside a palette (dark to light)", attrs(), ["sakiz", "light"]);
