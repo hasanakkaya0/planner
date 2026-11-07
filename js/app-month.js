@@ -54,7 +54,7 @@
       .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     $("moKeyCount").textContent = list.length ? list.filter((t) => !t.done).length + " açık / " + list.length : "";
     $("moKeyList").innerHTML = list.length ? list.map(App.keyRow).join("")
-      : '<li class="empty">Bu ay öne çıkan bir şey yok. Görev eklerken öne çıkan bir tür (ör. ' + esc(S.cfg.kinds.filter((k) => k.key).map((k) => k.name).join(", ") || "Ayarlar → Görev türleri") + ") seçersen burada görünür.</li>";
+      : '<li class="empty">' + App.emptyArt("flag") + 'Bu ay öne çıkan bir şey yok. Görev eklerken öne çıkan bir tür (ör. ' + esc(S.cfg.kinds.filter((k) => k.key).map((k) => k.name).join(", ") || "Ayarlar → Görev türleri") + ") seçersen burada görünür.</li>";
   }
 
   /* phone: the selected day's list under the calendar (the grid itself only has dots there) */

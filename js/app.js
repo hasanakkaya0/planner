@@ -23,6 +23,8 @@
     if (x) { App.go(x.dataset.go); App.setView("day"); }
   };
   $("moDayOpen").onclick = () => App.setView("day");
+  /* the buttons of the empty-list drawings ("İlk görevini ekle") jump to the matching input */
+  document.addEventListener("click", (e) => { const b = e.target.closest("[data-empty-focus]"); if (b && $(b.dataset.emptyFocus)) $(b.dataset.emptyFocus).focus(); });
   $("week").onclick = (e) => { const b = e.target.closest(".wd"); if (b) App.go(b.dataset.k); };
 
   function setTab(name) {

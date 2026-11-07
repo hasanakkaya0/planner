@@ -203,6 +203,17 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("normal / comfortable remove the attributes again", [rootEl.hasAttribute("data-fs"), rootEl.hasAttribute("data-dens"), w.localStorage.getItem("gunDefteri.fs")], [false, false, null]);
   key("Escape"); await wait(60);
 
+  /* drawings in empty lists */
+  const keepTasks = w.eval("S.tasks"), keepR = w.eval("S.rtasks");
+  w.eval("S.tasks = []; S.rtasks = []; App.renderTasks()");
+  eq("an empty task list shows a drawing and a button that jumps to the input", [!!$("taskList").querySelector(".empty .art"), !!$("taskList").querySelector('[data-empty-focus="tTitle"]')], [true, true]);
+  $("taskList").querySelector('[data-empty-focus="tTitle"]').click();
+  eq("the button focuses the new-task field", d.activeElement === $("tTitle"), true);
+  w.eval("S.tasks = " + JSON.stringify(keepTasks) + "; S.rtasks = " + JSON.stringify(keepR) + "; App.renderTasks()");
+  $("tSearch").value = "zzzzzz"; $("tSearch").dispatchEvent(new w.Event("input", { bubbles: true }));
+  eq("a search without a match shows the magnifier drawing", !!$("taskList").querySelector(".empty .art"), true);
+  $("tSearch").value = ""; $("tSearch").dispatchEvent(new w.Event("input", { bubbles: true }));
+
   /* statistics window */
   w.eval('S.store.set("focus", "f1", { date: S.TODAY, start: Date.now(), mins: 25, title: "x", cat: "ders" })'); await wait(80);
   $("statsBtn").click(); await wait(80);

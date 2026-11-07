@@ -108,6 +108,15 @@
   const dowChips = (arr) => [1, 2, 3, 4, 5, 6, 7].map((d) => '<button type="button" class="chip" data-dow="' + d + '" aria-pressed="' + (arr.indexOf(d) >= 0) + '">' + GD.ISO_KISA[d] + "</button>").join("");
   const pickedDows = () => Array.from(document.querySelectorAll("#modal .chip[data-dow]")).filter((c) => c.getAttribute("aria-pressed") === "true").map((c) => +c.dataset.dow);
 
+  /* small line drawings for empty lists (they take their colours from the theme) */
+  const ART = {
+    tasks: '<rect x="26" y="9" width="44" height="56" rx="7" fill="var(--accent-soft)" stroke="var(--accent)"/><rect x="38" y="4" width="20" height="10" rx="4" fill="var(--card)" stroke="var(--accent)"/><path d="M34 28l4 4 7-8" stroke="var(--moss)"/><path d="M52 29h11" stroke="var(--accent)"/><rect x="34" y="38" width="9" height="9" rx="2.5" stroke="var(--accent)"/><path d="M52 43h11" stroke="var(--accent)"/><rect x="34" y="52" width="9" height="9" rx="2.5" stroke="var(--accent)"/><path d="M52 57h8" stroke="var(--accent)"/><path d="M79 14v8M75 18h8" stroke="var(--ochre)"/>',
+    search: '<circle cx="41" cy="32" r="17" fill="var(--accent-soft)" stroke="var(--accent)"/><path d="M54 45l14 14" stroke="var(--accent)" stroke-width="3.5"/><path d="M33 32h16M36 38h10" stroke="var(--accent)"/><path d="M76 14v8M72 18h8" stroke="var(--ochre)"/>',
+    habits: '<path d="M48 58V36" stroke="var(--moss)"/><path d="M48 46c-11 0-17-6-17-15 11 0 17 6 17 15z" fill="var(--moss-soft)" stroke="var(--moss)"/><path d="M48 40c9 0 15-5 15-13-9 0-15 5-15 13z" fill="var(--moss-soft)" stroke="var(--moss)"/><path d="M34 58h28l-3 9H37z" fill="var(--accent-soft)" stroke="var(--accent)"/>',
+    flag: '<path d="M32 66V10" stroke="var(--ochre)"/><path d="M32 12h32l-7 11 7 11H32z" fill="var(--ochre-soft)" stroke="var(--ochre)"/><path d="M74 44v8M70 48h8" stroke="var(--accent)"/>'
+  };
+  const emptyArt = (kind) => '<svg class="art" viewBox="0 0 96 72" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ART[kind] || "") + "</svg>";
+
   /* ---------- hesaplanan ---------- */
   const currentBlocks = () => GD.blocksForDay(S.dayDoc, S.recurring, S.sel);
 
@@ -139,6 +148,7 @@
     opt,
     catOptions,
     kindOptions,
+    emptyArt,
     dowChips,
     pickedDows,
     currentBlocks

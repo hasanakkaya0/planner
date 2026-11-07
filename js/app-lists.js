@@ -41,9 +41,9 @@
 
     let html = "";
     if (!items.length && (searching || S.tFilter !== "all")) {
-      html = '<div class="empty"><strong>' + (searching ? "Eşleşen görev yok" : S.tFilter === "open" ? "Açık görev yok" : "Biten görev yok") + "</strong>" + (searching ? "Başka bir kelime dene ya da aramayı temizle." : "Filtreyi “Hepsi” yapınca bu günün tüm görevleri görünür.") + "</div>";
+      html = '<div class="empty">' + App.emptyArt(searching ? "search" : "tasks") + '<strong>' + (searching ? "Eşleşen görev yok" : S.tFilter === "open" ? "Açık görev yok" : "Biten görev yok") + "</strong>" + (searching ? "Başka bir kelime dene ya da aramayı temizle." : "Filtreyi “Hepsi” yapınca bu günün tüm görevleri görünür.") + "</div>";
     } else if (!items.length) {
-      html = '<div class="empty"><strong>' + (S.sel < S.TODAY ? "Bu günde görev yok" : "Bu gün için görev yok") + "</strong>Yukarıdan ekle. Öne çıkan türler ayrıca Yaklaşanlar listesinde görünür.</div>";
+      html = '<div class="empty">' + App.emptyArt("tasks") + '<strong>' + (S.sel < S.TODAY ? "Bu günde görev yok" : "Bu gün için görev yok") + "</strong>Yukarıdan ekle. Öne çıkan türler ayrıca Yaklaşanlar listesinde görünür.<button type=\"button\" class=\"btn-ghost\" data-empty-focus=\"tTitle\">İlk görevini ekle</button></div>";
     } else {
       const known = S.cfg.cats.map((c) => c.id);
       const groups = S.cfg.cats.map((c) => ({ c: c, items: items.filter((x) => x.t.cat === c.id) }));
@@ -82,7 +82,7 @@
 
   function renderHabits() {
     if (!S.habits.length) {
-      $("habitList").innerHTML = '<div class="empty"><strong>Henüz rutin yok</strong>Her gün ya da haftada birkaç gün yaptığın şeyleri ekle; seri kendiliğinden sayılır.</div>';
+      $("habitList").innerHTML = '<div class="empty">' + App.emptyArt("habits") + '<strong>Henüz rutin yok</strong>Her gün ya da haftada birkaç gün yaptığın şeyleri ekle; seri kendiliğinden sayılır.<button type="button" class="btn-ghost" data-empty-focus="hTitle">İlk rutinini ekle</button></div>';
       $("hCount").textContent = "";
       return;
     }
