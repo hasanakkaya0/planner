@@ -45,6 +45,7 @@
   };
 
   $("statsBtn").onclick = () => App.openStats();
+  $("gradesBtn").onclick = () => App.openGrades();
   $("tAdd").onclick = App.addTask;
   $("tRep").onclick = () => App.openRepModal();
   $("tTitle").onkeydown = (e) => { if (e.key === "Enter") App.addTask(); };
@@ -179,6 +180,12 @@
       rows.forEach((o) => { L[GD.isKey(o.date) ? o.date : o.id] = o.done || {}; });
       S.logs = L; App.renderHead(); App.renderHabits();
       if (S.view !== "day") App.renderRange();
+    }, App.onErr);
+    S.store.watch("grades", (rows) => {
+      const b = rows.find((r) => r.id === "base");
+      S.gradeBase = b ? { cgpa: +b.cgpa || 0, credits: +b.credits || 0 } : null;
+      S.gradeTerms = rows.filter((r) => r.id !== "base" && Array.isArray(r.courses)).sort((a, b) => (a.order || 0) - (b.order || 0))
+        .map((r) => ({ id: r.id, name: r.name || "", courses: r.courses.map((c) => ({ id: c.id || uid(), name: c.name || "", credit: c.credit == null ? "" : c.credit, grade: c.grade || "", old: c.old || "", scn: c.scn || "" })) }));
     }, App.onErr);
     S.store.watch("recurring", (rows) => {
       /* one collection, two kinds of series: weekly blocks (have s/e) and recurring tasks (task: true) */

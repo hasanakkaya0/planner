@@ -214,6 +214,32 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("a search without a match shows the magnifier drawing", !!$("taskList").querySelector(".empty .art"), true);
   $("tSearch").value = ""; $("tSearch").dispatchEvent(new w.Event("input", { bubbles: true }));
 
+  /* grades window: the metugpa.com example (2.65 / 62 credits, three new courses, one retake) */
+  const fire = (el, type) => el.dispatchEvent(new w.Event(type, { bubbles: true }));
+  const setVal = (el, v) => { el.value = v; fire(el, "input"); fire(el, "change"); };
+  $("gradesBtn").click(); await wait(80);
+  eq("the grades window opens with a first term and one empty course", [$("modal").textContent.includes("Notlar ve ortalama"), d.querySelectorAll("#grBody .gr-row").length], [true, 1]);
+  setVal($("grBaseC"), "2.65"); setVal($("grBaseK"), "62");
+  d.querySelector("[data-add-course]").click(); d.querySelector("[data-add-course]").click(); d.querySelector("[data-add-course]").click();
+  const grRows = [...d.querySelectorAll("#grBody .gr-row")];
+  [["STAT 363", "3", "AA", ""], ["MATH 219", "3", "BB", ""], ["PHYS 105", "3", "CB", ""], ["CENG 100", "3", "BA", "FF"]].forEach(([n, c, g, o], i) => {
+    setVal(grRows[i].querySelector('[data-f="name"]'), n); setVal(grRows[i].querySelector('[data-f="credit"]'), c);
+    setVal(grRows[i].querySelector('[data-f="grade"]'), g); if (o) setVal(grRows[i].querySelector('[data-f="old"]'), o);
+  });
+  eq("the window shows the term GPA 3.25 and the CGPA 2.86 over 71 credits", [$("grSum").textContent.includes("2.86"), $("grSum").textContent.includes("3.25"), $("grSum").textContent.includes("71")], [true, true, true]);
+  setVal($("grTarget"), "3");
+  eq("a target with nothing left to grade says so", $("grSum").textContent.includes("Notu girilmemiş ders yok"), true);
+  $("mForm").dispatchEvent(new w.Event("submit", { cancelable: true, bubbles: true })); await wait(150);
+  eq("saved: one term with four courses and the previous total", [w.eval("S.gradeTerms.length"), w.eval("S.gradeTerms[0].courses.length"), w.eval("S.gradeBase.credits"), w.eval("S.gradeTerms[0].courses[3].old")], [1, 4, 62, "FF"]);
+  $("gradesBtn").click(); await wait(80);
+  eq("reopening shows what was saved", [d.querySelectorAll("#grBody .gr-row").length, $("grBaseK").value, $("grSum").textContent.includes("2.86")], [4, "62", true]);
+  $("grScn").checked = true; fire($("grScn"), "change");
+  eq("what-if mode adds a scenario grade to every course", d.querySelectorAll("#grBody .gr-scn").length, 4);
+  const scnRow = d.querySelector("#grBody .gr-row"); setVal(scnRow.querySelector('[data-f="scn"]'), "FF");
+  eq("a scenario grade changes the shown CGPA and keeps the real one", [$("grSum").textContent.includes("senaryo"), $("grSum").textContent.includes("gerçek 2.86")], [true, true]);
+  key("Escape"); await wait(60);
+  w.eval('S.gradeTerms.forEach(t => S.store.del("grades", t.id)); S.store.del("grades", "base")'); await wait(100);
+
   /* statistics window */
   w.eval('S.store.set("focus", "f1", { date: S.TODAY, start: Date.now(), mins: 25, title: "x", cat: "ders" })'); await wait(80);
   $("statsBtn").click(); await wait(80);

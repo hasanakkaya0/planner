@@ -20,6 +20,7 @@ and can be added to the iPhone home screen like a native app.
 - **Swipe on a phone:** right = done, left = move to tomorrow (on a mouse the same actions are the row buttons, now always faintly visible).
 - **Reminders** (Settings → Hatırlatmalar…): a class / block is announced a few minutes before it starts; exams and deadlines the morning of the day (08:00) and the evening before (20:00). Works while the app (or its tab) is open: it checks every ~30 s and uses a system notification when permitted, otherwise an in-app message. The choice is per device.
 - **End of term** (Settings → Dönem sonu…): end the weekly classes on a chosen day and clear old finished tasks (a backup has to be downloaded first). Past days stay as they were.
+- **Grades and averages** (graduation-cap button): ODTÜ letter system (AA 4.00 … FF 0, NA 0; S / U / EX / W and zero-credit courses are left out). A previous total (CGPA + credits), term cards with courses (credit, grade, old grade for a retake), the GPA of each term, the CGPA, a what-if "scenario" grade per course, a target CGPA with the average the ungraded credits must reach, and honour labels. A retaken course's new grade replaces the old one and its credit is not added again.
 - **Statistics** (chart button or `I`): focus time, finished tasks, habit completion and active days over the last 7 / 30 / 90 days, with daily bars and a per-category breakdown.
 - **Notes and sub-tasks:** any task can carry a note and a checklist; the row shows progress (`1/3`) and expands in place. Search also looks inside them.
 - **Recurring tasks:** "every Monday and Wednesday: gym". Each occurrence is ticked off separately; a single day can be skipped or the series ended.
@@ -92,6 +93,7 @@ service cloud.firestore {
 | `habitlog` | date | date, done {habitId: true} |
 | `settings` | `main` | cats, kinds, defaultCat, dayStart, dayEnd, upcomingDays, accent, focusMins, breakMins |
 | `focus` | random id | date, start, mins, title, cat, taskId |
+| `grades` | `base` / random id | `base`: cgpa, credits. A term: kind "term", name, order, courses [{id, name, credit, grade, old, scn}] |
 
 ## Author
 

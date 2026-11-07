@@ -96,6 +96,21 @@ eq("free gap: the longest of several, within 07-24", GD.bestFreeSlot([{ s: 540, 
 eq("free gap: today starts at the next quarter hour", GD.bestFreeSlot([], 7, 24, 9 * 60 + 7), { s: 555, e: 1440 });
 eq("free gap: nothing left after the end of the day range, or when gaps are under an hour", [GD.bestFreeSlot([], 7, 22, 22 * 60 + 5), GD.bestFreeSlot([{ s: 450, e: 1390 }], 7, 24, null)], [null, null]);
 eq("free gap: 06-22 counts the early hours too, and picks the longest (here the afternoon)", [GD.bestFreeSlot([{ s: 600, e: 660 }], 6, 22, null), GD.bestFreeSlot([{ s: 480, e: 1200 }], 6, 22, null)], [{ s: 660, e: 1320 }, { s: 360, e: 480 }]);
+/* grades: the numbers of the metugpa.com worked example (2.65 / 62 credits, three new courses and a retake) */
+const GR = { base: { cgpa: 2.65, credits: 62 }, terms: [{ courses: [
+  { credit: 3, grade: "AA" }, { credit: 3, grade: "BB" }, { credit: 3, grade: "CB" }, { credit: 3, grade: "BA", old: "FF" }] }] };
+const gs = GD.gpaStats(GR, false);
+eq("grades: term GPA counts the retaken course at its new grade (3.25)", GD.round2(gs.terms[0].gpa), 3.25);
+eq("grades: CGPA replaces the old grade and adds no credit for the retake (2.86 over 71 credits)", [GD.round2(gs.cgpa), gs.credits], [2.86, 71]);
+eq("grades: excluded letters and zero-credit courses are left out", GD.round2(GD.gpaStats({ terms: [{ courses: [{ credit: 4, grade: "AA" }, { credit: 3, grade: "S" }, { credit: 3, grade: "W" }, { credit: 0, grade: "FF" }, { credit: 2, grade: "CC" }] }] }).cgpa), 3.33);
+eq("grades: NA counts as zero", GD.round2(GD.gpaStats({ terms: [{ courses: [{ credit: 3, grade: "AA" }, { credit: 3, grade: "NA" }] }] }).cgpa), 2);
+eq("grades: no data gives null", [GD.gpaStats({ terms: [] }).cgpa, GD.gpaStats(null).credits], [null, 0]);
+const sc = { terms: [{ courses: [{ credit: 3, grade: "AA" }, { credit: 3, grade: "", scn: "BB" }, { credit: 4, grade: "CC", scn: "AA" }] }] };
+eq("grades: scenario fills ungraded courses and overrides real ones", [GD.round2(GD.gpaStats(sc, false).cgpa), GD.round2(GD.gpaStats(sc, true).cgpa), GD.gpaStats(sc, false).open, GD.gpaStats(sc, true).open], [2.86, 3.7, 3, 0]);
+const na = GD.neededAverage(GD.gpaStats({ base: { cgpa: 2.5, credits: 60 }, terms: [{ courses: [{ credit: 20, grade: "" }] }] }, false), 2.7);
+eq("grades: average needed on the open credits to end on a target CGPA", [na.state, GD.round2(na.needed), GD.letterFor(na.needed)], ["possible", 3.3, "BA"]);
+eq("grades: target states", [GD.neededAverage(GD.gpaStats({ base: { cgpa: 3.9, credits: 100 }, terms: [{ courses: [{ credit: 10, grade: "" }] }] }), 3.5).state, GD.neededAverage(GD.gpaStats({ base: { cgpa: 1.5, credits: 100 }, terms: [{ courses: [{ credit: 5, grade: "" }] }] }), 3.5).state, GD.neededAverage(GD.gpaStats({ base: { cgpa: 3, credits: 10 }, terms: [{ courses: [{ credit: 3, grade: "AA" }] }] }), 3.5).state], ["reached", "impossible", "none"]);
+eq("grades: honour labels", [GD.honorOf(3.5), GD.honorOf(3.2), GD.honorOf(2.99), GD.honorOf(null)], ["Yüksek onur", "Onur", null, null]);
 /* greeting, day progress, category icons */
 eq("greeting by hour", [4, 5, 11, 12, 17, 18, 21, 22, 0].map(GD.greeting), ["İyi geceler", "Günaydın", "Günaydın", "İyi günler", "İyi günler", "İyi akşamlar", "İyi akşamlar", "İyi geceler", "İyi geceler"]);
 eq("dayProgress counts tasks and ticked habits", [GD.dayProgress([{ done: true }, { done: false }], [{ id: "h1" }, { id: "h2" }], { h1: true }), GD.dayProgress([], [], {})], [{ done: 2, total: 4, pct: 50 }, { done: 0, total: 0, pct: null }]);
@@ -360,7 +375,7 @@ throws("empty", () => GD.normalizeBackup(null), /boş/);
 throws("corrupt section", () => GD.normalizeBackup({ app: "planner", data: { tasks: [1, 2] } }), /tasks/);
 {
   const n = GD.normalizeBackup({ app: "gun-defteri", data: { tasks: { ok: { title: "a" }, "bad/id": { title: "b" } }, other: { x: {} } } });
-  eq("invalid ids and unknown sections dropped", [Object.keys(n.tasks), Object.keys(n).length], [["ok"], 7]);
+  eq("invalid ids and unknown sections dropped", [Object.keys(n.tasks), Object.keys(n).length], [["ok"], 8]);
   eq("yeni adla yedek", Object.keys(GD.normalizeBackup({ app: "planner", data: { habits: { h: { name: "x" } } } }).habits), ["h"]);
 }
 

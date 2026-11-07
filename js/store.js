@@ -12,14 +12,15 @@
 (function (root) {
   "use strict";
 
-  var COLS = ["tasks", "habits", "habitlog", "days", "recurring", "settings", "focus"];
+  var COLS = ["tasks", "habits", "habitlog", "days", "recurring", "settings", "focus", "grades"];
   var QUERY = {
     tasks: { order: ["createdAt", "desc"], limit: 3000 },
     habits: { order: ["order", "asc"], limit: 100 },
     habitlog: { order: ["date", "desc"], limit: 1500 },
     recurring: { order: ["createdAt", "asc"], limit: 200 },
     days: { order: ["date", "desc"], limit: 1000 },
-    focus: { order: ["start", "desc"], limit: 3000 }
+    focus: { order: ["start", "desc"], limit: 3000 },
+    grades: { order: ["order", "asc"], limit: 200 }
   };
   var BATCH = 400;   /* Firestore allows 500 writes per batch */
   var LS_KEY = "gunDefteri.v1";

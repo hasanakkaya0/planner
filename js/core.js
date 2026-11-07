@@ -321,6 +321,58 @@
     return { mode: "weekly", count: weekCount(logs, h.id, sel), target: target, weeks: weekStreak(logs, h.id, sel, target) };
   }
 
+  /* ---------- grades (ODTÜ letter system, 4.00 scale) ----------
+     Points: AA 4, BA 3.5, BB 3, CB 2.5, CC 2, DC 1.5, DD 1, FD 0.5, FF 0, NA 0.
+     S / U / EX / W and zero-credit courses are left out of the averages (as the METU calculators do).
+     A retaken course ("old" grade): the new grade replaces the old one in the cumulative average and its credit is
+     not added again (the old attempt is assumed to be in the "previous" total). */
+  var GRADE_POINTS = { AA: 4, BA: 3.5, BB: 3, CB: 2.5, CC: 2, DC: 1.5, DD: 1, FD: 0.5, FF: 0, NA: 0 };
+  var GRADE_LETTERS = ["AA", "BA", "BB", "CB", "CC", "DC", "DD", "FD", "FF", "NA"];
+  var GRADE_OTHER = ["S", "U", "EX", "W"];
+  function gradePoint(g) { return Object.prototype.hasOwnProperty.call(GRADE_POINTS, g) ? GRADE_POINTS[g] : null; }
+  function round2(x) { return Math.round(x * 100) / 100; }
+
+  /* input: {base: {cgpa, credits} | null, terms: [{courses: [{credit, grade, old, scn}]}]}
+     scenario true: a course's `scn` grade (what-if) replaces its real grade, and also fills a course without one.
+     → {terms: [{gpa, credits}], cgpa, credits, points, open: credits of courses without a counted grade, openCount} */
+  function gpaStats(input, scenario) {
+    var base = input && input.base ? input.base : null;
+    var baseCredits = base && +base.credits > 0 ? +base.credits : 0;
+    var points = baseCredits && +base.cgpa >= 0 ? +base.cgpa * baseCredits : 0;
+    var credits = baseCredits, open = 0, openCount = 0;
+    var terms = ((input && input.terms) || []).map(function (t) {
+      var tp = 0, tc = 0;
+      (t.courses || []).forEach(function (c) {
+        var cr = +c.credit || 0;
+        if (cr <= 0) return;
+        var g = scenario && c.scn ? c.scn : c.grade;
+        var gp = gradePoint(g);
+        if (gp == null) { if (!GRADE_OTHER.includes(g)) { open += cr; openCount++; } return; }
+        tp += cr * gp; tc += cr;
+        var old = gradePoint(c.old);
+        if (old != null) { points += cr * (gp - old); }   /* retake: replace, no new credit */
+        else { points += cr * gp; credits += cr; }
+      });
+      return { gpa: tc ? tp / tc : null, credits: tc };
+    });
+    return { terms: terms, cgpa: credits ? points / credits : null, credits: credits, points: points, open: open, openCount: openCount };
+  }
+  /* What average the courses still without a grade must reach to end on the target CGPA.
+     {needed, state: "reached" | "possible" | "impossible" | "none"}  (none: nothing left to grade) */
+  function neededAverage(stats, target) {
+    if (!(target > 0) || stats.cgpa == null) return { needed: null, state: "none" };
+    if (!(stats.open > 0)) return { needed: null, state: "none" };
+    var needed = (target * (stats.credits + stats.open) - stats.points) / stats.open;
+    return { needed: needed, state: needed <= 0 ? "reached" : needed > 4 ? "impossible" : "possible" };
+  }
+  /* "Yüksek onur" from 3.50, "Onur" from 3.00 (semester average) */
+  function honorOf(gpa) { return gpa == null ? null : gpa >= 3.5 ? "Yüksek onur" : gpa >= 3 ? "Onur" : null; }
+  /* The nearest letter grade whose point is at or above an average (for "you need about a CB") */
+  function letterFor(avg) {
+    for (var i = GRADE_LETTERS.length - 1; i >= 0; i--) { if (GRADE_POINTS[GRADE_LETTERS[i]] >= avg - 1e-9 && GRADE_LETTERS[i] !== "NA") return GRADE_LETTERS[i]; }
+    return "AA";
+  }
+
   /* Greeting for an hour of the day (0-23) */
   function greeting(hour) {
     return hour >= 5 && hour < 12 ? "Günaydın" : hour >= 12 && hour < 18 ? "İyi günler" : hour >= 18 && hour < 22 ? "İyi akşamlar" : "İyi geceler";
@@ -643,7 +695,7 @@
   function normalizeBackup(obj) {
     if (!obj || typeof obj !== "object") throw new Error("Dosya boş ya da JSON değil.");
     if (obj.app !== "planner" && obj.app !== "gun-defteri") throw new Error("Bu dosya Planner yedeği değil."); // gun-defteri: eski ad
-    var out = { tasks: {}, habits: {}, habitlog: {}, days: {}, recurring: {}, settings: {}, focus: {} };
+    var out = { tasks: {}, habits: {}, habitlog: {}, days: {}, recurring: {}, settings: {}, focus: {}, grades: {} };
     Object.keys(out).forEach(function (c) {
       var src = obj.data && obj.data[c];
       if (!src) return;
@@ -664,7 +716,7 @@
     daySummary: daySummary,
     toMin: toMin, fmtMin: fmtMin, durText: durText, blockError: blockError,
     recurringOn: recurringOn, blocksForDay: blocksForDay, lanes: lanes, freeSlots: freeSlots, bestFreeSlot: bestFreeSlot, plannedMinutes: plannedMinutes,
-    visibleTasks: visibleTasks, greeting: greeting, dayProgress: dayProgress, catIcon: catIcon, nextUp: nextUp, dueReminders: dueReminders, activeSeries: activeSeries, oldDoneTasks: oldDoneTasks, statsRange: statsRange, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
+    visibleTasks: visibleTasks, gpaStats: gpaStats, neededAverage: neededAverage, honorOf: honorOf, letterFor: letterFor, round2: round2, gradePoint: gradePoint, GRADE_LETTERS: GRADE_LETTERS, GRADE_OTHER: GRADE_OTHER, greeting: greeting, dayProgress: dayProgress, catIcon: catIcon, nextUp: nextUp, dueReminders: dueReminders, activeSeries: activeSeries, oldDoneTasks: oldDoneTasks, statsRange: statsRange, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
     doneOn: doneOn, streak: streak, weekCount: weekCount, weekStreak: weekStreak, habitProgress: habitProgress,
     normalizeBackup: normalizeBackup,
     COLORS: COLORS, ACCENTS: ACCENTS, UPC_DAYS: UPC_DAYS, DEFAULT_SETTINGS: DEFAULT_SETTINGS,
