@@ -1120,3 +1120,34 @@ li.task[data-swipe="left"]::after{right:-92px}
 .pal .dots{display:inline-flex}
 .pal .dots i{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--card-2);margin-left:-4px}
 .pal .dots i:first-child{margin-left:0}
+
+/* ---------- type scale: bigger contrast between values, titles and small labels ---------- */
+.datehead h1{font-size:clamp(24px,5vw,32px);font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.datehead .sub{font-size:12.5px;font-weight:500}
+.brand{font-weight:800;letter-spacing:-.03em}
+.panel>header h2{font-size:12.5px;font-weight:800;letter-spacing:.13em}
+.panel>header .count{font-weight:600}
+/* small caps-like labels */
+.wd .dn,.tgroup>h3,.st-tile span,.st-h,.mo-dn,.wk-day .dn,.axis{font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.st-tile span{font-size:10.5px;color:var(--ink-faint)}
+.st-h{font-size:11px}
+/* numbers: large and heavy */
+.wd .dd{font-family:var(--f-display);font-size:19px;font-weight:700;letter-spacing:-.02em}
+.mo-num{font-size:15px;font-weight:800}
+.st-tile b{font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.stat{font-size:12.5px}
+.stat b{font-weight:800}
+.nb-main b{font-weight:800;letter-spacing:-.01em}
+.nb-chip b{font-weight:800}
+.ring text{font-weight:800}
+.blk .bh{font-weight:600;letter-spacing:0}
+.blk .bt{font-weight:700;letter-spacing:-.005em}
+/* titles of things: a clear step between the title and its meta line */
+li.task .tx .tt{font-weight:550}
+li.task.done .tx .tt{font-weight:450}
+li.habit .hn{font-weight:550}
+.pill{font-weight:600;letter-spacing:.03em}
+.btn{font-weight:700;letter-spacing:.005em}
+.modal header h2{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.field>span{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.set-sec h3{letter-spacing:.12em}
