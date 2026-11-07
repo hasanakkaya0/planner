@@ -1261,3 +1261,13 @@ li.empty .art{margin-bottom:6px}
   .gr-row,.gr-row:has(.gr-scn){grid-template-columns:minmax(0,1fr) 60px 70px 70px auto}
   .gr-row .gr-scn{grid-column:1/-1}
 }
+.gr-tabs{margin-bottom:12px;width:max-content;max-width:100%}
+.gr-tools{display:flex;align-items:center;gap:14px;margin:2px 0 8px}
+.gr-tools .sp{flex:1}
+.gr-term>header .gr-chev{width:26px;height:26px;border-radius:7px;color:var(--ink-soft);font-size:calc(14px * var(--fs,1));flex:0 0 auto}
+.gr-term>header .gr-chev:hover{background:var(--card-2);color:var(--accent)}
+.gr-tname-btn{font-weight:700;font-size:calc(14.5px * var(--fs,1));text-align:left;color:var(--ink);padding:2px 4px;border-radius:6px}
+.gr-tname-btn:hover{color:var(--accent)}
+.gr-term.collapsed{padding:6px 10px;background:var(--card-2)}
+.gr-term.collapsed>header{margin-bottom:0}
+.gr-term.collapsed .gr-tsum{margin-left:auto}

@@ -1,24 +1,31 @@
-/* Planner — UI: grades and averages (ODTÜ letter system). A window with the previous total (CGPA + credits),
-   term cards with their courses (credit, grade, old grade for a retake, a what-if "scenario" grade), the GPA of each
-   term, the CGPA, and the average the open credits must reach for a target CGPA. The numbers come from
-   GD.gpaStats / GD.neededAverage. Stored in the `grades` collection: a "base" document and one document per term.
+/* Planner — UI: grades and averages (ODTÜ letter system). Two tabs in one window:
+   "Notlarım" — your own transcript (previous total, terms with courses; saved and synced), and
+   "Hızlı hesap" — the same calculator for anybody else's grades (a friend's): not saved, kept only until the page is reloaded.
+   Each term card can be collapsed. The numbers come from GD.gpaStats / GD.neededAverage.
+   Stored in the `grades` collection: a "base" document and one document per term.
    Shared mutable state lives on S and shared functions on App (both created in app-state.js). */
 (function () {
   "use strict";
   const f2 = (x) => (x == null ? "–" : (Math.round(x * 100) / 100).toFixed(2));
   const letterOpts = (cur, withOther, blank) => '<option value="">' + blank + "</option>" +
     GD.GRADE_LETTERS.concat(withOther ? GD.GRADE_OTHER : []).map((g) => '<option value="' + g + '"' + (g === cur ? " selected" : "") + ">" + g + "</option>").join("");
+  const newCourse = () => ({ id: uid(), name: "", credit: "", grade: "", old: "", scn: "" });
+  const newTerm = (n) => ({ id: uid(), name: n + ". Dönem", courses: [newCourse()], collapsed: false });
+  const emptyDraft = () => ({ base: { cgpa: "", credits: "" }, terms: [newTerm(1)], scenario: false, target: "" });
 
-  function openGrades() {
-    const nid = () => uid();
-    /* a working copy: nothing is stored until "Kaydet" */
-    const draft = {
+  let quickDraft = emptyDraft();   /* the friend's calculator survives closing the window, not a page reload */
+
+  function openGrades(startTab) {
+    let tab = startTab === "quick" ? "quick" : "mine";
+    /* your own data: a working copy, nothing is stored until "Kaydet"; older terms start collapsed */
+    const mine = {
       base: { cgpa: S.gradeBase ? S.gradeBase.cgpa : "", credits: S.gradeBase ? S.gradeBase.credits : "" },
-      terms: S.gradeTerms.map((t) => ({ id: t.id, name: t.name, courses: t.courses.map((c) => Object.assign({}, c)) })),
+      terms: S.gradeTerms.map((t, i, all) => ({ id: t.id, name: t.name, courses: t.courses.map((c) => Object.assign({}, c)), collapsed: all.length > 1 && i < all.length - 1 })),
       scenario: false,
       target: (() => { try { return localStorage.getItem("gunDefteri.gradeTarget") || ""; } catch (e) { return ""; } })()
     };
-    if (!draft.terms.length) draft.terms.push({ id: nid(), name: "1. Dönem", courses: [{ id: nid(), name: "", credit: "", grade: "", old: "", scn: "" }] });
+    if (!mine.terms.length) mine.terms.push(newTerm(1));
+    let draft = tab === "quick" ? quickDraft : mine;
 
     const input = () => ({ base: { cgpa: draft.base.cgpa === "" ? null : +draft.base.cgpa, credits: +draft.base.credits || 0 },
       terms: draft.terms.map((t) => ({ courses: t.courses.map((c) => ({ credit: +c.credit || 0, grade: c.grade, old: c.old, scn: c.scn })) })) });
@@ -42,11 +49,17 @@
         '<label class="gr-target"><span>Hedef GANO</span><input type="number" id="grTarget" min="0" max="4" step="0.01" placeholder="ör. 3.00" value="' + esc(draft.target) + '"></label>' +
         '<p class="gr-need">' + needTxt + "</p>";
     }
-    function termFootHtml(i) {
+    function termSumText(i) {
       const st = GD.gpaStats(input(), draft.scenario).terms[i];
-      return st && st.gpa != null ? "Dönem GPA <b>" + f2(st.gpa) + "</b> · " + st.credits + " kredi" + (GD.honorOf(st.gpa) ? " · " + GD.honorOf(st.gpa) : "") : "Notu girilen ders yok";
+      return st && st.gpa != null ? "GPA <b>" + f2(st.gpa) + "</b> · " + st.credits + " kredi" + (GD.honorOf(st.gpa) ? " · " + GD.honorOf(st.gpa) : "") : "notu girilen ders yok";
     }
     function termHtml(t, i) {
+      const open = !t.collapsed;
+      const head = '<button type="button" class="gr-chev" data-toggle-term="' + i + '" aria-expanded="' + open + '" aria-label="' + (open ? "Dönemi kapat" : "Dönemi aç") + '">' + (open ? "▾" : "▸") + "</button>" +
+        (open
+          ? '<input type="text" class="gr-tname" data-tname="' + i + '" maxlength="30" value="' + esc(t.name) + '" aria-label="Dönem adı"><button type="button" class="linkbtn" data-del-term="' + i + '">Dönemi sil</button>'
+          : '<button type="button" class="gr-tname-btn" data-toggle-term="' + i + '">' + esc(t.name) + '</button><span class="gr-tsum" id="grTerm' + i + '">' + termSumText(i) + "</span>");
+      if (!open) return '<section class="gr-term collapsed"><header>' + head + "</header></section>";
       const rows = t.courses.map((c, j) =>
         '<div class="gr-row" data-t="' + i + '" data-c="' + j + '">' +
           '<input type="text" class="gr-name" data-f="name" maxlength="40" placeholder="Ders (ör. STAT 363)" value="' + esc(c.name) + '" autocomplete="off">' +
@@ -55,43 +68,53 @@
           '<select data-f="old" aria-label="Eski not (tekrar)" title="Bu dersi tekrar alıyorsan eski notu">' + letterOpts(c.old, false, "Eski –") + "</select>" +
           (draft.scenario ? '<select data-f="scn" class="gr-scn" aria-label="Senaryo notu" title="Ya olursa: bu notu alırsam">' + letterOpts(c.scn, true, "Ya olursa –") + "</select>" : "") +
           '<button type="button" class="gr-x" data-del-course aria-label="Dersi sil">×</button></div>').join("");
-      return '<section class="gr-term"><header><input type="text" class="gr-tname" data-tname="' + i + '" maxlength="30" value="' + esc(t.name) + '" aria-label="Dönem adı">' +
-        '<button type="button" class="linkbtn" data-del-term="' + i + '">Dönemi sil</button></header>' + rows +
-        '<div class="gr-foot"><button type="button" class="linkbtn" data-add-course="' + i + '">+ Ders ekle</button><span class="gr-tsum" id="grTerm' + i + '">' + termFootHtml(i) + "</span></div></section>";
+      return '<section class="gr-term"><header>' + head + "</header>" + rows +
+        '<div class="gr-foot"><button type="button" class="linkbtn" data-add-course="' + i + '">+ Ders ekle</button><span class="gr-tsum" id="grTerm' + i + '">Dönem ' + termSumText(i) + "</span></div></section>";
     }
     function bodyHtml() {
-      return '<div class="gr-sum" id="grSum">' + summaryHtml() + "</div>" +
+      const tabs = '<div class="seg gr-tabs" role="tablist" aria-label="Notlar"><button type="button" role="tab" data-gr-tab="mine" aria-selected="' + (tab === "mine") + '">Notlarım</button>' +
+        '<button type="button" role="tab" data-gr-tab="quick" aria-selected="' + (tab === "quick") + '">Hızlı hesap</button></div>';
+      const quickNote = tab === "quick" ? '<p class="info">Arkadaşının ya da denemek istediğin notlar için. <b>Kaydedilmez</b> ve senin notlarına karışmaz; sayfayı yenileyince silinir.</p>' : "";
+      const tools = draft.terms.length > 1 || tab === "quick"
+        ? '<div class="gr-tools">' + (draft.terms.length > 1 ? '<button type="button" class="linkbtn" data-collapse="all">Hepsini kapat</button><button type="button" class="linkbtn" data-collapse="none">Hepsini aç</button>' : "") +
+          (tab === "quick" ? '<span class="sp"></span><button type="button" class="linkbtn" id="grClear">Temizle</button>' : "") + "</div>" : "";
+      return tabs + quickNote + '<div class="gr-sum" id="grSum">' + summaryHtml() + "</div>" +
         '<label class="check gr-scn-toggle"><input type="checkbox" id="grScn"' + (draft.scenario ? " checked" : "") + '> Ya olursa modu (notu girilmemiş derslere ve hâlihazırdaki notlara senaryo notu ver)</label>' +
         '<details class="gr-base"' + (draft.base.credits || draft.base.cgpa ? " open" : "") + '><summary>Önceki toplam (bu listede olmayan dönemler)</summary><div class="row">' +
           '<label class="field"><span>GANO</span><input type="number" id="grBaseC" min="0" max="4" step="0.01" placeholder="ör. 2.65" value="' + esc(draft.base.cgpa) + '"></label>' +
           '<label class="field"><span>Toplam kredi</span><input type="number" id="grBaseK" min="0" step="0.5" placeholder="ör. 62" value="' + esc(draft.base.credits) + '"></label></div>' +
           '<p class="set-hint">Tekrar aldığın dersin eski notu bu toplamda sayılıyor kabul edilir: yeni not eskisinin yerine geçer, kredisi ikinci kez eklenmez.</p></details>' +
-        '<div id="grTerms">' + draft.terms.map(termHtml).join("") + "</div>" +
+        tools + '<div id="grTerms">' + draft.terms.map(termHtml).join("") + "</div>" +
         '<button type="button" class="btn-ghost" id="grAddTerm">+ Dönem ekle</button>';
     }
     function refresh() {
       $("grSum").innerHTML = summaryHtml();
-      draft.terms.forEach((t, i) => { const el = $("grTerm" + i); if (el) el.innerHTML = termFootHtml(i); });
+      draft.terms.forEach((t, i) => { const el = $("grTerm" + i); if (el) el.innerHTML = (t.collapsed ? "" : "Dönem ") + termSumText(i); });
     }
-    function rebuild() { $("grBody").innerHTML = bodyHtml(); }
+    function rebuild() {
+      $("grBody").innerHTML = bodyHtml();
+      const save = $("modal").querySelector('footer button[type="submit"]');
+      if (save) save.hidden = tab === "quick";   /* the friend's calculator is never saved */
+    }
 
-    App.openModal("Notlar ve ortalama", '<div id="grBody">' + bodyHtml() + "</div>",
+    App.openModal("Notlar ve ortalama", '<div id="grBody"></div>',
       '<button type="submit" class="btn">Kaydet</button><button type="button" class="btn-ghost" data-close>Kapat</button>', () => {
-        if (!App.guard()) return;
+        if (tab !== "mine" || !App.guard()) return;
         const keep = new Set();
-        draft.terms.forEach((t, i) => {
+        mine.terms.forEach((t, i) => {
           const courses = t.courses.filter((c) => c.name.trim() || +c.credit > 0)
             .map((c) => ({ id: c.id, name: c.name.trim(), credit: +c.credit || 0, grade: c.grade || "", old: c.old || "", scn: c.scn || "" }));
           keep.add(t.id);
           App.w(S.store.set("grades", t.id, { kind: "term", name: t.name.trim() || (i + 1) + ". Dönem", order: i, courses: courses, createdAt: Date.now() }));
         });
         S.gradeTerms.forEach((t) => { if (!keep.has(t.id)) App.w(S.store.del("grades", t.id)); });
-        const hasBase = draft.base.credits !== "" || draft.base.cgpa !== "";
-        if (hasBase) App.w(S.store.set("grades", "base", { kind: "base", order: -1, cgpa: +draft.base.cgpa || 0, credits: +draft.base.credits || 0 }));
+        const hasBase = mine.base.credits !== "" || mine.base.cgpa !== "";
+        if (hasBase) App.w(S.store.set("grades", "base", { kind: "base", order: -1, cgpa: +mine.base.cgpa || 0, credits: +mine.base.credits || 0 }));
         else if (S.gradeBase) App.w(S.store.del("grades", "base"));
-        try { if (draft.target) localStorage.setItem("gunDefteri.gradeTarget", draft.target); else localStorage.removeItem("gunDefteri.gradeTarget"); } catch (e) { /* none */ }
+        try { if (mine.target) localStorage.setItem("gunDefteri.gradeTarget", mine.target); else localStorage.removeItem("gunDefteri.gradeTarget"); } catch (e) { /* none */ }
         App.closeModal(); App.toast("Notlar kaydedildi");
       }, true);
+    rebuild();
 
     const M = $("modal");
     M.addEventListener("input", (e) => {
@@ -108,10 +131,15 @@
     M.addEventListener("change", (e) => { if (e.target.id === "grScn") { draft.scenario = e.target.checked; rebuild(); } else if (e.target.dataset && e.target.dataset.f) refresh(); });
     M.addEventListener("click", (e) => {
       let x;
-      if ((x = e.target.closest("[data-add-course]"))) { draft.terms[+x.dataset.addCourse].courses.push({ id: nid(), name: "", credit: "", grade: "", old: "", scn: "" }); rebuild(); }
+      if ((x = e.target.closest("[data-gr-tab]"))) { tab = x.dataset.grTab; draft = tab === "quick" ? quickDraft : mine; rebuild(); }
+      else if ((x = e.target.closest("[data-toggle-term]"))) { const t = draft.terms[+x.dataset.toggleTerm]; t.collapsed = !t.collapsed; rebuild(); }
+      else if ((x = e.target.closest("[data-collapse]"))) { draft.terms.forEach((t) => { t.collapsed = x.dataset.collapse === "all"; }); rebuild(); }
+      else if ((x = e.target.closest("[data-add-course]"))) { draft.terms[+x.dataset.addCourse].courses.push(newCourse()); rebuild(); }
       else if ((x = e.target.closest("[data-del-course]"))) { const r = x.closest(".gr-row"); draft.terms[+r.dataset.t].courses.splice(+r.dataset.c, 1); rebuild(); }
-      else if ((x = e.target.closest("[data-del-term]"))) { draft.terms.splice(+x.dataset.delTerm, 1); rebuild(); }
-      else if (e.target.closest("#grAddTerm")) { draft.terms.push({ id: nid(), name: (draft.terms.length + 1) + ". Dönem", courses: [{ id: nid(), name: "", credit: "", grade: "", old: "", scn: "" }] }); rebuild(); }
+      else if ((x = e.target.closest("[data-del-term]"))) { draft.terms.splice(+x.dataset.delTerm, 1); if (!draft.terms.length) draft.terms.push(newTerm(1)); rebuild(); }
+      else if (e.target.closest("#grAddTerm")) { if (tab === "mine") draft.terms.forEach((t) => { t.collapsed = true; });   /* the older terms fold away, the new one is open */
+        draft.terms.push(newTerm(draft.terms.length + 1)); rebuild(); }
+      else if (e.target.closest("#grClear")) { quickDraft = emptyDraft(); draft = quickDraft; rebuild(); }
     });
   }
 

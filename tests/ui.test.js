@@ -233,10 +233,29 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("saved: one term with four courses and the previous total", [w.eval("S.gradeTerms.length"), w.eval("S.gradeTerms[0].courses.length"), w.eval("S.gradeBase.credits"), w.eval("S.gradeTerms[0].courses[3].old")], [1, 4, 62, "FF"]);
   $("gradesBtn").click(); await wait(80);
   eq("reopening shows what was saved", [d.querySelectorAll("#grBody .gr-row").length, $("grBaseK").value, $("grSum").textContent.includes("2.86")], [4, "62", true]);
+  /* the friend's calculator: separate, never saved */
+  d.querySelector('[data-gr-tab="quick"]').click();
+  eq("the quick-calculator tab is empty, hides the save button and says it is not saved", [d.querySelectorAll("#grBody .gr-row").length, $("modal").querySelector('footer button[type="submit"]').hidden, $("modal").textContent.includes("Kaydedilmez")], [1, true, true]);
+  setVal($("grBaseC"), "3"); setVal($("grBaseK"), "40");
+  const qrow = d.querySelector("#grBody .gr-row"); setVal(qrow.querySelector('[data-f="credit"]'), "4"); setVal(qrow.querySelector('[data-f="grade"]'), "AA");
+  eq("a friend's numbers are calculated on their own (3.00 over 40 credits + AA x4)", $("grSum").textContent.includes("3.09"), true);
+  eq("and do not touch your own saved data", [w.eval("S.gradeBase.credits"), w.eval("S.gradeTerms[0].courses.length")], [62, 4]);
+  d.querySelector('[data-gr-tab="mine"]').click();
+  eq("back on your own tab your numbers are unchanged", [$("grBaseK").value, $("grSum").textContent.includes("2.86")], ["62", true]);
   $("grScn").checked = true; fire($("grScn"), "change");
   eq("what-if mode adds a scenario grade to every course", d.querySelectorAll("#grBody .gr-scn").length, 4);
   const scnRow = d.querySelector("#grBody .gr-row"); setVal(scnRow.querySelector('[data-f="scn"]'), "FF");
   eq("a scenario grade changes the shown CGPA and keeps the real one", [$("grSum").textContent.includes("senaryo"), $("grSum").textContent.includes("gerçek 2.86")], [true, true]);
+  /* old terms fold away */
+  d.querySelector("#grAddTerm").click();
+  eq("adding a term folds the older ones and keeps the new one open", [d.querySelectorAll("#grBody .gr-term.collapsed").length, d.querySelectorAll("#grBody .gr-term:not(.collapsed)").length], [1, 1]);
+  eq("a folded term still shows its GPA (the scenario one: the first course is set to FF there, so 2.25)", d.querySelector("#grBody .gr-term.collapsed").textContent.includes("2.25"), true);
+  d.querySelector('[data-collapse="none"]').click();
+  eq("'Hepsini aç' opens every term", d.querySelectorAll("#grBody .gr-term.collapsed").length, 0);
+  d.querySelector('[data-collapse="all"]').click();
+  eq("'Hepsini kapat' folds every term", d.querySelectorAll("#grBody .gr-term:not(.collapsed)").length, 0);
+  d.querySelector("#grBody .gr-chev").click();
+  eq("a chevron toggles a single term", d.querySelectorAll("#grBody .gr-term:not(.collapsed)").length, 1);
   key("Escape"); await wait(60);
   w.eval('S.gradeTerms.forEach(t => S.store.del("grades", t.id)); S.store.del("grades", "base")'); await wait(100);
 
