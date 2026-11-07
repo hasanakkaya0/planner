@@ -22,8 +22,11 @@ const rows = [];
 const add = (theme, name, fg, bg, min) => { const r = ratio(fg, bg); rows.push({ theme, name, r: +r.toFixed(2), min, bad: r < min }); };
 const modes = (n) => (n.endsWith("light") ? [light, catsLight] : [dark, catsDark]);
 const sets = [["light", light, catsLight, accL], ["dark", dark, catsDark, accD], ["black", black, catsDark, accD]];
-Object.keys(palettes).forEach((n) => sets.push(["pal:" + n, Object.assign({}, modes(n)[0], palettes[n]), modes(n)[1], {}]));
-if (Object.keys(palettes).length !== 6) { console.log("✗ expected 6 palette variants (3 palettes × light / dark), found " + Object.keys(palettes).length); process.exit(1); }
+/* a palette may soften the category colours too */
+const palCats = {};
+css.replace(/:root\[data-palette="([a-z]+)"\]\[data-theme="(light|dark)"\] \.c-([a-z]+)\{--c:(#[0-9a-fA-F]{6});--c-soft:(#[0-9a-fA-F]{6})\}/g, (_, p, m, n, c, so) => { ((palCats[p + " " + m] = palCats[p + " " + m] || {})[n] = { c, soft: so }); });
+Object.keys(palettes).forEach((n) => sets.push(["pal:" + n, Object.assign({}, modes(n)[0], palettes[n]), Object.assign({}, modes(n)[1], palCats[n] || {}), {}]));
+if (Object.keys(palettes).length !== 8) { console.log("✗ expected 8 palette variants (4 palettes × light / dark), found " + Object.keys(palettes).length); process.exit(1); }
 for (const [tn, T, cats, accs] of sets) {
   add(tn, "ink / card", T.ink, T.card, 4.5);
   add(tn, "ink-soft / card", T["ink-soft"], T.card, 4.5);

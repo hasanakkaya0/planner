@@ -124,6 +124,10 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("and back", attrs(), ["sakiz", "dark"]);
   await choose("akuamarin", "light"); await save();
   eq("another palette in light", attrs(), ["akuamarin", "light"]);
+  await choose("sakin", "dark"); await save();
+  eq("the soft palette Sakin works in dark and light", [attrs()], [["sakin", "dark"]]);
+  key("k"); await wait(60);
+  eq("Sakin flips to its light variant", attrs(), ["sakin", "light"]);
   await choose("default", "system"); await save();
   eq("choosing Mor goes back to the normal themes", [root.hasAttribute("data-palette"), root.hasAttribute("data-theme"), w.localStorage.getItem("gunDefteri.palette")], [false, false, null]);
 

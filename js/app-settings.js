@@ -75,9 +75,10 @@
     ["default", "Mor", ["#5a4bd1", "#e9e5fd", "#fdfcff"]],
     ["mandalina", "Mandalina", ["#21232E", "#105BFF", "#FE8500"]],
     ["sakiz", "Sakız", ["#F0F0F0", "#5841FF", "#FF6AD2"]],
-    ["akuamarin", "Akuamarin", ["#171F44", "#74FFED", "#FE81D1"]]
+    ["akuamarin", "Akuamarin", ["#171F44", "#74FFED", "#FE81D1"]],
+    ["sakin", "Sakin", ["#ECE7DD", "#3D6B75", "#D4B27A"]]
   ];
-  const PALETTE_IDS = ["mandalina", "sakiz", "akuamarin"];
+  const PALETTE_IDS = ["mandalina", "sakiz", "akuamarin", "sakin"];
   function palettePref() {
     try { const p = localStorage.getItem("gunDefteri.palette"); return PALETTE_IDS.indexOf(p) >= 0 ? p : "default"; } catch (e) { return "default"; }
   }

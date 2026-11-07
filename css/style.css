@@ -173,6 +173,52 @@
   color-scheme:light;
 }
 
+/* Sakin: a soft palette. Light: warm greige instead of white; dark: soft charcoal, warm off-white text, muted pastels (no neon).
+   It also softens the category colours. */
+:root[data-palette="sakin"][data-theme="light"]{
+  --paper:#ECE7DD; --top:#F4F0E8; --card:#F8F5EE; --card-2:#F1ECE2;
+  --ink:#2E2B33; --ink-soft:#57525E; --ink-faint:#68636E;
+  --rule:#D9D2C5; --grid:#E3DDD0;
+  --accent:#3B6771; --accent-soft:#DCE8E6; --on-accent:#F8F5EE;
+  --moss:#3A6D51; --moss-soft:#DDEBDD;
+  --ochre:#855D20; --ochre-soft:#F3E5CC;
+  --rose:#A0434B; --rose-soft:#F4DDDD;
+  --tint-blue:#DCE6EA; --tint-lilac:#E5E0EC; --tint-mint:#DCE9DF; --tint-peach:#F2E0D3; --tint-butter:#F0E7CB;
+  --shadow:0 1px 2px rgba(60,50,40,.08), 0 8px 24px -16px rgba(60,50,40,.25);
+  --shadow-lg:0 2px 6px rgba(60,50,40,.1), 0 24px 60px -20px rgba(60,50,40,.35);
+  color-scheme:light;
+}
+:root[data-palette="sakin"][data-theme="dark"]{
+  --paper:#1E1F24; --top:#25262C; --card:#2A2B32; --card-2:#32333B;
+  --ink:#E6E2DA; --ink-soft:#B7B2AA; --ink-faint:#9A958E;
+  --rule:#3D3E47; --grid:#24252B;
+  --accent:#8DB8B0; --accent-soft:#2F4541; --on-accent:#1E1F24;
+  --moss:#93BFA1; --moss-soft:#2B3F33;
+  --ochre:#D4B27A; --ochre-soft:#40351F;
+  --rose:#D69A9A; --rose-soft:#4A2F31;
+  --tint-blue:#28353D; --tint-lilac:#33303E; --tint-mint:#2A3A33; --tint-peach:#3C2F2A; --tint-butter:#3A3526;
+  --scrim:rgba(10,10,14,.6);
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 28px -18px rgba(0,0,0,.7);
+  --shadow-lg:0 2px 6px rgba(0,0,0,.45), 0 24px 60px -20px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+:root[data-palette="sakin"][data-theme="light"] .c-blue{--c:#3D6694;--c-soft:#DDE7F1}
+:root[data-palette="sakin"][data-theme="light"] .c-violet{--c:#685897;--c-soft:#E6E0F0}
+:root[data-palette="sakin"][data-theme="light"] .c-green{--c:#3A6D51;--c-soft:#DDEBDD}
+:root[data-palette="sakin"][data-theme="light"] .c-amber{--c:#855D20;--c-soft:#F3E5CC}
+:root[data-palette="sakin"][data-theme="light"] .c-red{--c:#A0434B;--c-soft:#F4DDDD}
+:root[data-palette="sakin"][data-theme="light"] .c-pink{--c:#934A71;--c-soft:#F2DDE8}
+:root[data-palette="sakin"][data-theme="light"] .c-teal{--c:#356D6B;--c-soft:#D9EAE8}
+:root[data-palette="sakin"][data-theme="light"] .c-slate{--c:#5A6070;--c-soft:#E6E6EA}
+:root[data-palette="sakin"][data-theme="dark"] .c-blue{--c:#93AFD1;--c-soft:#2B3A4E}
+:root[data-palette="sakin"][data-theme="dark"] .c-violet{--c:#B2A6D1;--c-soft:#3A3550}
+:root[data-palette="sakin"][data-theme="dark"] .c-green{--c:#98C2A4;--c-soft:#2B4034}
+:root[data-palette="sakin"][data-theme="dark"] .c-amber{--c:#D9B97E;--c-soft:#433922}
+:root[data-palette="sakin"][data-theme="dark"] .c-red{--c:#D99A9A;--c-soft:#4A3032}
+:root[data-palette="sakin"][data-theme="dark"] .c-pink{--c:#D9A0BE;--c-soft:#4A3042}
+:root[data-palette="sakin"][data-theme="dark"] .c-teal{--c:#8CC0BE;--c-soft:#26403F}
+:root[data-palette="sakin"][data-theme="dark"] .c-slate{--c:#A9AEB9;--c-soft:#373A44}
+
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
