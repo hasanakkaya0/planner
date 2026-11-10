@@ -28,7 +28,7 @@
     let draft = tab === "quick" ? quickDraft : mine;
 
     const input = () => ({ base: { cgpa: draft.base.cgpa === "" ? null : +draft.base.cgpa, credits: +draft.base.credits || 0 },
-      terms: draft.terms.map((t) => ({ courses: t.courses.map((c) => ({ credit: +c.credit || 0, grade: c.grade, old: c.old, scn: c.scn })) })) });
+      terms: draft.terms.map((t) => ({ courses: t.courses.map((c) => ({ name: c.name, credit: +c.credit || 0, grade: c.grade, old: c.old, scn: c.scn })) })) });
 
     function summaryHtml() {
       const real = GD.gpaStats(input(), false), scn = draft.scenario ? GD.gpaStats(input(), true) : null, main = scn || real;
@@ -92,7 +92,7 @@
       const baseBox = quick
         ? '<section class="gr-base fixed"><h4 class="gr-h">Önceki dönemler</h4>' + baseFields + '<p class="set-hint">Şimdiye kadarki genel ortalaması ve toplam kredisi. Bu dönem tekrar aldığı dersin eski notunu derse yazarsan yeni not eskisinin yerine geçer, kredisi ikinci kez eklenmez.</p></section>'
         : '<details class="gr-base"' + (draft.base.credits || draft.base.cgpa ? " open" : "") + '><summary>Önceki toplam (bu listede olmayan dönemler)</summary>' + baseFields +
-          '<p class="set-hint">Tekrar aldığın dersin eski notu bu toplamda sayılıyor kabul edilir: yeni not eskisinin yerine geçer, kredisi ikinci kez eklenmez.</p></details>';
+          '<p class="set-hint">Tekrar aldığın derse “Eski” notunu yaz. İlk alışın bu listede aynı adla duruyorsa o satır genel ortalamadan çıkar, yenisi sayılır; listede yoksa önceki toplamda sayıldığı kabul edilir (yeni not eskisinin yerine geçer, kredi ikinci kez eklenmez).</p></details>';
       return tabs + quickNote + '<div class="gr-sum" id="grSum">' + summaryHtml() + "</div>" +
         '<label class="check gr-scn-toggle"><input type="checkbox" id="grScn"' + (draft.scenario ? " checked" : "") + '> Ya olursa modu (notu girilmemiş derslere ve hâlihazırdaki notlara senaryo notu ver)</label>' +
         baseBox + tools + '<div id="grTerms">' + draft.terms.map(termHtml).join("") + "</div>" +
@@ -128,7 +128,7 @@
     rebuild();
 
     const M = $("modal");
-    M.addEventListener("input", (e) => {
+    M.oninput = (e) => {
       const el = e.target;
       if (el.id === "grBaseC") draft.base.cgpa = el.value;
       else if (el.id === "grBaseK") draft.base.credits = el.value;
@@ -138,9 +138,9 @@
       else return;
       if (el.id === "grTarget") $("grSum").querySelector(".gr-need").outerHTML = summaryHtml().match(/<p class="gr-need">[\s\S]*<\/p>/)[0];
       else refresh();
-    });
-    M.addEventListener("change", (e) => { if (e.target.id === "grScn") { draft.scenario = e.target.checked; rebuild(); } else if (e.target.dataset && e.target.dataset.f) refresh(); });
-    M.addEventListener("click", (e) => {
+    };
+    M.onchange = (e) => { if (e.target.id === "grScn") { draft.scenario = e.target.checked; rebuild(); } else if (e.target.dataset && e.target.dataset.f) refresh(); };
+    M.onclick = (e) => {
       let x;
       if ((x = e.target.closest("[data-gr-tab]"))) { tab = x.dataset.grTab; draft = tab === "quick" ? quickDraft : mine; rebuild(); }
       else if ((x = e.target.closest("[data-toggle-term]"))) { const t = draft.terms[+x.dataset.toggleTerm]; t.collapsed = !t.collapsed; rebuild(); }
@@ -151,7 +151,7 @@
       else if (e.target.closest("#grAddTerm")) { if (tab === "mine") draft.terms.forEach((t) => { t.collapsed = true; });   /* the older terms fold away, the new one is open */
         draft.terms.push(newTerm(draft.terms.length + 1)); rebuild(); }
       else if (e.target.closest("#grClear")) { quickDraft = emptyDraft(); draft = quickDraft; rebuild(); }
-    });
+    };
   }
 
   /* shared with the other app-*.js files */

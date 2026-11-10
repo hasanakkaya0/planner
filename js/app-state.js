@@ -16,6 +16,7 @@ S.sel = S.TODAY;
 S.store = null;
 S.writable = true;
 S.tasks = [];
+S.tasksLoaded = false;   /* the first task list has arrived from the store */
 S.rtasks = [];
 S.habits = [];
 S.logs = {};

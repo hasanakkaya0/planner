@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node tests/core.test.js && node tests/store.test.js && node tests/colors.test.js && node build.js && node tests/ui.test.js",
     "build": "node build.js",
-    "check": "npm test"
+    "check": "npm test",
+    "dev": "node tools/dev-server.js"
   },
   "engines": {
     "node": ">=18"

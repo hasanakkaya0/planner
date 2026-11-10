@@ -30,6 +30,21 @@ console.log("version " + VER);
 const html = R("index.html");
 const m = html.match(/<!-- BODY START -->([\s\S]*?)<!-- BODY END -->/);
 if (!m) throw new Error("index.html is missing the BODY START / BODY END markers.");
+
+/* ---- the three lists of app files must agree: APP_FILES (here), the <script> tags of index.html, SHELL in sw.js.
+   A file missing from index.html never loads; one missing from sw.js is not available offline. ---- */
+{
+  const inIndex = [...html.matchAll(/<script src="(js\/[^"?]+)/g)].map((x) => x[1]);
+  const shell = (R("sw.js").match(/const SHELL = \[([^\]]*)\]/) || ["", ""])[1];
+  const inSw = (shell.match(/"[^"]+"/g) || []).map((x) => x.slice(1, -1));
+  const onDisk = fs.readdirSync(path.join(__dirname, "js")).filter((f) => /^app.*\.js$/.test(f)).map((f) => "js/" + f);
+  const problems = [];
+  if (JSON.stringify(inIndex.filter((f) => APP_FILES.includes(f))) !== JSON.stringify(APP_FILES)) problems.push("index.html <script> tags do not list APP_FILES in the same order");
+  onDisk.forEach((f) => { if (!APP_FILES.includes(f)) problems.push(f + " exists but is not in APP_FILES (build.js)"); });
+  inIndex.forEach((f) => { if (!inSw.includes(f)) problems.push(f + " is loaded by index.html but missing from SHELL in sw.js"); });
+  ["css/style.css", "fonts/plus-jakarta-sans-latin.woff2", "fonts/plus-jakarta-sans-latin-ext.woff2", "manifest.webmanifest"].forEach((f) => { if (!inSw.includes(f)) problems.push(f + " is missing from SHELL in sw.js"); });
+  if (problems.length) throw new Error("File lists disagree:\n  - " + problems.join("\n  - "));
+}
 /* the single-file build has no folders: the fonts are inlined into the CSS as data URIs */
 const css = R("css/style.css").replace(/url\(\.\.\/(fonts\/[^)]+)\)/g, (_, f) => "url(data:font/woff2;base64," + fs.readFileSync(path.join(__dirname, f)).toString("base64") + ")");
 

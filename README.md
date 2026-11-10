@@ -63,8 +63,10 @@ js/app-focus.js        focus timer
 js/app.js              event wiring, subscriptions, start-up (loaded last)
 sw.js, manifest.webmanifest, icons/   installable PWA and offline support
 fonts/                 Plus Jakarta Sans (latin + latin-ext, SIL OFL; see fonts/LICENSE.txt), served from this site so it works offline
+tools/dev-server.js    npm run dev → local preview (local-storage mode, no service worker)
+CLAUDE.md              guide for contributors and AI assistants: conventions, recipes, what is untested
 build.js               node build.js → stamps the cache version into sw.js / index.html, writes dist/planner.html (single-file build)
-tests/core.test.js     node tests/core.test.js (157 tests)
+tests/core.test.js     node tests/core.test.js (pure logic)
 tests/store.test.js    node tests/store.test.js (cloud store: limits, full backup, batched restore)
 tests/colors.test.js   node tests/colors.test.js (WCAG contrast of every colour pair in light / dark / black)
 tests/ui.test.js       node tests/ui.test.js (jsdom: boots dist/planner.html and drives the main flows; run `npm test`)

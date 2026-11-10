@@ -21,16 +21,18 @@
   const saveFired = (f) => { try { localStorage.setItem(FKEY, JSON.stringify(f)); } catch (e) { /* none */ } };
 
   const canNotify = () => typeof Notification !== "undefined";
-  function notify(title, body, tag) {
-    if (canNotify() && Notification.permission === "granted") {
-      const opts = { body: body, tag: tag, icon: "icons/icon-192.png" };
-      /* an installed app can only notify through its service worker */
-      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.ready.then((reg) => reg.showNotification(title, opts)).catch(() => { try { new Notification(title, opts); } catch (e) { App.toast(title + " · " + body); } });
-      } else { try { new Notification(title, opts); } catch (e) { App.toast(title + " · " + body); } }
-    } else {
-      App.toast(title + " · " + body);
-    }
+  const useSystem = () => canNotify() && Notification.permission === "granted";
+  function systemNotify(title, body, tag) {
+    const opts = { body: body, tag: tag, icon: "icons/icon-192.png" };
+    const plain = () => { try { new Notification(title, opts); } catch (e) { App.toast(title + " · " + body, null, 8000); } };
+    /* an installed app can only notify through its service worker */
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then((reg) => reg.showNotification(title, opts)).catch(plain);
+    else plain();
+  }
+  /* list: [{id, title, body}] — system notifications one by one, otherwise ONE in-app message (a second toast would replace the first) */
+  function notifyAll(list) {
+    if (useSystem()) list.forEach((d) => systemNotify(d.title, d.body, d.id));
+    else App.toast(list.map((d) => d.title + " · " + d.body).join("   |   "), null, 8000);
   }
 
   async function check() {
@@ -43,8 +45,9 @@
     const fired = loadFired();
     const due = GD.dueReminders({ now: now, today: today, blocks: blocks, keyTasks: keyTasks, lead: c.lead, fired: fired, kindName: (t) => App.kindOf(t.kind).name });
     if (!due.length) return;
-    due.forEach((d) => { fired[d.id] = Date.now(); notify(d.title, d.body, d.id); });
+    due.forEach((d) => { fired[d.id] = Date.now(); });
     saveFired(fired);
+    notifyAll(due);
   }
 
   function startReminders() {
@@ -80,7 +83,7 @@
     $("rmTest").onclick = async () => {
       if (canNotify() && Notification.permission === "default") { try { await Notification.requestPermission(); } catch (e) { /* ignore */ } }
       $("rmState").textContent = stateText();
-      notify("Planner", "Deneme hatırlatması", "test");
+      notifyAll([{ id: "test", title: "Planner", body: "Deneme hatırlatması" }]);
     };
   }
 

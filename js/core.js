@@ -332,14 +332,20 @@
   function gradePoint(g) { return Object.prototype.hasOwnProperty.call(GRADE_POINTS, g) ? GRADE_POINTS[g] : null; }
   function round2(x) { return Math.round(x * 100) / 100; }
 
-  /* input: {base: {cgpa, credits} | null, terms: [{courses: [{credit, grade, old, scn}]}]}
+  /* input: {base: {cgpa, credits} | null, terms: [{courses: [{name, credit, grade, old, scn}]}]}
      scenario true: a course's `scn` grade (what-if) replaces its real grade, and also fills a course without one.
+     A course with an `old` grade is a retake. If an earlier course in the list has the same name, that earlier attempt is
+     taken out of the cumulative average and the new one counts in full (its own credit). Otherwise the old attempt is
+     assumed to be inside `base`: the new grade replaces the old one there and no credit is added.
+     A term's own GPA always counts every course taken in that term.
      → {terms: [{gpa, credits}], cgpa, credits, points, open: credits of courses without a counted grade, openCount} */
+  function courseKey(name) { return fold(name || "").replace(/[^a-z0-9]/g, ""); }
   function gpaStats(input, scenario) {
     var base = input && input.base ? input.base : null;
     var baseCredits = base && +base.credits > 0 ? +base.credits : 0;
     var points = baseCredits && +base.cgpa >= 0 ? +base.cgpa * baseCredits : 0;
     var credits = baseCredits, open = 0, openCount = 0;
+    var counted = [];   /* courses in the cumulative average so far: {key, cr, gp, out} */
     var terms = ((input && input.terms) || []).map(function (t) {
       var tp = 0, tc = 0;
       (t.courses || []).forEach(function (c) {
@@ -349,9 +355,14 @@
         var gp = gradePoint(g);
         if (gp == null) { if (!GRADE_OTHER.includes(g)) { open += cr; openCount++; } return; }
         tp += cr * gp; tc += cr;
-        var old = gradePoint(c.old);
-        if (old != null) { points += cr * (gp - old); }   /* retake: replace, no new credit */
-        else { points += cr * gp; credits += cr; }
+        var key = courseKey(c.name), entry = { key: key, cr: cr, gp: gp, out: false };
+        if (gradePoint(c.old) != null) {
+          var prev = null;
+          if (key) for (var i = counted.length - 1; i >= 0; i--) { if (!counted[i].out && counted[i].key === key) { prev = counted[i]; break; } }
+          if (prev) { prev.out = true; points += cr * gp - prev.cr * prev.gp; credits += cr - prev.cr; }   /* replaces the listed attempt */
+          else { points += cr * (gp - gradePoint(c.old)); entry.out = true; }                               /* replaces one inside base */
+        } else { points += cr * gp; credits += cr; }
+        counted.push(entry);
       });
       return { gpa: tc ? tp / tc : null, credits: tc };
     });

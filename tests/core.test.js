@@ -105,6 +105,12 @@ eq("grades: CGPA replaces the old grade and adds no credit for the retake (2.86 
 eq("grades: excluded letters and zero-credit courses are left out", GD.round2(GD.gpaStats({ terms: [{ courses: [{ credit: 4, grade: "AA" }, { credit: 3, grade: "S" }, { credit: 3, grade: "W" }, { credit: 0, grade: "FF" }, { credit: 2, grade: "CC" }] }] }).cgpa), 3.33);
 eq("grades: NA counts as zero", GD.round2(GD.gpaStats({ terms: [{ courses: [{ credit: 3, grade: "AA" }, { credit: 3, grade: "NA" }] }] }).cgpa), 2);
 eq("grades: no data gives null", [GD.gpaStats({ terms: [] }).cgpa, GD.gpaStats(null).credits], [null, 0]);
+/* a retake whose first attempt is in the list (same name, even with another credit): the old attempt leaves the CGPA */
+const rt = { terms: [{ courses: [{ name: "Math119", credit: 5, grade: "DD" }, { name: "Eng101", credit: 4, grade: "CC" }] }, { courses: [{ name: "MATH 119", credit: 4, grade: "BB", old: "DD" }] }] };
+const rs = GD.gpaStats(rt, false);
+eq("grades: a listed first attempt is replaced by the retake (name match, new credit counts)", [GD.round2(rs.cgpa), rs.credits, GD.round2(rs.terms[0].gpa), GD.round2(rs.terms[1].gpa)], [2.5, 8, 1.44, 3]);
+eq("grades: a third attempt replaces the second, not the first again", GD.gpaStats({ terms: [{ courses: [{ name: "X", credit: 3, grade: "FF" }] }, { courses: [{ name: "X", credit: 3, grade: "DD", old: "FF" }] }, { courses: [{ name: "x", credit: 3, grade: "AA", old: "DD" }] }] }).credits, 3);
+eq("grades: same name without an old grade is not treated as a retake", GD.gpaStats({ terms: [{ courses: [{ name: "Seçmeli", credit: 3, grade: "AA" }, { name: "Seçmeli", credit: 3, grade: "CC" }] }] }).credits, 6);
 const sc = { terms: [{ courses: [{ credit: 3, grade: "AA" }, { credit: 3, grade: "", scn: "BB" }, { credit: 4, grade: "CC", scn: "AA" }] }] };
 eq("grades: scenario fills ungraded courses and overrides real ones", [GD.round2(GD.gpaStats(sc, false).cgpa), GD.round2(GD.gpaStats(sc, true).cgpa), GD.gpaStats(sc, false).open, GD.gpaStats(sc, true).open], [2.86, 3.7, 3, 0]);
 const na = GD.neededAverage(GD.gpaStats({ base: { cgpa: 2.5, credits: 60 }, terms: [{ courses: [{ credit: 20, grade: "" }] }] }, false), 2.7);

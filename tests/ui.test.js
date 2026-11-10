@@ -45,6 +45,7 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
 (async () => {
   await wait(300);
   eq("app booted (S and App exist)", [typeof w.eval("S"), typeof w.eval("App")], ["object", "object"]);
+  eq("the first task list has arrived (the first-run decision waits for it)", w.eval("S.tasksLoaded"), true);
 
   /* first-run welcome card */
   w.localStorage.removeItem("gunDefteri.welcome"); w.eval("App.maybeWelcome()");
@@ -151,10 +152,14 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
   if (nowMin + 6 < 24 * 60) {
     w.eval('S.store.set("days", S.TODAY, { date: S.TODAY, blocks: [{ id: "rb", s: ' + (nowMin + 5) + ', e: ' + (nowMin + 35) + ', t: "Hatırlatma dersi", c: "ders" }], note: "", skip: [] })'); await wait(100);
-    $("toast").hidden = true; await w.eval("App.check()");
-    eq("a block about to start triggers a reminder (message: no system notifications here)", [$("toast").hidden, $("toast").textContent.includes("Hatırlatma dersi")], [false, true]);
-    $("toast").hidden = true; await w.eval("App.check()");
-    eq("the same reminder is not repeated", $("toast").hidden, true);
+    /* the app also checks on its own timers (4 s after start, then every 30 s), so do not assert on which call
+       showed it: record every message and require exactly one for this block */
+    w.eval('window.__msgs = []; (function () { const t = App.toast; App.toast = function (m) { window.__msgs.push(String(m)); return t.apply(null, arguments); }; })()');
+    await w.eval("App.check()"); await wait(50);
+    eq("a block about to start triggers a reminder: shown once and recorded", [w.eval('window.__msgs.filter((m) => m.includes("Hatırlatma dersi")).length') <= 1, !!w.eval('JSON.parse(localStorage.getItem("gunDefteri.notified") || "{}")["b:" + S.TODAY + ":rb"]')], [true, true]);
+    const before = w.eval('window.__msgs.length');
+    await w.eval("App.check()"); await w.eval("App.check()"); await wait(50);
+    eq("the same reminder is not repeated", w.eval('window.__msgs.length'), before);
     w.eval('S.store.del("days", S.TODAY)'); await wait(60);
   }
   w.localStorage.removeItem("gunDefteri.notif");

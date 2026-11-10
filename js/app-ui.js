@@ -59,13 +59,13 @@
   }
 
   let toastT = null;
-  function toast(msg, undo) {
+  function toast(msg, undo, ms) {
     const t = $("toast");
     t.innerHTML = "<span>" + esc(msg) + "</span>" + (undo ? '<button type="button" id="undoBtn">Geri al</button>' : "");
     t.hidden = false;
     if (undo) $("undoBtn").onclick = () => { t.hidden = true; undo(); };
     clearTimeout(toastT);
-    toastT = setTimeout(() => { t.hidden = true; }, undo ? 6000 : 2500);
+    toastT = setTimeout(() => { t.hidden = true; }, ms || (undo ? 6000 : 2500));
   }
 
   /* ---------- pencere ---------- */
@@ -80,7 +80,9 @@
     if (f) setTimeout(() => { f.focus(); if (f.select && f.type === "text") f.select(); }, 20);
   }
   function closeModal() {
-    $("modalBg").hidden = true; $("modal").innerHTML = "";
+    const m = $("modal");
+    $("modalBg").hidden = true; m.innerHTML = "";
+    m.oninput = m.onchange = m.onclick = null;   /* a window sets these for its own content (never addEventListener: the element lives on) */
     if (S.modalOnClose) { const f = S.modalOnClose; S.modalOnClose = null; f(); }
   }
   const modalOpen = () => !$("modalBg").hidden;

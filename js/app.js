@@ -145,6 +145,7 @@
     };
     S.store.watchDoc("settings", "main", (d) => { S.cfg = GD.normalizeSettings(d); App.applyCfg(); }, App.onErr);
     S.store.watch("tasks", (rows) => {
+      S.tasksLoaded = true;
       S.tasks = rows.map((o) => ({
         id: o.id, title: o.title || "", cat: typeof o.cat === "string" && o.cat ? o.cat : S.cfg.defaultCat,
         kind: typeof o.kind === "string" && o.kind ? o.kind : "normal",
@@ -240,8 +241,13 @@
     if (S.store.mode === "firebase") App.initSync();
     App.startReminders();
     if (S.focus) App.renderFocus();
-    setTimeout(App.maybeWelcome, 1500);   /* once the first data has arrived */
-    setTimeout(App.maybeNews, 2600);      /* a returning user sees what changed (after the welcome check) */
+    firstRun(0);
+  }
+  /* A new user gets the welcome card, a returning one the list of changes. "New" means no data, so wait until the first
+     task list has arrived (on a slow connection it can take a while); after ~12 s decide with what is there. */
+  function firstRun(tries) {
+    if (!S.tasksLoaded && tries < 24) { setTimeout(() => firstRun(tries + 1), 500); return; }
+    setTimeout(() => { App.maybeWelcome(); App.maybeNews(); }, 1200);
   }
   /* the opening screen stays at least a moment (no flash on a warm start), then fades out */
   function hideSplash() {
