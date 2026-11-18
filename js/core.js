@@ -384,6 +384,11 @@
     return "AA";
   }
 
+  /* The "fit to the window" layout (the page is exactly one screen tall, panels share the height) only makes sense
+     for ordinary desktop windows. Phones are too small; a very tall window (a huge monitor, or the browser zoomed far
+     out) would stretch the panels over blank space, since the timeline's hour height has a cap. Sizes in CSS pixels. */
+  function fitsScreen(width, height) { return width >= 1100 && height >= 700 && height <= 1500; }
+
   /* Greeting for an hour of the day (0-23) */
   function greeting(hour) {
     return hour >= 5 && hour < 12 ? "Günaydın" : hour >= 12 && hour < 18 ? "İyi günler" : hour >= 18 && hour < 22 ? "İyi akşamlar" : "İyi geceler";
@@ -727,7 +732,7 @@
     daySummary: daySummary,
     toMin: toMin, fmtMin: fmtMin, durText: durText, blockError: blockError,
     recurringOn: recurringOn, blocksForDay: blocksForDay, lanes: lanes, freeSlots: freeSlots, bestFreeSlot: bestFreeSlot, plannedMinutes: plannedMinutes,
-    visibleTasks: visibleTasks, gpaStats: gpaStats, neededAverage: neededAverage, honorOf: honorOf, letterFor: letterFor, round2: round2, gradePoint: gradePoint, GRADE_LETTERS: GRADE_LETTERS, GRADE_OTHER: GRADE_OTHER, greeting: greeting, dayProgress: dayProgress, catIcon: catIcon, nextUp: nextUp, dueReminders: dueReminders, activeSeries: activeSeries, oldDoneTasks: oldDoneTasks, statsRange: statsRange, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
+    visibleTasks: visibleTasks, fitsScreen: fitsScreen, gpaStats: gpaStats, neededAverage: neededAverage, honorOf: honorOf, letterFor: letterFor, round2: round2, gradePoint: gradePoint, GRADE_LETTERS: GRADE_LETTERS, GRADE_OTHER: GRADE_OTHER, greeting: greeting, dayProgress: dayProgress, catIcon: catIcon, nextUp: nextUp, dueReminders: dueReminders, activeSeries: activeSeries, oldDoneTasks: oldDoneTasks, statsRange: statsRange, subProgress: subProgress, expandRecurringTasks: expandRecurringTasks, parseVirtualId: parseVirtualId, statusFilter: statusFilter, searchTasks: searchTasks, overdue: overdue, upcoming: upcoming, openCountByDay: openCountByDay, untilText: untilText,
     doneOn: doneOn, streak: streak, weekCount: weekCount, weekStreak: weekStreak, habitProgress: habitProgress,
     normalizeBackup: normalizeBackup,
     COLORS: COLORS, ACCENTS: ACCENTS, UPC_DAYS: UPC_DAYS, DEFAULT_SETTINGS: DEFAULT_SETTINGS,

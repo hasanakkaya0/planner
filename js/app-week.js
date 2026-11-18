@@ -6,7 +6,7 @@
   /* ---------- fit to screen (desktop) ----------
      Measures the real top edge of the timeline / grid / calendar and divides the remaining window height.
      That way the page never overflows, whatever the browser zoom or header height. */
-  const fitScreen = () => window.innerWidth >= 1100 && window.innerHeight >= 700;
+  const fitScreen = () => GD.fitsScreen(window.innerWidth, window.innerHeight);
   let wkScrolledFor = "";
   /* on desktop the page fits the window: the page doesn't scroll, panels scroll internally */
   const isFit = () => document.body.classList.contains("fit");

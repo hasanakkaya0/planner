@@ -117,6 +117,8 @@ const na = GD.neededAverage(GD.gpaStats({ base: { cgpa: 2.5, credits: 60 }, term
 eq("grades: average needed on the open credits to end on a target CGPA", [na.state, GD.round2(na.needed), GD.letterFor(na.needed)], ["possible", 3.3, "BA"]);
 eq("grades: target states", [GD.neededAverage(GD.gpaStats({ base: { cgpa: 3.9, credits: 100 }, terms: [{ courses: [{ credit: 10, grade: "" }] }] }), 3.5).state, GD.neededAverage(GD.gpaStats({ base: { cgpa: 1.5, credits: 100 }, terms: [{ courses: [{ credit: 5, grade: "" }] }] }), 3.5).state, GD.neededAverage(GD.gpaStats({ base: { cgpa: 3, credits: 10 }, terms: [{ courses: [{ credit: 3, grade: "AA" }] }] }), 3.5).state], ["reached", "impossible", "none"]);
 eq("grades: honour labels", [GD.honorOf(3.5), GD.honorOf(3.2), GD.honorOf(2.99), GD.honorOf(null)], ["Yüksek onur", "Onur", null, null]);
+/* fit-to-window layout: ordinary desktop windows only (not phones, not huge / zoomed-out viewports) */
+eq("fitsScreen", [GD.fitsScreen(1280, 720), GD.fitsScreen(1920, 1080), GD.fitsScreen(2560, 1400), GD.fitsScreen(390, 844), GD.fitsScreen(1024, 768), GD.fitsScreen(1280, 650), GD.fitsScreen(5200, 3000), GD.fitsScreen(3840, 1900)], [true, true, true, false, false, false, false, false]);
 /* greeting, day progress, category icons */
 eq("greeting by hour", [4, 5, 11, 12, 17, 18, 21, 22, 0].map(GD.greeting), ["İyi geceler", "Günaydın", "Günaydın", "İyi günler", "İyi günler", "İyi akşamlar", "İyi akşamlar", "İyi geceler", "İyi geceler"]);
 eq("dayProgress counts tasks and ticked habits", [GD.dayProgress([{ done: true }, { done: false }], [{ id: "h1" }, { id: "h2" }], { h1: true }), GD.dayProgress([], [], {})], [{ done: 2, total: 4, pct: 50 }, { done: 0, total: 0, pct: null }]);
