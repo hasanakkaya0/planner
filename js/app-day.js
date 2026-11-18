@@ -93,8 +93,10 @@
       /* the inner height of the timeline box (sized by flex) is divided across the hours */
       const box = $("tl").parentElement, cs = getComputedStyle(box);
       const avail = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 4;
-      /* at least 40px: anything smaller is unreadable; hours that don't fit scroll inside the timeline */
-      if (avail > 120) hh = Math.max(40, Math.min(84, Math.floor(avail / (GD.DAY_END - GD.DAY_START))));
+      /* at least 36px: anything smaller is unreadable; hours that don't fit scroll inside the timeline */
+      const fitted = GD.fitHourHeight(avail, GD.DAY_END - GD.DAY_START, 36, 130);
+      if (fitted) hh = fitted;
+      S.fitBoxH = box.clientHeight;   /* what refit() compares against */
     }
     $("tl").style.setProperty("--hour-h", hh + "px");
     let html = "";
@@ -138,10 +140,24 @@
 
   }
 
+  /* The hour height is measured from the room the timeline has, and that room also changes without a window resize
+     (the strip above it appears once data arrives, the browser zoom changes). refit() draws the timeline again when
+     the room differs from what the last drawing measured. Called from a ResizeObserver, after the strip changes and
+     on a slow timer (a hidden tab gets no observer callbacks). */
+  let refitT = null;
+  function refit() {
+    clearTimeout(refitT);
+    refitT = setTimeout(() => {
+      if (S.view !== "day" || !App.isFit() || S.drag || App.modalOpen()) return;
+      const box = $("tl").parentElement;
+      if (Math.abs(box.clientHeight - (S.fitBoxH || 0)) >= 3) renderTL();
+    }, 50);
+  }
+
   /* "Şimdi / Sıradaki" strip above today's timeline */
   function renderNextBar() {
     const el = $("nextBar");
-    if (S.view !== "day" || S.sel !== S.TODAY) { el.hidden = true; return; }
+    if (S.view !== "day" || S.sel !== S.TODAY) { el.hidden = true; refit(); return; }
     const blocks = App.currentBlocks();
     const n = GD.nextUp({ now: new Date(), today: S.TODAY, blocks: blocks, tasks: App.allTasks(), keyKinds: App.keyKinds() });
     const where = (b) => (b.loc ? " · " + esc(b.loc) : "");
@@ -152,9 +168,10 @@
     let side = "";
     if (n.open + n.done) side += '<span class="nb-chip">görev <b>' + n.done + "/" + (n.open + n.done) + "</b></span>";
     if (n.key) side += '<span class="nb-chip"><span class="pill k c-' + App.keyColor(n.key.t) + '">' + esc(App.keyName(n.key.t)) + "</span> " + esc(n.key.t.title) + " · " + (n.key.days === 0 ? "bugün" : n.key.days === 1 ? "yarın" : n.key.days + " gün sonra") + "</span>";
-    if (!main && !side) { el.hidden = true; return; }
+    if (!main && !side) { el.hidden = true; refit(); return; }
     el.innerHTML = (main ? '<div class="nb-main">' + main + "</div>" : "") + (side ? '<div class="nb-side">' + side + "</div>" : "");
     el.hidden = false;
+    refit();
   }
 
   function renderFreeHint() {
@@ -393,6 +410,7 @@
 
   /* shared with the other app-*.js files */
   Object.assign(App, {
+    refit,
     renderNextBar,
     renderHead,
     renderWeek,

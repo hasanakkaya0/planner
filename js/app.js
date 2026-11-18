@@ -129,6 +129,11 @@
     resizeT = setTimeout(() => { App.applyFit(); if (S.view === "week") App.renderWeekView(); else if (S.view === "month") App.renderMonthView(); else App.renderTL(); }, 150);
   });
 
+  /* the room for the timeline changes without a window resize too: see refit() in app-day.js */
+  if (typeof ResizeObserver === "function") new ResizeObserver(() => App.refit()).observe(document.querySelector(".tl-scroll"));
+  window.addEventListener("load", () => App.refit());
+  setInterval(() => App.refit(), 1500);
+
   /* midnight rollover and the "now" line */
   setInterval(() => {
     const nk = GD.key(new Date());

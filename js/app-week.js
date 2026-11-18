@@ -74,7 +74,7 @@
     S.weekHH = WK; S.weekDaysCache = days;
     if (!fitted && S.view === "week" && isFit()) {
       const col = $("wkGrid").querySelector(".wk-col"), panel = $("wkGrid").parentElement;
-      const fit = col ? Math.max(34, Math.min(84, Math.floor((panel.getBoundingClientRect().bottom - col.getBoundingClientRect().top - 2) / (GD.DAY_END - GD.DAY_START)))) : WK;
+      const fit = col ? (GD.fitHourHeight(panel.getBoundingClientRect().bottom - col.getBoundingClientRect().top - 2, GD.DAY_END - GD.DAY_START, 34, 130) || WK) : WK;
       lastWK = fit;
       if (fit !== WK) return renderWeekView(fit);
       /* if it doesn't fit, the grid scrolls internally: bring it to the current hour / 08:00 once */

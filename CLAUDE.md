@@ -192,7 +192,13 @@ Do not enter credentials or create accounts. Ask Hasan to try it and tell you wh
 - `app-settings.js` holds too much (theme, palettes, size, backup, the settings window). Splitting it is fair game,
   with Hasan's go-ahead.
 - Drag and drop has no automated test at all.
-- The "fit to window" layout (`GD.fitsScreen`) is limited to heights of 1500 CSS px: on a very tall window or a far zoomed-out browser the page keeps its natural height (a stretched page left a big blank panel). Deep focus (`js/app-deep.js`) uses the Fullscreen and Wake Lock APIs only when present; neither exists on iPhone.
+- The "fit to window" layout (`GD.fitsScreen`: widths from 1100, heights 700 to 2400 CSS px) divides the height over the
+  hours of the day (`GD.fitHourHeight`, 36 to 130 px per hour). The room for the timeline changes without a window resize
+  (the "Sıradaki" strip and the greeting appear when data arrives, browser zoom), so `App.refit()` (app-day.js) redraws it
+  when the measured room differs; it is called from a ResizeObserver, after the strip changes and on a 1.5 s timer,
+  because a hidden tab gets no observer callbacks. When you add something tall above the timeline, measure it: open the
+  dev server at 1920x940, 2560x1420 and 2844x1578 and read `.tl-scroll` (scrollHeight - clientHeight must be 0 on the
+  two larger ones). On a 940 px tall window the timeline scrolls inside by design (18 rows would be unreadable). Deep focus (`js/app-deep.js`) uses the Fullscreen and Wake Lock APIs only when present; neither exists on iPhone.
 - `css/style.css` is append-ordered: later blocks override earlier ones on purpose. Search before adding a rule.
 
 

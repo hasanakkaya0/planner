@@ -1306,3 +1306,11 @@ ul.news li p{margin:4px 0 8px;font-size:calc(13.5px * var(--fs,1));line-height:1
 .fp-deep{margin:2px 0 4px;font-size:calc(12.5px * var(--fs,1))}
 .toast{z-index:160}
 .focus .btn-ghost[data-f="deep"]{min-width:34px;padding:0 8px}
+
+/* ---------- the fitted desktop page: a leaner top, so the timeline gets more of the window ---------- */
+body.fit .greet{flex:0 1 auto;margin:0 0 0 6px}
+body.fit .day-main .week{margin-bottom:10px;padding:4px}
+body.fit .wd{padding:4px 2px 5px}
+body.fit .nextbar{margin-bottom:10px;padding:6px 12px}
+body.fit #freeHint{padding-block:6px}
+body.fit .foot{padding-block:4px 6px}
