@@ -295,6 +295,24 @@ const view = (v) => d.querySelector('[data-view="' + v + '"]').click();
   eq("stats period switch redraws", [$("modal").querySelectorAll(".bars i").length, w.eval("S.statsDays")], [14, 7]);
   key("Escape"); await wait(40);
 
+  /* deep focus: the full-screen view of the running timer */
+  w.eval('App.startFocus({ title: "Derin test", cat: "ders" })'); await wait(80);
+  eq("a running timer has a button for the deep view on the small widget", !!d.querySelector('#focus [data-f="deep"]'), true);
+  w.eval("App.enterDeep()"); await wait(80);
+  eq("deep focus opens: time, task, a ring, and the page behind is covered", [$("deepFocus").hidden, /^\d\d:\d\d$/.test($("dfTime").textContent), $("deepFocus").textContent.includes("Derin test"), d.body.classList.contains("deep-on"), !!$("deepFocus").querySelector(".d-ring")], [false, true, true, true, true]);
+  $("deepFocus").querySelector('[data-d="pause"]').click(); await wait(80);
+  eq("Duraklat pauses the timer from the deep view and the button turns into Devam", [w.eval("S.focus.paused != null"), $("deepFocus").textContent.includes("Devam")], [true, true]);
+  d.dispatchEvent(new w.KeyboardEvent("keydown", { key: " ", bubbles: true })); await wait(60);
+  eq("Space resumes", w.eval("S.focus.paused == null"), true);
+  d.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true })); await wait(60);
+  eq("Esc shrinks the view and the timer keeps running", [$("deepFocus").hidden, w.eval("!!S.focus && S.focus.phase === 'focus'"), d.body.classList.contains("deep-on")], [true, true, false]);
+  d.dispatchEvent(new w.KeyboardEvent("keydown", { key: "d", bubbles: true })); await wait(60);
+  eq("the D key brings it back", $("deepFocus").hidden, false);
+  $("deepFocus").querySelector('[data-d="stop"]').click(); await wait(80);
+  eq("Bitir stops the timer and the deep view closes by itself", [w.eval("S.focus"), $("deepFocus").hidden, w.eval("S.deep")], [null, true, false]);
+  w.eval("App.enterDeep()"); await wait(40);
+  eq("without a running timer the deep view does not open", $("deepFocus").hidden, true);
+
   /* notes and sub-tasks */
   [...$("taskList").querySelectorAll("li.task")].find((l) => l.textContent.includes("Test görevi")).querySelector(".tx").click(); await wait(80);
   $("mNote").value = "Hocaya mail at";

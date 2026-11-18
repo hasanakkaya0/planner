@@ -192,6 +192,7 @@ Do not enter credentials or create accounts. Ask Hasan to try it and tell you wh
 - `app-settings.js` holds too much (theme, palettes, size, backup, the settings window). Splitting it is fair game,
   with Hasan's go-ahead.
 - Drag and drop has no automated test at all.
+- The "fit to window" layout (`GD.fitsScreen`) is limited to heights of 1500 CSS px: on a very tall window or a far zoomed-out browser the page keeps its natural height (a stretched page left a big blank panel). Deep focus (`js/app-deep.js`) uses the Fullscreen and Wake Lock APIs only when present; neither exists on iPhone.
 - `css/style.css` is append-ordered: later blocks override earlier ones on purpose. Search before adding a rule.
 
 

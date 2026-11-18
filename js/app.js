@@ -91,6 +91,11 @@
   $("setBtn").onclick = () => App.openSettings();
 
   document.addEventListener("keydown", (e) => {
+    if (S.deep) {   /* deep focus: Esc shrinks it, Space pauses; nothing else reaches the page behind it */
+      if (e.key === "Escape") { e.preventDefault(); App.exitDeep(); }
+      else if (e.key === " " && !(e.target.closest && e.target.closest("button"))) { e.preventDefault(); App.pauseFocus(); }
+      return;
+    }
     if (App.modalOpen()) { if (e.key === "Escape") { e.preventDefault(); App.closeModal(); } return; }
     const tag = (e.target.tagName || "").toLowerCase();
     if (tag === "input" || tag === "textarea" || tag === "select") { if (e.key === "Escape") e.target.blur(); return; }
@@ -105,6 +110,7 @@
     else if (key === "k") App.toggleTheme();
     else if (key === "i") App.openStats();
     else if (e.key === "/") { e.preventDefault(); $("qa").focus(); }
+    else if (key === "d") { e.preventDefault(); App.enterDeep(); }
     else if (key === "o") { e.preventDefault(); if (!S.focus) App.openFocusPop(); else if (S.focus.phase === "done") App.stopFocus(); else App.pauseFocus(); }
     else if (e.key === ",") App.openSettings();
     else if (key === "n") { e.preventDefault(); if (S.view !== "day") App.setView("day"); setTab("gorevler"); $("tTitle").focus(); }

@@ -19,6 +19,7 @@ and can be added to the iPhone home screen like a native app.
 - **Polish:** category icons and durations on timeline blocks, a progress fill on the block in progress, a progress ring and a greeting next to the date, tick / modal / view transitions (all off with reduced motion).
 - **Today strip:** above today's timeline, "Şimdi" (block in progress, time left) or "Sıradaki" (next block, time until it), the day's task count and the next exam / deadline. The block in progress is outlined and the now line shows the time.
 - **Swipe on a phone:** right = done, left = move to tomorrow (on a mouse the same actions are the row buttons, now always faintly visible).
+- **Deep focus:** the running focus timer as a full-screen view — a big ring and countdown, the task, a few buttons, nothing else. Start it from the focus pop-over ("Derin odak"), the ⤢ button on the small timer, or the `D` key. `Esc` shrinks it (the timer keeps running), `Space` pauses; the page goes full screen and the screen stays awake where the browser allows it.
 - **Reminders** (Settings → Hatırlatmalar…): a class / block is announced a few minutes before it starts; exams and deadlines the morning of the day (08:00) and the evening before (20:00). Works while the app (or its tab) is open: it checks every ~30 s and uses a system notification when permitted, otherwise an in-app message. The choice is per device.
 - **End of term** (Settings → Dönem sonu…): end the weekly classes on a chosen day and clear old finished tasks (a backup has to be downloaded first). Past days stay as they were.
 - **Grades and averages** (graduation-cap button): ODTÜ letter system (AA 4.00 … FF 0, NA 0; S / U / EX / W and zero-credit courses are left out). A previous total (CGPA + credits), term cards with courses (credit, grade, old grade for a retake), the GPA of each term, the CGPA, a what-if "scenario" grade per course, a target CGPA with the average the ungraded credits must reach, and honour labels. Old terms fold away (the latest stays open), and a "Hızlı hesap" tab calculates anybody else's grades (a friend's): a fixed "previous terms" box (CGPA + credits) and one list of this term's courses, no terms to manage, nothing saved, your own transcript untouched. A retaken course's new grade replaces the old one and its credit is not added again.
@@ -37,7 +38,7 @@ and can be added to the iPhone home screen like a native app.
 ## Keyboard
 
 `/` quick add · `G` `H` `A` day / week / month · `←` `→` previous / next · `T` today · `N` new task · `B` new block ·
-`O` start / pause focus · `I` statistics · `K` theme · `,` settings · `Esc` close
+`O` start / pause focus · `D` deep focus · `I` statistics · `K` theme · `,` settings · `Esc` close
 
 ## Tech
 
@@ -59,6 +60,7 @@ js/app-month.js        month view and range navigation
 js/app-settings.js     theme, backup (export / import), settings window
 js/app-quickadd.js     quick add bar
 js/app-dnd.js          drag and drop on the timeline
+js/app-deep.js         deep focus (full-screen timer view)
 js/app-focus.js        focus timer
 js/app.js              event wiring, subscriptions, start-up (loaded last)
 sw.js, manifest.webmanifest, icons/   installable PWA and offline support

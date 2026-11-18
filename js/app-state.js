@@ -51,5 +51,6 @@ S.subsOpen = {};
 S.justDone = null;   /* {id, ts}: the thing ticked a moment ago (for the tick animation) */
 S.focusRows = [];
 S.statsDays = 30;
+S.deep = false;   /* the full-screen focus view is open */
 S.gradeBase = null;   /* {cgpa, credits} of the "previous total" */
 S.gradeTerms = [];    /* [{id, name, courses: [{id, name, credit, grade, old, scn}]}] */

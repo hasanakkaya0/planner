@@ -10,6 +10,12 @@
   /* newest first */
   const NEWS = [
     {
+      id: "2026-11-18", date: "18 Kasım 2026", title: "Derin odak",
+      items: [
+        { t: "Derin odak ekranı", d: "Odak sayacını tam ekran, sadece süre ve görevle çalıştır: büyük bir halka ve geri sayım, başka hiçbir şey yok. Esc ile küçültürsün, Boşluk ile duraklatırsın. Ekran uyumaz.", w: "Odak → “Derin odak” kutusu, ya da çalışan sayaçta ⤢ / D tuşu", open: "focus", b: "Odağı başlat" }
+      ]
+    },
+    {
       id: "2026-11", date: "Kasım 2026", title: "Büyük güncelleme",
       items: [
         { t: "Renk paletleri ve temalar", d: "Mandalina, Sakız, Akuamarin ve gözü yormayan Sakin paleti. Hepsinin açık ve koyu hâli var; bir de tam siyah (OLED) tema. Yazı boyutunu ve yerleşimi de değiştirebilirsin.", w: "Ayarlar → Görünüm", open: "settings", b: "Paletlere bak" },
@@ -32,7 +38,7 @@
   }
 
   const OPENERS = {
-    settings: () => App.openSettings(), grades: () => App.openGrades(), stats: () => App.openStats(), remind: () => App.openReminders()
+    focus: () => App.openFocusPop(), settings: () => App.openSettings(), grades: () => App.openGrades(), stats: () => App.openStats(), remind: () => App.openReminders()
   };
 
   /* all = true: the whole list (from Settings); otherwise only what this device has not seen yet */

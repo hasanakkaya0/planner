@@ -81,6 +81,7 @@
   function renderFocus() {
     const el = $("focus");
     renderFocusBtn();
+    App.renderDeep();   /* the full-screen view (no-op when closed; closes itself when the timer is gone) */
     if (!S.focus) { el.hidden = true; document.title = BASE_TITLE; return; }
     const left = fLeft(), mm = Math.floor(left / 60000), ss = Math.floor(left / 1000) % 60;
     const pct = S.focus.phase === "done" ? 100 : Math.round((1 - left / (S.focus.mins * 60000)) * 100);
@@ -95,7 +96,7 @@
       '<div class="f-bar"><b style="width:' + Math.max(0, Math.min(100, pct)) + '%"></b></div>' +
       '<div class="f-btns">' + (S.focus.phase === "done"
         ? '<button type="button" class="btn" data-f="again">Yeni odak</button><button type="button" class="btn-ghost" data-f="stop">Kapat</button>'
-        : '<button type="button" class="btn-ghost" data-f="pause">' + (paused ? "Devam" : "Duraklat") + "</button>" +
+        : '<button type="button" class="btn-ghost" data-f="deep" title="Derin odak: tam ekran (D)">⤢</button><button type="button" class="btn-ghost" data-f="pause">' + (paused ? "Devam" : "Duraklat") + "</button>" +
           (S.focus.phase === "break" ? '<button type="button" class="btn-ghost" data-f="again">Molayı geç</button>' : "") +
           '<button type="button" class="btn-ghost" data-f="stop">' + (S.focus.phase === "focus" ? "Bitir" : "Kapat") + "</button>") + "</div>";
     document.title = S.focus.phase === "done" ? "Mola bitti — Planner" : time + " · " + label + " — Planner";
@@ -104,6 +105,7 @@
     const b = e.target.closest("[data-f]"); if (!b || !S.focus) return;
     const a = b.dataset.f;
     if (a === "pause") pauseFocus();
+    else if (a === "deep") App.enterDeep();
     else if (a === "stop") stopFocus();
     else if (a === "again") { const f = S.focus; startFocus({ title: f.title, cat: f.cat, taskId: f.taskId }); }
   });
@@ -113,6 +115,7 @@
     fpMins = S.cfg.focusMins;
     $("fpMins").innerHTML = GD.FOCUS_OPTS.map((n) => '<button type="button" class="chip" data-m="' + n + '" aria-pressed="' + (n === fpMins) + '">' + n + "</button>").join("");
     $("fpCat").innerHTML = '<option value="">Kategorisiz</option>' + S.cfg.cats.map((c) => App.opt(c.id, c.name, "")).join("");
+    try { $("fpDeep").checked = localStorage.getItem("gunDefteri.deepOnStart") === "1"; } catch (e) { /* none */ }
     $("focusPop").hidden = false; $("focusBtn").setAttribute("aria-expanded", "true");
     setTimeout(() => $("fpTitle").focus(), 20);
   }
@@ -121,6 +124,8 @@
     closeFocusPop();
     startFocus({ title: $("fpTitle").value.trim() || "Serbest odak", cat: $("fpCat").value || null, mins: fpMins });
     $("fpTitle").value = "";
+    try { localStorage.setItem("gunDefteri.deepOnStart", $("fpDeep").checked ? "1" : "0"); } catch (e) { /* none */ }
+    if ($("fpDeep").checked) App.enterDeep();
   }
   $("focusBtn").addEventListener("click", (e) => {
     e.stopPropagation();
@@ -147,6 +152,7 @@
       phaseEnd(true);
     }
     runFocus(); renderFocus();
+    try { if (localStorage.getItem("gunDefteri.deep") === "1") App.enterDeep(true); } catch (e) { /* none */ }   /* the full-screen view was open before the reload */
   }
 
   /* shared with the other app-*.js files */
